@@ -8,7 +8,16 @@ final class ValidationFailure extends Failure {
 }
 
 final class AuthFailure extends Failure {
-  const AuthFailure(super.message);
+  const AuthFailure(this.code, super.message);
+
+  final AuthFailureCode code;
+}
+
+enum AuthFailureCode {
+  incorrectCode,
+  unknownNumber,
+  unverifiedNumber,
+  registrationIncomplete,
 }
 
 final class StorageFailure extends Failure {
@@ -18,6 +27,15 @@ final class StorageFailure extends Failure {
 sealed class Result<T> {
   const Result();
   R fold<R>(R Function(T value) success, R Function(Failure failure) error);
+}
+
+class ResultException implements Exception {
+  const ResultException(this.failure);
+
+  final Failure failure;
+
+  @override
+  String toString() => failure.message;
 }
 
 final class Success<T> extends Result<T> {

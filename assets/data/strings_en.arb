@@ -1,1 +1,176 @@
-{"@@locale":"en","appTitle":"J’Donuts","continueLabel":"Continue","phoneLabel":"Phone number","rewardsLabel":"Rewards","homeLabel":"Home","welcomeLabel":"Welcome to the world of J’Donuts","exploreLabel":"Let’s explore"}
+{
+  "@@locale": "en",
+  "appTitle": "J’Donuts",
+  "continueLabel": "Continue",
+  "phoneLabel": "Phone number",
+  "rewardsLabel": "Rewards",
+  "homeLabel": "Home",
+  "welcomeLabel": "Welcome to the world of J’Donuts",
+  "exploreLabel": "Let’s explore",
+  "onboardingHeadline": "Round food for every mood",
+  "getStarted": "LET’S GET STARTED",
+  "loginLink": "Already have an account? Log in",
+  "googleLabel": "Google",
+  "appleLabel": "Apple",
+  "facebookLabel": "Facebook",
+  "termsLabel": "Terms of Use",
+  "privacyLabel": "Privacy Policy",
+  "welcomeTitle": "Welcome to the world of J’Donuts",
+  "exploreButton": "LET’S EXPLORE",
+  "settingsTitle": "Settings",
+  "logoutLabel": "Log out",
+  "phoneRegisterTitle": "What’s your phone number?",
+  "phoneLoginTitle": "Log in",
+  "phoneDescription": "We’ll send you a code to verify your number.",
+  "phoneInvalid": "Enter a valid Myanmar mobile number.",
+  "continueButton": "CONTINUE",
+  "otpTitle": "Verify number",
+  "otpDescription": "Enter the 6-digit code sent to +95 {phone}",
+  "otpInvalid": "Enter all 6 digits.",
+  "otpIncorrect": "That code is incorrect.",
+  "otpLocked": "Too many attempts. Resend the code when the timer ends.",
+  "unknownNumber": "This number is new. Register to continue.",
+  "registerInstead": "Register with this number",
+  "resendCountdown": "Resend code in {minutes}:{seconds}",
+  "resendPrompt": "Didn’t receive a code?",
+  "resendButton": "Resend code",
+  "demoCode": "Demo verification code: 123456",
+  "nameTitle": "What’s your name?",
+  "firstNameLabel": "First name",
+  "lastNameLabel": "Last name (optional)",
+  "firstNameRequired": "First name is required.",
+  "invalidName": "Use up to 50 letters and spaces.",
+  "birthTitle": "When’s your birthday?",
+  "ageRequirement": "You must be 13 or older to join.",
+  "selectBirthDate": "Select date of birth",
+  "invalidBirthDate": "Choose a real calendar date.",
+  "birthDateRequired": "Choose your date of birth.",
+  "futureBirthDate": "Date cannot be in the future.",
+  "underage": "You must be at least {age} years old.",
+  "homeLoadError": "Couldn’t load your home",
+  "productUnavailable": "Product unavailable",
+  "productNotFound": "Product not found",
+  "retryLabel": "Retry",
+  "offlineNotice": "You’re offline — showing saved items",
+  "comingSoon": "This section is coming soon.",
+  "addToCart": "ADD TO CART",
+  "addedToCart": "Added to cart",
+  "addedLabel": "ADDED",
+  "whatsThis": "What’s this?",
+  "totalPoints": "Total points",
+  "eatMoreEarnMore": "Eat more earn more",
+  "giftLabel": "Gift",
+  "rewardsBadge": "Rewards",
+  "silverTier": "Silver",
+  "goldTier": "Gold",
+  "platinumTier": "Platinum",
+  "currentTier": "You’re here now",
+  "pointsRemaining": "{points} pts Remaining to become Gold",
+  "futureTier": "You’ll be here soon",
+  "earnLabel": "EARN",
+  "earnPoints": "{points} pts",
+  "giftChallenge": "Gift a treat to a friend",
+  "notificationCount": "{count}",
+  "shopsNear": "There are {count} J’Donut shops near you",
+  "socialPlaceholder": "{feature} is not connected in this demo.",
+  "@otpDescription": {
+    "placeholders": {
+      "phone": {}
+    }
+  },
+  "@resendCountdown": {
+    "placeholders": {
+      "minutes": {},
+      "seconds": {}
+    }
+  },
+  "@underage": {
+    "placeholders": {
+      "age": {}
+    }
+  },
+  "@pointsRemaining": {
+    "placeholders": {
+      "points": {}
+    }
+  },
+  "@earnPoints": {
+    "placeholders": {
+      "points": {}
+    }
+  },
+  "@notificationCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@shopsNear": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@socialPlaceholder": {
+    "placeholders": {
+      "feature": {}
+    }
+  },
+  "emptyProducts": "No items yet",
+  "newBadge": "New",
+  "sectionsUnavailable": "This section is temporarily unavailable.",
+  "offersLabel": "Offer",
+  "orderLabel": "Order",
+  "profileLabel": "Profile",
+  "newShopLabel": "New shop",
+  "discountLabel": "{percent}% off",
+  "phoneHint": "Myanmar mobile number",
+  "otpResendInProgress": "Sending a new code…",
+  "productCodeLabel": "Product code",
+  "cartTotal": "{action} · {total}",
+  "challengeCount": "{progress}/{target}",
+  "tierProgress": "Progress to {tier}",
+  "@discountLabel": {
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "@cartTotal": {
+    "placeholders": {
+      "action": {},
+      "total": {}
+    }
+  },
+  "@challengeCount": {
+    "placeholders": {
+      "progress": {},
+      "target": {}
+    }
+  },
+  "@tierProgress": {
+    "placeholders": {
+      "tier": {}
+    }
+  },
+  "rewardsTitle": "J’ Donuts Rewards",
+  "memberTierLabel": "{tier} member",
+  "homeGoldProgress": "{points} points left to become Gold Member",
+  "verifyButton": "VERIFY",
+  "genericError": "Something went wrong. Please try again.",
+  "rewardsUnavailable": "Rewards are unavailable",
+  "earnedLabel": "EARNED",
+  "pointsClaimed": "Challenge reward claimed: {points} points",
+  "@pointsClaimed": {
+    "placeholders": {
+      "points": {}
+    }
+  },
+  "@memberTierLabel": {
+    "placeholders": {
+      "tier": {}
+    }
+  },
+  "@homeGoldProgress": {
+    "placeholders": {
+      "points": {}
+    }
+  }
+}
