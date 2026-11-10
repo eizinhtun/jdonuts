@@ -9,7 +9,12 @@ import '../features/auth/data/local_auth_repository.dart';
 import '../features/auth/domain/auth_repository.dart';
 import '../features/auth/presentation/auth_draft.dart';
 import '../features/home/data/local_data_repository.dart';
+import '../features/home/domain/home_repository.dart';
 import '../features/home/domain/models.dart';
+import '../features/product/data/local_product_repository.dart';
+import '../features/product/domain/product_repository.dart';
+import '../features/rewards/data/local_rewards_repository.dart';
+import '../features/rewards/domain/rewards_repository.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   final database = AppDatabase();
@@ -27,14 +32,45 @@ final authRepositoryProvider = Provider<AuthRepository>(
     accountStore: DriftAuthAccountStore(ref.watch(appDatabaseProvider)),
   ),
 );
-final dataRepositoryProvider = Provider<LocalDataRepository>(
+final dataRepositoryProvider = Provider<HomeRepository>(
   (ref) => DriftDataRepository(ref.watch(appDatabaseProvider)),
+);
+final productRepositoryProvider = Provider<ProductRepository>(
+  (ref) => LocalProductRepository(ref.watch(dataRepositoryProvider)),
+);
+final rewardsRepositoryProvider = Provider<RewardsRepository>(
+  (ref) => LocalRewardsRepository(ref.watch(dataRepositoryProvider)),
 );
 final appDataProvider = FutureProvider<AppData>(
   (ref) async => (await ref.watch(dataRepositoryProvider).load()).fold(
     (data) => data,
     (failure) => throw ResultException(failure),
   ),
+  retry: (_, _) => null,
+);
+final sectionProductsProvider = FutureProvider.family<List<Product>, String>(
+  (ref, sectionId) async =>
+      (await ref.watch(dataRepositoryProvider).loadSectionProducts(sectionId))
+          .fold(
+            (products) => products,
+            (failure) => throw ResultException(failure),
+          ),
+  retry: (_, _) => null,
+);
+final productProvider = FutureProvider.family<Product?, String>(
+  (ref, productId) async =>
+      (await ref.watch(productRepositoryProvider).findById(productId)).fold(
+        (product) => product,
+        (failure) => throw ResultException(failure),
+      ),
+  retry: (_, _) => null,
+);
+final rewardsDataProvider = FutureProvider<RewardsSnapshot>(
+  (ref) async => (await ref.watch(rewardsRepositoryProvider).load()).fold(
+    (snapshot) => snapshot,
+    (failure) => throw ResultException(failure),
+  ),
+  retry: (_, _) => null,
 );
 final sessionProvider = FutureProvider<bool>(
   (ref) => ref.watch(authRepositoryProvider).hasSession(),

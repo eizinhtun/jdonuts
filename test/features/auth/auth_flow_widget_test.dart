@@ -14,16 +14,171 @@ import 'package:jdonuts/features/auth/presentation/widgets/primary_button.dart';
 import 'package:jdonuts/main.dart';
 
 void main() {
+  testWidgets('each authentication request ignores a second submit tap', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    Completer<void>? requestGate;
+    final repository = _CountingAuthRepository((_) async {
+      final gate = requestGate;
+      if (gate != null) await gate.future;
+    });
+    await tester.pumpWidget(_testApp(repository));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('LET’S GET STARTED'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '9254135592');
+    await tester.pump();
+
+    requestGate = Completer<void>();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pump();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pump();
+    expect(repository.otpRequests, 1);
+    requestGate.complete();
+    requestGate = null;
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '123456');
+    await tester.pump();
+    requestGate = Completer<void>();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pump();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pump();
+    expect(repository.otpVerifications, 1);
+    requestGate.complete();
+    requestGate = null;
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'May');
+    await tester.pump();
+    requestGate = Completer<void>();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pump();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pump();
+    expect(repository.profileSaves, 1);
+    requestGate.complete();
+    requestGate = null;
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Select date of birth'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    requestGate = Completer<void>();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pump();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pump();
+    expect(repository.registrations, 1);
+    requestGate.complete();
+    requestGate = null;
+    await tester.pumpAndSettle();
+
+    expect(find.text('Welcome to the world of J’Donuts'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('OTP paste distributes digits and backspace moves left', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    final repository = LocalAuthRepository(
+      delay: (_) async {},
+      registered: {},
+      sessionStore: MemoryAuthSessionStore(),
+    );
+    await tester.pumpWidget(_testApp(repository));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('LET’S GET STARTED'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '9254135592');
+    await tester.pump();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.first, '123456');
+    await tester.pump();
+    final boxes = tester.widgetList<TextField>(fields).toList();
+    expect(boxes.map((field) => field.controller!.text).join(), '123456');
+    expect(boxes.first.autofillHints, contains(AutofillHints.oneTimeCode));
+    expect(boxes.last.focusNode!.hasFocus, isTrue);
+
+    await tester.enterText(fields.last, '');
+    await tester.pump();
+    expect(boxes.map((field) => field.controller!.text).join(), '12345');
+    expect(boxes[4].focusNode!.hasFocus, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('registration keeps values on a compact screen at 1.3 scale', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 667);
+    tester.view.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final repository = LocalAuthRepository(
+      delay: (_) async {},
+      registered: {},
+      sessionStore: MemoryAuthSessionStore(),
+    );
+    await tester.pumpWidget(_testApp(repository));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('LET’S GET STARTED'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '9254135592');
+    await tester.pump();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '123456');
+    await tester.pump();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(find.text('What’s your name?'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, 'May');
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter your phone number'), findsOneWidget);
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(find.text('What’s your name?'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller?.text,
+      'May',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a pending phone submission cannot be started twice', (
     tester,
   ) async {
+    _disableMotion(tester);
     final requestGate = Completer<void>();
     final repository = _DelayedOtpRepository(requestGate.future);
     await tester.pumpWidget(_testApp(repository));
     await tester.pumpAndSettle();
     await tester.tap(find.text('LET’S GET STARTED'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, '9254135592');
+    await tester.enterText(find.byType(TextField).first, '0 925-413-5592');
     await tester.pump();
 
     await tester.tap(find.byType(PrimaryButton));
@@ -35,11 +190,16 @@ void main() {
     requestGate.complete();
     await tester.pumpAndSettle();
     expect(find.text('VERIFY'), findsOneWidget);
+    expect(
+      find.text('Enter the 6-digit code sent to +95 9254135592'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('third wrong code locks entry until the five-minute resend', (
     tester,
   ) async {
+    _disableMotion(tester);
     var now = DateTime(2026, 2, 1, 12);
     final repository = LocalAuthRepository(
       delay: (_) async {},
@@ -65,6 +225,12 @@ void main() {
     expect(
       find.text('Too many attempts. Resend the code when the timer ends.'),
       findsOneWidget,
+    );
+    expect(
+      tester
+          .widgetList<TextField>(find.byType(TextField))
+          .every((field) => field.enabled == false),
+      isTrue,
     );
     expect(
       tester
@@ -121,4 +287,50 @@ class _DelayedOtpRepository extends LocalAuthRepository {
     otpRequests++;
     return super.requestOtp(phone);
   }
+}
+
+class _CountingAuthRepository extends LocalAuthRepository {
+  _CountingAuthRepository(Future<void> Function(Duration) delay)
+    : super(
+        registered: {},
+        sessionStore: MemoryAuthSessionStore(),
+        delay: delay,
+      );
+
+  int otpRequests = 0;
+  int otpVerifications = 0;
+  int profileSaves = 0;
+  int registrations = 0;
+
+  @override
+  Future<Result<bool>> requestOtp(String phone) {
+    otpRequests++;
+    return super.requestOtp(phone);
+  }
+
+  @override
+  Future<Result<bool>> verifyOtp(String phone, String code) {
+    otpVerifications++;
+    return super.verifyOtp(phone, code);
+  }
+
+  @override
+  Future<Result<bool>> saveRegistrationProfile(AuthUser user) {
+    profileSaves++;
+    return super.saveRegistrationProfile(user);
+  }
+
+  @override
+  Future<Result<AuthUser>> register(AuthUser user) {
+    registrations++;
+    return super.register(user);
+  }
+}
+
+void _disableMotion(WidgetTester tester) {
+  tester.view.platformDispatcher.accessibilityFeaturesTestValue =
+      const FakeAccessibilityFeatures(disableAnimations: true);
+  addTearDown(
+    tester.view.platformDispatcher.clearAccessibilityFeaturesTestValue,
+  );
 }

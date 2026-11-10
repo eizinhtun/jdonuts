@@ -1,49 +1,64 @@
-# J’Donuts Code Test Requirements
+# J’Donuts Code Test — Verified Requirements Audit
 
-Audit of the 15-page brief and reference designs. The source PDF and its screenshots stay outside this repository.
+The attached 15-page Madivizion brief and its screen designs are the requirements source. The PDF describes **10 design screens** and a **9-screen flow**; “Name (empty)” and “Name (filled)” are two states of the same screen. The PDF and its client screenshots are intentionally kept outside this repository. No `AGENTS.md` file was present in the project or its parent directories during this audit.
 
-Status: **Done** means implemented and covered by a completed relevant check; **Implemented** means source is present but still awaits its platform/integration check; **Partial** means intentionally limited as described; **Blocked** means the local environment did not permit verification.
+Statuses mean: **Pass** = implemented and supported by a completed check; **Partial** = implemented with a stated test, scope, or visual gap; **Fail** = known missing mandatory behavior; **Unverified** = not checked in this environment.
 
-## Project foundation
+## Mandatory requirements
 
-- [x] Flutter project kept in place; Flutter 3.47.5 stable / Dart 3.13.4. Riverpod 3, go_router, Drift, SQLite, secure storage and gen-l10n are in use.
-- [x] Feature-first `auth`, `home`, `product`, `rewards`; presentation/data/domain separation; domain imports no Flutter libraries. Typed `Result` / `Failure`; immutable feature models.
-- [x] Riverpod providers own repository, database, connectivity, router, session and draft dependencies. go_router has an auth redirect guard and `/product/:id`.
-- [x] Theme and motion tokens centralized; English ARB/generated localization. Drift schema has a version number and migration hook.
+| Requirement | Status | Code evidence | Verification |
+|---|---|---|---|
+| Current stable Flutter/Dart versions documented | Pass | `README.md`; `pubspec.lock` | `flutter --version` → Flutter 3.47.5 stable, Dart 3.13.4; `dart --version` → 3.13.4. |
+| Feature-first clean layers for auth, home, product, rewards; Flutter-free domain | Pass | `lib/features/{auth,home,product,rewards}/{presentation,domain,data}/`; product/rewards repository adapters | `flutter analyze`; source inspection of all `*/domain/*.dart` imports. Shared immutable catalog entities remain in `home/domain/models.dart`; product and rewards adapters depend on the `HomeRepository` contract. |
+| Riverpod DI/state, go_router guard, `/product/:id` | Pass | `lib/app/providers.dart`, `lib/app/router.dart` | Auth, welcome, product routes exercised in widget and device integration tests. |
+| Drift/SQLite storage with versioned migration | Pass | `lib/core/storage/app_database.dart` (schema v2) | `test/features/home/local_data_repository_test.dart`: initial seed and v1→v2 member-image migration. |
+| Typed immutable domain models and `Result`/`Failure` | Pass | `lib/core/result/result.dart`; feature domain models and repository interfaces | Repository, storage, network and auth tests assert typed success/error behavior. |
+| Auth fake repository, replaceable contract, ~1 s latency, local user store | Pass | `lib/features/auth/domain/auth_repository.dart`, `lib/features/auth/data/local_auth_repository.dart` | `test/features/auth/auth_repository_test.dart` verifies injected one-second delay, local registration and returning/unknown users. |
+| Registration and returning-login routes; unknown number offers registration | Pass | `lib/features/auth/presentation/auth_flow.dart`, `lib/app/router.dart` | `test/widget_test.dart`; `integration_test/registration_to_product_test.dart` covers registration. |
+| Secure session restore and Settings logout | Pass | `lib/features/auth/data/auth_session_store.dart`, `lib/features/auth/data/auth_account_store.dart`, `lib/features/auth/presentation/entry_screens.dart` | Auth persistence test and integration test recreate app/provider scope; widget test logs out. |
+| Phone normalization and validation; invalid error after blur | Pass | `lib/features/auth/domain/validators.dart`, `lib/features/auth/presentation/auth_flow.dart` | Unit boundaries cover whitespace/dashes/one leading zero and length/prefix; widget test checks blur error. |
+| OTP six digits, numeric input, progression, paste and SMS autofill hint | Pass | `lib/features/auth/presentation/auth_flow_inputs.dart` | Widget test pastes all six digits, checks focus progression/backspace and `AutofillHints.oneTimeCode`; native SMS delivery itself is platform-provided and was not simulated. |
+| Wrong OTP shakes/clears; third failure locks; resend deadline starts/restarts at 5:00 | Pass | `lib/features/auth/domain/otp_policy.dart`, `lib/features/auth/presentation/auth_draft.dart`, `lib/features/auth/presentation/auth_flow.dart` | `test/features/auth/otp_policy_test.dart` and `auth_flow_widget_test.dart` use an injectable clock; verify lock, disabled fields and resend unlock without a real five-minute wait. |
+| First/last-name rules including Myanmar Unicode | Pass | `lib/features/auth/domain/validators.dart` | `test/domain/validators_test.dart` covers required/optional, trimming, maximum length, digits and Myanmar letters. |
+| DOB real calendar date, leap years, future and age 13 boundary | Pass | `lib/features/auth/domain/validators.dart` (`minimumAge`) | Validator tests cover invalid dates, leap day, future date, and exact/one-day-short thirteenth birthday. |
+| Duplicate-submit prevention, loading, and back-value preservation | Pass | `lib/features/auth/presentation/auth_flow_actions.dart`, `auth_draft.dart` | Widget tests hold each phone, OTP, name and DOB request open and confirm a second tap does not duplicate it; another test checks back/forward value retention. |
+| Social/legal placeholder feedback | Pass | `lib/features/auth/presentation/entry_screens.dart`, `auth_flow_forms.dart` | Actions show explicit placeholder feedback; verified by code inspection. |
+| Seed bundled JSON into local DB; database is rendered source of truth | Pass | `assets/data/seed.json`, `lib/features/home/data/local_data_repository.dart` | Seed/version/concurrent-first-read/offline-read tests; Home, Product and Rewards repository adapters query the shared repository. |
+| First offline launch and saved content/images | Partial | `assets/images/`, `lib/core/presentation/seed_image.dart`, local repository | Android integration starts with connectivity forced offline and checks first seed/Home/Product. Seed artwork is bundled. A system-level airplane-mode toggle/relaunch was not performed. |
+| Image disk caching, placeholders and failure state | Pass | `lib/core/presentation/seed_image.dart` | Code inspection; bundled SVGs cover offline seed. Remote raster cache uses `cached_network_image`; remote-cache behavior is not separately integration-tested. |
+| `connectivity_plus` plus real reachability; offline banner and reconnect refresh | Pass | `lib/core/network/network_reachability.dart`, `lib/app/providers.dart`, `lib/features/home/presentation/home_screen.dart` | Reachability tests combine interface status and HTTP probe; Home widget test drives offline→online refresh and a pull gesture, confirming both refresh paths. |
+| Refresh behavior with no backend | Partial | Home/Rewards repository `refresh()` | Refresh deliberately re-reads SQLite and preserves current content; it cannot download newer catalog data. Connectivity probe is a hint, not an API. |
+| One shared member record, including 680,000 reward target | Pass | `assets/data/seed.json`; `lib/features/home/domain/models.dart`; `lib/features/rewards/data/local_rewards_repository.dart` | Seed/rewards repository tests verify Silver, 680,000 points and 500 to Gold all come from the same row. This resolves conflicting mock-ups by using Rewards’ Silver/680,000 and 500 remaining to Gold. |
+| Home header, notification count, banner carousel, three sections, discounts, four shops | Pass | `lib/features/home/presentation/home_screen.dart`, seed data | Repository seed assertions; Home widget/integration flow. |
+| Home skeleton and independent section empty/error/retry | Pass | `lib/features/home/presentation/widgets/home_skeleton.dart`, `home_screen.dart` | Skeleton Reduce Motion widget test; failed section retries without replacing other sections. |
+| Every product tile routes to correct product detail | Pass | `lib/features/home/presentation/home_screen.dart`, `lib/features/product/domain/product_repository.dart` | Android integration opens Coconut Donut and verifies code/price. Product repository unit tests cover ID lookup/missing ID. |
+| Product detail fields, MMK formatting, quantity min 1/live total, add feedback | Pass | `lib/features/product/presentation/product_screen.dart`, `lib/core/formatters/currency.dart` | Home/product widget test checks product code, New, 3,200→6,400 total, min 1 and add feedback; integration checks product screen. |
+| Rewards painter, count-up, tier progress, tabs, challenges, progress artwork and Earn states | Pass | `lib/features/rewards/presentation/rewards_screen.dart`, `lib/features/rewards/presentation/widgets/points_ring.dart`, `points_ring_painter.dart` | Rewards widget tests at compact size/text scale 1.3, Reduced Motion and Earn/Gift interaction; Rewards repository verifies shared values. |
+| Required transition/entrance/shimmer/Hero/button motion and named tokens | Pass | `lib/core/motion/motion.dart`, feature presentation files | Widget and integration tests exercise screen transitions, shimmer and product navigation; code inspection confirms named durations/curves. |
+| `MediaQuery.disableAnimations` honored for loops and transitions | Pass | `lib/core/motion/motion.dart`, `home_screen.dart`, `home_skeleton.dart`, Rewards widgets | Reduced-motion Home and Rewards widget tests; animation helpers settle or disable repeats. |
+| 4.7–6.9 inch portrait and text scale 1.3 | Partial | Home, Auth, Rewards, Product responsive layouts | Automated layouts use 320×667 and scale 1.3 for Home/Product/Rewards/Auth; only one compact viewport is checked, not the full physical-size range. |
+| Profile-mode performance / 60 fps | Unverified | — | No profile-mode frame timing or mid-range physical-device measurement was recorded. No 60 fps claim is made. |
+| ARB/gen-l10n, theme/color/spacing/motion tokens | Pass | `assets/data/strings_en.arb`, `lib/l10n/`, `lib/core/theme/tokens.dart`, `motion.dart` | `flutter gen-l10n`; analyzer. English only. |
+| Clean analyzer and format | Pass | Project source | `dart format lib test integration_test`; `flutter analyze` reports no issues. |
+| Unit/widget test requirements | Pass | `test/` | `flutter test --reporter expanded` passed all 44 tests, including validators, OTP, session, migrations, reachability, reconnect and pull-to-refresh, repositories, Home/Product/Rewards and auth widgets. |
+| Register→Welcome→Home→Product integration | Pass | `integration_test/registration_to_product_test.dart` | Passed on Android emulator and iOS Simulator; test also recreates the app/provider scope and verifies session restoration into Home. |
+| Screenshot fidelity against all 10 designs | Partial | `lib/features/*/presentation/`, `assets/images/` | Simulator/emulator spot checks and widget layouts were reviewed; no pixel-diff or complete screen-by-screen sign-off. Original hand-drawn SVG illustrations replace the PDF’s photographic donut imagery. Name empty/filled are implemented as states of one screen, reconciling the PDF’s 10 designs with its 9-screen flow. |
+| README setup, versions, architecture, offline/motion/auth, assets, gaps/time | Pass | `README.md`, `WALKTHROUGH.md`, this checklist | Documentation reviewed and updated with verified command results; time was not tracked and is explicitly not estimated. |
+| Android release APK / iOS Simulator `.app` | Pass | `build/app/outputs/flutter-apk/app-release.apk`, `build/jdonuts-ios-simulator-current.zip` | Current APK build passed (arm64, 25.3 MB) and `apksigner` verified its v2 signature. `flutter build ios --simulator` and ZIP integrity check passed. Simulator artifact is Debug because Flutter rejects Release Simulator builds. |
+| 2–4 minute local screen recording | Pass | `build/jdonuts-demo-walkthrough.mov` | iOS Simulator recording test passed. AVFoundation verified 211 seconds (3:31); final frame was inspected on Rewards. The raw capture was trimmed to remove the Simulator returning to its Home Screen after test teardown. No upload or submission occurred. |
 
-## Authentication
+## Optional recommendations and bonuses from the PDF
 
-- [x] Onboarding → phone → OTP → name → DOB → welcome → Home; returning user → phone → OTP → Home. Unknown numbers can start registration. Back navigation preserves the in-memory draft.
-- [x] Fake repository waits about one second (delay injectable), prevents concurrent UI requests and exposes typed failures.
-- [x] Pure phone, OTP, name and DOB rules. Phone strips whitespace/dashes and one leading zero; `+95` followed by `9` and seven to nine more digits. Invalid phone appears after blur.
-- [x] OTP is six digits, fake code `123456`, paste/autofill and numeric keyboard; bad entry shakes/clears, third failure locks until resend is eligible; five-minute deadline lives in draft state across auth-step navigation.
-- [x] First name required, last optional, trim/50 chars/Unicode letters and spaces; DOB calendar-valid, not future, age 13+ via named constant.
-- [x] Durable account in SQLite, session identifier in `flutter_secure_storage`, session restore and Settings logout. Social and legal actions explain that the demo has no connected provider/document.
-- [x] Tests: validator boundaries including Myanmar, phone normalization, leap day, invalid/future DOB and exact 13th birthday (`test/domain/validators_test.dart`); OTP policy/timing (`test/features/auth/otp_policy_test.dart`); repository/auth paths and duplicate submissions (`test/features/auth/auth_repository_test.dart`, `test/features/auth/auth_flow_widget_test.dart`); SQLite/session repository recreation (`test/features/auth/auth_persistence_test.dart`); auth UI (`test/widget_test.dart`).
+These are not mandatory for the local app slice and are not counted as required failures.
 
-## Offline Home and Product
+| Optional item | Status | Note |
+|---|---|---|
+| Mock server with versioned endpoints/envelope | Not implemented | PDF says backend is optional. No server means no Dio/API envelope is required. |
+| Persistent cart | Not implemented | PDF labels persistence a bonus; Add to cart gives visual feedback. |
+| Burmese localization | Not implemented | PDF labels another locale a bonus; English ARB is generated with gen-l10n. |
+| CI workflow | Not implemented | PDF lists CI as optional. |
+| Non-Home/Rewards bottom tabs | Implemented as allowed | PDF explicitly allows simple placeholders for the other three destinations. |
 
-- [x] Bundled JSON seeds SQLite on first read; Home, product and rewards read repository data backed by SQLite. Seed is transactional and safe under overlapping first reads. Schema version is 1.
-- [x] Bundled original SVG assets mean first-launch content and product art do not need a network. `SeedImage` supplies asset/remote image rendering and failure/placeholder states; remote rasters use disk cache.
-- [x] Home has member header, notification badge, autoplay banner, Seasonal/Popular/Order again, discounts and four shops. Home and Rewards consume the same row: Silver, 680,000 points, 500 to Gold. This resolves the conflicting mock-up numbers in favor of the Rewards balance while retaining the Home Gold-progress copy.
-- [x] Each product opens `/product/:id` with code, name, New badge, description, MMK price, min quantity 1, animated count/live total and add-to-cart feedback.
-- [x] Loading/error/retry states; Home has a section/list skeleton. `connectivity_plus` interface state is combined with an HTTP reachability probe. Pull-to-refresh and reconnect re-read SQLite without clearing existing rows.
-- [ ] **Partial by design:** no backend is supplied; refresh means reloading the local database and does not fetch newer catalog data. The reachability probe targets Google’s `generate_204`; it is only a connectivity hint, not an application API.
-- [x] Tests: seed groups/version, concurrent seed, offline DB reads (`test/features/home/local_data_repository_test.dart`); reachability combinations (`test/core/network/network_reachability_test.dart`); Home/product at 320×667 and scale 1.3, offline/reconnect and product navigation (`test/features/home/home_layout_widget_test.dart`).
+## User constraints
 
-## Rewards and motion
-
-- [x] Custom-painted points ring and count-up; staggered Silver/Gold/Platinum ladder with current tier and next-tier progress; Earn/Gift animated indicator and content; staggered challenges; quarter donut artwork and coffee 9/12; completed/incomplete Earn behavior; badge entrance; sliding bottom-navigation pill.
-- [x] Onboarding, auth step/progress/check, welcome, Home entrance, product Hero, quantity and button press/loading transitions.
-- [x] Motion duration/curve tokens centralized. `MediaQuery.disableAnimations` skips entrances, count-up/sweep, loops/carousel and uses determinate loading indicators. Timers/controllers are disposed.
-- [x] Responsive widget coverage at narrow portrait size and text scale 1.3; Rewards tab/Reduce Motion checks (`test/features/rewards/rewards_widget_test.dart`).
-- [ ] **Partial:** claiming a challenge provides feedback within the current screen but does not persist a claim or mutate the shared points record. Cart addition is visual feedback only.
-
-## Verification and delivery
-
-- [x] `dart format lib test integration_test`, `flutter gen-l10n`, `flutter analyze`, `flutter test`: completed on 2026-11-10; 32 Flutter tests passed, analyzer reported no issues.
-- [x] iOS Simulator integration test: register → welcome → Home → product, with production SQLite account storage, `flutter_secure_storage` session and forced offline state; recreates the app/provider scope and verifies offline session restoration. Completed 2026-11-10; one test passed.
-- [x] Android release APK built at `build/app/outputs/flutter-apk/app-release.apk` (61 MB); archive, package/SDK metadata and V2 signature verified. Built with `:app:assembleRelease` while excluding Android `lintVital*` tasks because their first-use report artifacts stalled; Dart analyze/tests passed separately. Release uses the starter project's debug signing config.
-- [x] Release iOS Simulator `.app` built and zipped: `build/ios/iphonesimulator/Runner.app`, `build/jdonuts-ios-simulator.zip` (66 MB). The simulator GUI screenshot verification remains unavailable (simulator reported a data migration failure and captured black output).
-- [x] README, interview walkthrough and this checklist document setup, design choices, tests and known gaps. PDF/screenshots are excluded.
-- [x] Small local commits created: `0830abc` architecture/storage, `a6add49` authentication, `7ddd357` offline screens, `91f6d10` relaunch test, `b6fb095` delivery docs, `0c16aa6` verification audit, `69ccde1` artifact/docs, `ab0494c` final audit. No push/publication.
+No public repository, upload, email, external submission, or client screenshot/PDF commit was made. Local build artifacts and docs remain in the workspace only.

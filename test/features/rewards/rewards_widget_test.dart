@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/app/providers.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
 import 'package:jdonuts/features/rewards/presentation/rewards_screen.dart';
+import 'package:jdonuts/features/rewards/domain/rewards_repository.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
@@ -50,7 +51,14 @@ Widget _rewardsApp({
   required double textScale,
   bool disableAnimations = true,
 }) => ProviderScope(
-  overrides: [appDataProvider.overrideWith((ref) async => _sampleData)],
+  overrides: [
+    rewardsDataProvider.overrideWith(
+      (ref) async => RewardsSnapshot(
+        member: _sampleData.member,
+        challenges: _sampleData.challenges,
+      ),
+    ),
+  ],
   child: MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,

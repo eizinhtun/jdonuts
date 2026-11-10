@@ -36,7 +36,7 @@ class PrimaryButtonState extends State<PrimaryButton> {
         width: double.infinity,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: widget.enabled ? AppColors.cyan : const Color(0xFFB9C0C2),
+          color: widget.enabled ? AppColors.cyan : AppColors.disabled,
           borderRadius: BorderRadius.circular(28),
         ),
         child: AnimatedSwitcher(

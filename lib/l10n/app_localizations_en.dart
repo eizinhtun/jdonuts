@@ -67,7 +67,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutLabel => 'Log out';
 
   @override
-  String get phoneRegisterTitle => 'What’s your phone number?';
+  String get phoneRegisterTitle => 'Enter your phone number';
 
   @override
   String get phoneLoginTitle => 'Log in';
@@ -82,7 +82,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueButton => 'CONTINUE';
 
   @override
-  String get otpTitle => 'Verify number';
+  String get otpTitle => 'Verify your number';
 
   @override
   String otpDescription(Object phone) {
@@ -135,7 +135,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidName => 'Use up to 50 letters and spaces.';
 
   @override
-  String get birthTitle => 'When’s your birthday?';
+  String get birthTitle => 'What’s your date of birth?';
+
+  @override
+  String get legalAcknowledgement => 'By continuing, you agree to our';
+
+  @override
+  String get andLabel => 'and';
 
   @override
   String get ageRequirement => 'You must be 13 or older to join.';
@@ -247,6 +253,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyProducts => 'No items yet';
+
+  @override
+  String get sectionUnavailable => 'This section couldn’t load.';
 
   @override
   String get newBadge => 'New';

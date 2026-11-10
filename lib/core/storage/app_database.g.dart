@@ -67,6 +67,16 @@ class $MemberRowsTable extends MemberRows
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _imageMeta = const VerificationMeta('image');
+  @override
+  late final GeneratedColumn<String> image = GeneratedColumn<String>(
+    'image',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('member.svg'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -75,6 +85,7 @@ class $MemberRowsTable extends MemberRows
     points,
     pointsToGold,
     notifications,
+    image,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -139,6 +150,12 @@ class $MemberRowsTable extends MemberRows
     } else if (isInserting) {
       context.missing(_notificationsMeta);
     }
+    if (data.containsKey('image')) {
+      context.handle(
+        _imageMeta,
+        image.isAcceptableOrUnknown(data['image']!, _imageMeta),
+      );
+    }
     return context;
   }
 
@@ -172,6 +189,10 @@ class $MemberRowsTable extends MemberRows
         DriftSqlType.int,
         data['${effectivePrefix}notifications'],
       )!,
+      image: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}image'],
+      )!,
     );
   }
 
@@ -188,6 +209,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
   final int points;
   final int pointsToGold;
   final int notifications;
+  final String image;
   const MemberRow({
     required this.id,
     required this.name,
@@ -195,6 +217,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
     required this.points,
     required this.pointsToGold,
     required this.notifications,
+    required this.image,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -205,6 +228,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
     map['points'] = Variable<int>(points);
     map['points_to_gold'] = Variable<int>(pointsToGold);
     map['notifications'] = Variable<int>(notifications);
+    map['image'] = Variable<String>(image);
     return map;
   }
 
@@ -216,6 +240,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
       points: Value(points),
       pointsToGold: Value(pointsToGold),
       notifications: Value(notifications),
+      image: Value(image),
     );
   }
 
@@ -231,6 +256,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
       points: serializer.fromJson<int>(json['points']),
       pointsToGold: serializer.fromJson<int>(json['pointsToGold']),
       notifications: serializer.fromJson<int>(json['notifications']),
+      image: serializer.fromJson<String>(json['image']),
     );
   }
   @override
@@ -243,6 +269,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
       'points': serializer.toJson<int>(points),
       'pointsToGold': serializer.toJson<int>(pointsToGold),
       'notifications': serializer.toJson<int>(notifications),
+      'image': serializer.toJson<String>(image),
     };
   }
 
@@ -253,6 +280,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
     int? points,
     int? pointsToGold,
     int? notifications,
+    String? image,
   }) => MemberRow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -260,6 +288,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
     points: points ?? this.points,
     pointsToGold: pointsToGold ?? this.pointsToGold,
     notifications: notifications ?? this.notifications,
+    image: image ?? this.image,
   );
   MemberRow copyWithCompanion(MemberRowsCompanion data) {
     return MemberRow(
@@ -273,6 +302,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
       notifications: data.notifications.present
           ? data.notifications.value
           : this.notifications,
+      image: data.image.present ? data.image.value : this.image,
     );
   }
 
@@ -284,14 +314,15 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
           ..write('tier: $tier, ')
           ..write('points: $points, ')
           ..write('pointsToGold: $pointsToGold, ')
-          ..write('notifications: $notifications')
+          ..write('notifications: $notifications, ')
+          ..write('image: $image')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(id, name, tier, points, pointsToGold, notifications);
+      Object.hash(id, name, tier, points, pointsToGold, notifications, image);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -301,7 +332,8 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
           other.tier == this.tier &&
           other.points == this.points &&
           other.pointsToGold == this.pointsToGold &&
-          other.notifications == this.notifications);
+          other.notifications == this.notifications &&
+          other.image == this.image);
 }
 
 class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
@@ -311,6 +343,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
   final Value<int> points;
   final Value<int> pointsToGold;
   final Value<int> notifications;
+  final Value<String> image;
   final Value<int> rowid;
   const MemberRowsCompanion({
     this.id = const Value.absent(),
@@ -319,6 +352,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
     this.points = const Value.absent(),
     this.pointsToGold = const Value.absent(),
     this.notifications = const Value.absent(),
+    this.image = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MemberRowsCompanion.insert({
@@ -328,6 +362,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
     required int points,
     required int pointsToGold,
     required int notifications,
+    this.image = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -342,6 +377,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
     Expression<int>? points,
     Expression<int>? pointsToGold,
     Expression<int>? notifications,
+    Expression<String>? image,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -351,6 +387,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
       if (points != null) 'points': points,
       if (pointsToGold != null) 'points_to_gold': pointsToGold,
       if (notifications != null) 'notifications': notifications,
+      if (image != null) 'image': image,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -362,6 +399,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
     Value<int>? points,
     Value<int>? pointsToGold,
     Value<int>? notifications,
+    Value<String>? image,
     Value<int>? rowid,
   }) {
     return MemberRowsCompanion(
@@ -371,6 +409,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
       points: points ?? this.points,
       pointsToGold: pointsToGold ?? this.pointsToGold,
       notifications: notifications ?? this.notifications,
+      image: image ?? this.image,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -396,6 +435,9 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
     if (notifications.present) {
       map['notifications'] = Variable<int>(notifications.value);
     }
+    if (image.present) {
+      map['image'] = Variable<String>(image.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -411,6 +453,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
           ..write('points: $points, ')
           ..write('pointsToGold: $pointsToGold, ')
           ..write('notifications: $notifications, ')
+          ..write('image: $image, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2454,6 +2497,7 @@ typedef $$MemberRowsTableCreateCompanionBuilder = MemberRowsCompanion Function({
   required int points,
   required int pointsToGold,
   required int notifications,
+  Value<String> image,
   Value<int> rowid,
 });
 typedef $$MemberRowsTableUpdateCompanionBuilder = MemberRowsCompanion Function({
@@ -2463,6 +2507,7 @@ typedef $$MemberRowsTableUpdateCompanionBuilder = MemberRowsCompanion Function({
   Value<int> points,
   Value<int> pointsToGold,
   Value<int> notifications,
+  Value<String> image,
   Value<int> rowid,
 });
 
@@ -2502,6 +2547,11 @@ class $$MemberRowsTableFilterComposer
 
   ColumnFilters<int> get notifications => $composableBuilder(
     column: $table.notifications,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get image => $composableBuilder(
+    column: $table.image,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2544,6 +2594,11 @@ class $$MemberRowsTableOrderingComposer
     column: $table.notifications,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get image => $composableBuilder(
+    column: $table.image,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MemberRowsTableAnnotationComposer
@@ -2576,6 +2631,9 @@ class $$MemberRowsTableAnnotationComposer
     column: $table.notifications,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get image =>
+      $composableBuilder(column: $table.image, builder: (column) => column);
 }
 
 class $$MemberRowsTableTableManager
@@ -2615,6 +2673,7 @@ class $$MemberRowsTableTableManager
                 Value<int> points = const Value.absent(),
                 Value<int> pointsToGold = const Value.absent(),
                 Value<int> notifications = const Value.absent(),
+                Value<String> image = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MemberRowsCompanion(
                 id: id,
@@ -2623,6 +2682,7 @@ class $$MemberRowsTableTableManager
                 points: points,
                 pointsToGold: pointsToGold,
                 notifications: notifications,
+                image: image,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2633,6 +2693,7 @@ class $$MemberRowsTableTableManager
                 required int points,
                 required int pointsToGold,
                 required int notifications,
+                Value<String> image = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MemberRowsCompanion.insert(
                 id: id,
@@ -2641,6 +2702,7 @@ class $$MemberRowsTableTableManager
                 points: points,
                 pointsToGold: pointsToGold,
                 notifications: notifications,
+                image: image,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

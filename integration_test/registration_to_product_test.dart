@@ -14,6 +14,11 @@ void main() {
   testWidgets('Register, Welcome, Home, and open Product detail', (
     tester,
   ) async {
+    tester.view.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(
+      tester.view.platformDispatcher.clearAccessibilityFeaturesTestValue,
+    );
     final sessionStore = SecureAuthSessionStore();
     await sessionStore.clear();
     await tester.pumpWidget(_testApp(sessionStore));
@@ -43,14 +48,26 @@ void main() {
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('CONTINUE'));
-    await tester.pumpAndSettle();
+    await _pumpUntilFound(
+      tester,
+      find.text('Welcome to the world of J’Donuts'),
+    );
+    if (find.text('Welcome to the world of J’Donuts').evaluate().isEmpty) {
+      debugPrint(
+        tester
+            .widgetList<Text>(find.byType(Text))
+            .map((text) => text.data ?? text.textSpan?.toPlainText())
+            .join(' | '),
+      );
+    }
     expect(find.text('Welcome to the world of J’Donuts'), findsOneWidget);
 
     await tester.tap(find.text('LET’S EXPLORE'));
-    await tester.pumpAndSettle();
+    await _pumpUntilFound(tester, find.text('Seasonal specials'));
     expect(find.text('Seasonal specials'), findsOneWidget);
     expect(find.text('You’re offline — showing saved items'), findsOneWidget);
 
+    await _pumpUntilFound(tester, find.text('Coconut Donut'));
     await tester.ensureVisible(find.text('Coconut Donut').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Coconut Donut').first);
@@ -65,6 +82,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pumpWidget(_testApp(sessionStore));
     await tester.pumpAndSettle();
+    await _pumpUntilFound(tester, find.text('Seasonal specials'));
     expect(find.text('Seasonal specials'), findsOneWidget);
     expect(find.text('You’re offline — showing saved items'), findsOneWidget);
     await sessionStore.clear();
@@ -85,3 +103,9 @@ Widget _testApp(SecureAuthSessionStore sessionStore) => ProviderScope(
   ],
   child: const JDonutsApp(),
 );
+
+Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
+  for (var frame = 0; frame < 30 && finder.evaluate().isEmpty; frame++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}

@@ -13,6 +13,7 @@ class MemberRows extends Table {
   IntColumn get points => integer()();
   IntColumn get pointsToGold => integer()();
   IntColumn get notifications => integer()();
+  TextColumn get image => text().withDefault(const Constant('member.svg'))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -95,13 +96,16 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
       if (from < 1 && to >= 1) await migrator.createAll();
+      if (from < 2 && to >= 2) {
+        await migrator.addColumn(memberRows, memberRows.image);
+      }
     },
   );
 }

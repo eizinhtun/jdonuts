@@ -211,7 +211,7 @@ abstract class AppLocalizations {
   /// No description provided for @phoneRegisterTitle.
   ///
   /// In en, this message translates to:
-  /// **'What’s your phone number?'**
+  /// **'Enter your phone number'**
   String get phoneRegisterTitle;
 
   /// No description provided for @phoneLoginTitle.
@@ -241,7 +241,7 @@ abstract class AppLocalizations {
   /// No description provided for @otpTitle.
   ///
   /// In en, this message translates to:
-  /// **'Verify number'**
+  /// **'Verify your number'**
   String get otpTitle;
 
   /// No description provided for @otpDescription.
@@ -337,8 +337,20 @@ abstract class AppLocalizations {
   /// No description provided for @birthTitle.
   ///
   /// In en, this message translates to:
-  /// **'When’s your birthday?'**
+  /// **'What’s your date of birth?'**
   String get birthTitle;
+
+  /// No description provided for @legalAcknowledgement.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you agree to our'**
+  String get legalAcknowledgement;
+
+  /// No description provided for @andLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'and'**
+  String get andLabel;
 
   /// No description provided for @ageRequirement.
   ///
@@ -537,6 +549,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No items yet'**
   String get emptyProducts;
+
+  /// No description provided for @sectionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This section couldn’t load.'**
+  String get sectionUnavailable;
 
   /// No description provided for @newBadge.
   ///

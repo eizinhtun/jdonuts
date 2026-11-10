@@ -1,95 +1,102 @@
 # J’Donuts Flutter Code Test
 
-Offline-first demo for the supplied Madivizion code test. The PDF and client design screenshots are deliberately not stored in this repository.
+Offline-first Flutter implementation of the supplied Madivizion code test. The client PDF and design screenshots are not stored in this repository.
 
 ## Run locally
 
-Requires Flutter 3.47.5 stable / Dart 3.13.4 (or a compatible newer stable toolchain), Xcode for iOS, and Android SDK/accepted Android licenses for Android.
+Requires Flutter 3.47.5 stable / Dart 3.13.4, Android SDK for Android, and Xcode for iOS Simulator.
 
-```sh
-flutter pub get
-flutter run
-```
+    flutter pub get
+    flutter gen-l10n
+    flutter run
 
-Demo OTP: `123456`. Returning demo account: `+95 987654321` (normalized to `95987654321`). Any valid new Myanmar mobile number can register locally.
+Demo OTP: 123456. Returning demo phone: +95 987654321. Any valid new Myanmar mobile number can register locally.
 
-## Tested versions
+## Verified toolchain
 
-- Flutter: 3.47.5 stable
-- Dart: 3.13.4
-- Xcode: 27.1
-- macOS: 27.0.1, arm64
-- Direct package versions resolved during verification: Riverpod 3.5.0, go_router 16.3.0, Drift 2.35.4, flutter_secure_storage 9.2.4, connectivity_plus 7.3.2, http 1.6.0, cached_network_image 3.4.1, flutter_svg 2.3.2, intl 0.20.3, path_provider 2.1.6, sqlite3_flutter_libs 0.5.42. `pubspec.lock` records the full dependency graph.
+- Flutter 3.47.5 stable, revision 6a19cca564
+- Dart 3.13.4
+- Xcode 27.1, build 27A9275
+- macOS 27.0.1, arm64
+- Resolved direct packages include Riverpod 3.5.0, go_router 16.3.0, Drift 2.35.4, flutter_secure_storage 9.2.4, connectivity_plus 7.3.2, cached_network_image 3.4.1, and flutter_svg 2.3.2. pubspec.lock contains the full resolved graph.
 
 ## Architecture
 
-`lib/features/{auth,home,product,rewards}` are feature-first and separate `domain`, `data`, and `presentation` responsibilities. Domain validators/repository contracts are plain Dart and do not import Flutter. Repositories return typed `Result<T>` values with typed failures; screen-facing models are immutable.
+The code is organized by auth, home, product, and rewards features. Each feature separates presentation, domain contracts/models, and data adapters. Domain code does not import Flutter. Repositories return typed Result values with typed Failure variants; models are immutable.
 
-`lib/app/providers.dart` uses Riverpod for dependency injection and app state: repositories, Drift database, connectivity, session restore, router refresh and the auth draft. Riverpod keeps widget constructors simple and makes clocks, delays, stores and streams replaceable in tests. `lib/app/router.dart` owns navigation and the session-aware auth redirect. `/product/:id` receives a stable product ID and Hero tag.
+Riverpod is used for dependency injection and state. Providers construct the database, repositories, reachability service, session restore, router state, and auth draft. Tests override providers to supply in-memory storage, controlled clocks, delays, and connectivity streams. go_router applies the session guard and provides the stable /product/:id route.
 
 Folder map:
 
-- `lib/app/`: dependency providers and go_router configuration.
-- `lib/core/`: Result/Failure, SQLite, network reachability, theme/motion tokens, formatting and shared presentation widgets.
-- `lib/features/auth/`: auth interface, fake repository, Drift account store, secure session adapter, validators, OTP policy and flow screens.
-- `lib/features/home/`: seed/database repository, immutable shared models and Home UI.
-- `lib/features/product/`, `lib/features/rewards/`: focused screen implementations.
-- `lib/l10n/` + `assets/data/strings_en.arb`: generated English localization. Change the ARB, then run `flutter gen-l10n`.
-- `assets/data/seed.json`, `assets/images/`: bundled offline content.
-- `test/`, `integration_test/`: pure/unit, repository, widget and device flow coverage.
+- lib/app: provider graph and router
+- lib/core: Result/Failure, Drift database, reachability, theme and motion tokens, currency formatting, and shared presentation helpers
+- lib/features/auth: pure validation and OTP policy, repository contract, local fake, account/session stores, and flow UI
+- lib/features/home: shared immutable catalog models, HomeRepository, SQLite adapter, and Home UI/widgets
+- lib/features/product: ProductRepository, local adapter, and detail UI
+- lib/features/rewards: RewardsRepository, local adapter, painters, and UI/widgets
+- assets/data: bundled seed JSON and English ARB source
+- assets/images: original offline SVG illustrations
+- lib/l10n: generated localization code
+- test and integration_test: unit, repository, widget, and device-flow checks
 
 ## Offline data and images
 
-The first repository read transactionally seeds the versioned Drift/SQLite database from bundled JSON. Screens read the database-backed repository, not widget-local sample lists. A shared member row feeds both Home and Rewards. Their mock-ups conflict: the implementation uses Silver / 680,000 points / 500 remaining to Gold from the Rewards view, while retaining the Home screen’s Gold-progress copy.
+The first local repository read seeds bundled JSON into versioned Drift/SQLite tables in a transaction. The database is the rendered source of truth after seeding. Home, Product, and Rewards read through feature-local repository interfaces backed by the same catalog/member records. A schema migration adds the member avatar column.
 
-Products and banners use original, hand-authored SVG illustrations under `assets/images/`; no third-party image is used. Local artwork makes the first launch work without internet. `SeedImage` also supports remote raster image loading with disk caching, placeholders and error rendering if a future data source supplies URLs.
+The Home and Rewards mock-ups disagree about membership values. The app deliberately uses one seeded Silver member with 680,000 points and 500 points to Gold, matching the Rewards values. The rewards ring counts to 680,000 from this stored member row.
 
-`connectivity_plus` reports interface changes, and an HTTP `generate_204` probe checks actual reachability. Pull-to-refresh and reconnect refresh re-read local SQLite and keep the current content. There is no backend in this demo, so these refreshes do not download new catalog content. The Google probe is a connectivity hint, not a service contract.
+Seed products, banners, and the member avatar use original hand-authored SVG artwork. No third-party image or PDF screenshot is bundled. SeedImage renders bundled files offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs.
 
-The fake auth repository waits approximately one second per request by default. The local demo OTP is `123456`. OTP resend state and failed-attempt count live in the auth draft so changing auth routes does not reset the timer. User accounts persist in SQLite, and the active phone identifier uses `flutter_secure_storage`. Settings clears the session and logs out.
+connectivity_plus interface changes are combined with an HTTP reachability probe. A small offline banner appears when the probe reports no internet. Reconnection and pull-to-refresh re-read SQLite, preserving usable content. There is no backend in this assignment slice, so refresh cannot download catalog updates; the reachability request is only an online/offline hint.
+
+## Authentication
+
+The replaceable AuthRepository uses a local fake implementation with an injectable one-second delay. OTP 123456 is test-only. Accounts persist in SQLite and flutter_secure_storage holds the active phone identifier. An absolute resend deadline and failure count live in the shared auth draft so route navigation does not reset them. Settings logs out and the router returns to the auth entry.
+
+This does not provide real SMS delivery, social sign-in, legal-document destinations, or server authentication. The UI labels social/legal actions as placeholders.
 
 ## Motion and accessibility
 
-Named durations/curves are in `lib/core/motion/motion.dart`. The UI includes onboarding and Home entrances, auth step/progress feedback, button loading/press states, OTP shake, carousel, product Hero/quantity transitions, a custom-painted rewards ring, tier/challenge entrances, animated Earn/Gift content, badge pop and active navigation pill. Reduce Motion disables looping carousel/attention motion and skips or settles entrance/progress animation. Timers/controllers are disposed with their screens.
+Named motion durations and curves are centralized in lib/core/motion/motion.dart. The app includes onboarding and welcome entrances, registration transitions and progress feedback, auth error/OTP feedback, Home shimmer/stagger and carousel, Product Hero/quantity transitions, Rewards points/tier/challenge animations, tab transitions, badge pop, and the active navigation pill. Repeating motion is stopped and animated values settle when MediaQuery.disableAnimations is enabled. Controllers and timers are disposed with their owners.
 
-## Checks run
+## Checks run on 2026-11-10
 
-The following completed on 2026-11-10:
+- dart format lib test integration_test — completed
+- flutter gen-l10n — completed
+- flutter analyze — no issues found
+- flutter test --reporter expanded — all 44 tests passed
+- Android emulator integration: registration → Welcome → offline Home → Product → app-scope recreation/session restore — passed
+- iOS Simulator integration: same flow — passed
+- Android release build: arm64 APK built at build/app/outputs/flutter-apk/app-release.apk (25.3 MB); apksigner verified the v2 signature
+- iOS Simulator app built with flutter build ios --simulator and zipped at build/jdonuts-ios-simulator-current.zip; archive integrity check passed. Flutter does not support release mode for iOS simulators, so this is a debug Simulator app.
+- iOS Simulator walkthrough recording test passed; `build/jdonuts-demo-walkthrough.mov` is 211 seconds (3:31) and ends on Rewards.
+- Simulator launch and onboarding were visually inspected. Full screen-by-screen pixel comparison was not completed.
 
-```sh
-dart format lib test integration_test
-flutter gen-l10n
-flutter analyze
-flutter test
-```
+No profile-mode frame timing was recorded; no 60 fps claim is made. The integration test forces its connectivity provider offline and tests reconnection through a simulated stream. System-level airplane mode was not toggled.
 
-Formatting and localization generation completed, analyzer had no issues, and all 32 Flutter tests passed. Repository and widget tests cover seed/versioning/concurrent seed, offline reads, reachability, auth/OTP/validation/session paths, Home/product layout at text scale 1.3, Rewards tabs and Reduce Motion.
+## Build artifacts and commands
 
-The iOS Simulator integration flow also passed: register → Welcome → offline Home → product → app-scope recreation → restored offline Home, using production SQLite account storage and the secure-session plugin. The Release Simulator app is zipped at `build/jdonuts-ios-simulator.zip`. The 61 MB Android APK is at `build/app/outputs/flutter-apk/app-release.apk`; its archive and V2 signature were verified. The simulator screenshot comparison remains unavailable; see `REQUIREMENTS.md`. **Time spent was not recorded with a timer, so no precise total is claimed.**
+Android release APK (arm64 only, signed with the project’s demo debug signing config):
 
-## Build commands
+    flutter build apk --release --target-platform android-arm64
 
-```sh
-# Android release APK (uses the project’s debug signing config for this demo)
-flutter build apk --release
+Output: build/app/outputs/flutter-apk/app-release.apk. Configure a production application ID and signing key before distribution.
 
-# Android assembly used for the delivered APK when first-use lint model downloads stalled
-cd android
-./gradlew :app:assembleRelease -x lintVitalRelease \
-  -x lintVitalAnalyzeRelease -x lintVitalReportRelease
-cd ..
+iOS Simulator app:
 
-# iOS Simulator app
-flutter build ios --simulator
-ditto -c -k --sequesterRsrc --keepParent \
-  build/ios/iphonesimulator/Runner.app build/jdonuts-ios-simulator.zip
-```
+    flutter build ios --simulator
+    ditto -c -k --sequesterRsrc --keepParent build/ios/iphonesimulator/Runner.app build/jdonuts-ios-simulator-current.zip
 
-Android output: `build/app/outputs/flutter-apk/app-release.apk`. iOS output: `build/ios/iphonesimulator/Runner.app`. A simulator `.app` is for Simulator use and is not an App Store archive. For an iPhone device/App Store build, configure a valid Apple team and signing profile in Xcode.
+The .app and zip are local workspace artifacts. They were not published or submitted. Flutter rejects --release for Simulator builds. A signed iPhone device/App Store archive requires a configured Apple team and provisioning profile.
 
-## Known limits
+## Known gaps and scope
 
-- No remote API/server, live catalog refresh, SMS provider, social auth provider or legal document destinations are connected; those actions say so in the UI.
-- Add-to-cart and challenge claim feedback are local/transient and do not persist or update the member balance.
-- Visual design comparison needs a functioning simulator GUI; report the environment’s current visual check in `REQUIREMENTS.md` rather than assuming pixel parity.
-- Time spent was not instrumented. No repository push or public submission was made.
+- There is no server, live catalog sync, SMS provider, social auth provider, or legal document content.
+- Add-to-cart and challenge Earn feedback are transient; they do not persist or change the member balance.
+- Burmese localization and CI are optional PDF bonuses and are not implemented.
+- Offline repository behavior and the forced-offline integration path are verified; a full fresh-install airplane-mode/relaunch device check remains unverified.
+- Layouts are tested at a compact 320×667 logical-pixel viewport with text scale 1.3, not every physical 4.7–6.9 inch device size.
+- Original SVG artwork differs from the PDF’s photographic product imagery. Visual review was a spot-check, not a pixel-diff of every design.
+- Android release APK signing is for the demo, and only arm64 is packaged.
+- Time spent was not tracked, so no duration is claimed.
+- No repository was published, and no email or external submission was made.

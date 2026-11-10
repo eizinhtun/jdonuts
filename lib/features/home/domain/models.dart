@@ -6,6 +6,7 @@ class Member {
     required this.points,
     required this.pointsToGold,
     required this.notifications,
+    this.image = 'member.svg',
   });
 
   final String id;
@@ -14,6 +15,7 @@ class Member {
   final int points;
   final int pointsToGold;
   final int notifications;
+  final String image;
 
   factory Member.fromJson(Map<String, dynamic> json) => Member(
     id: json['id'] as String,
@@ -22,6 +24,7 @@ class Member {
     points: json['points'] as int,
     pointsToGold: json['pointsToGold'] as int,
     notifications: json['notifications'] as int,
+    image: json['image'] as String? ?? 'member.svg',
   );
 }
 

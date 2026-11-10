@@ -5,14 +5,10 @@ import 'package:drift/drift.dart' show Value;
 import 'package:jdonuts/core/result/result.dart';
 
 import '../../../core/storage/app_database.dart';
+import '../domain/home_repository.dart';
 import '../domain/models.dart';
 
-abstract interface class LocalDataRepository {
-  Future<Result<AppData>> load();
-  Future<Result<AppData>> refresh();
-}
-
-class DriftDataRepository implements LocalDataRepository {
+class DriftDataRepository implements HomeRepository {
   DriftDataRepository(this._database, {AssetBundle? bundle})
     : _bundle = bundle ?? rootBundle;
 
@@ -34,6 +30,28 @@ class DriftDataRepository implements LocalDataRepository {
 
   @override
   Future<Result<AppData>> refresh() => load();
+
+  @override
+  Future<Result<List<Product>>> loadSectionProducts(String sectionId) async {
+    try {
+      await _seedOnFirstLaunch();
+      final section = await (_database.select(
+        _database.sectionRows,
+      )..where((row) => row.id.equals(sectionId))).getSingleOrNull();
+      if (section == null) {
+        return const Error(StorageFailure('The requested section is missing.'));
+      }
+      final ids = (jsonDecode(section.productIdsJson) as List).cast<String>();
+      if (ids.isEmpty) return const Success([]);
+      final rows = await (_database.select(
+        _database.productRows,
+      )..where((row) => row.id.isIn(ids))).get();
+      final byId = {for (final row in rows) row.id: _productFromRow(row)};
+      return Success(ids.map((id) => byId[id]).whereType<Product>().toList());
+    } on Object catch (error) {
+      return Error(StorageFailure('Could not read this section: $error'));
+    }
+  }
 
   Future<void> _seedOnFirstLaunch() async {
     final existing = await _database
@@ -70,6 +88,7 @@ class DriftDataRepository implements LocalDataRepository {
               points: seed.member.points,
               pointsToGold: seed.member.pointsToGold,
               notifications: seed.member.notifications,
+              image: Value(seed.member.image),
             ),
           );
       for (final product in seed.products) {
@@ -153,21 +172,9 @@ class DriftDataRepository implements LocalDataRepository {
         points: memberRecord.points,
         pointsToGold: memberRecord.pointsToGold,
         notifications: memberRecord.notifications,
+        image: memberRecord.image,
       ),
-      products: products
-          .map(
-            (row) => Product(
-              id: row.id,
-              code: row.code,
-              name: row.name,
-              priceMmk: row.priceMmk,
-              isNew: row.isNew,
-              discountPercent: row.discountPercent,
-              image: row.image,
-              description: row.description,
-            ),
-          )
-          .toList(growable: false),
+      products: products.map(_productFromRow).toList(growable: false),
       banners: banners
           .map(
             (row) => PromoBanner(
@@ -202,4 +209,15 @@ class DriftDataRepository implements LocalDataRepository {
           .toList(growable: false),
     );
   }
+
+  Product _productFromRow(ProductRow row) => Product(
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    priceMmk: row.priceMmk,
+    isNew: row.isNew,
+    discountPercent: row.discountPercent,
+    image: row.image,
+    description: row.description,
+  );
 }

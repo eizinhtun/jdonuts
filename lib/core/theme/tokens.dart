@@ -8,6 +8,24 @@ abstract final class AppColors {
   static const canvas = Color(0xFFF2F3F5);
   static const muted = Color(0xFF73777B);
   static const palePink = Color(0xFFFFF1F6);
+  static const avatarPink = Color(0xFFFFD5E2);
+  static const welcomeBlue = Color(0xFFB6DDE9);
+  static const welcomeLavender = Color(0xFFDBE9F7);
+  static const welcomePeach = Color(0xFFFFDCCE);
+  static const welcomeButter = Color(0xFFFFCE75);
+  static const silver = Color(0xFFBEC4C7);
+  static const gold = Color(0xFFF2D565);
+  static const platinum = Color(0xFF79D7E8);
+  static const donutPink = Color(0xFFEC75A0);
+  static const coffeeBrown = Color(0xFFAA694C);
+  static const challengeDonutBase = Color(0xFFFFE1EA);
+  static const skeletonBase = Color(0xFFE9EAEC);
+  static const skeletonSheen = Color(0xFFF5F6F7);
+  static const disabled = Color(0xFFB9C0C2);
+  static const error = Color(0xFFBA1A1A);
+  static const challengeShadow = Color(0x12000000);
+  static const tierConnector = Color(0xFFE2E4E5);
+  static const challengeDisabled = Color(0xFFE0E3E4);
   static const white = Colors.white;
 }
 

@@ -35,4 +35,8 @@ The display language and demo content are English. The backend, live SMS, social
 
 ## Current verification and limitations
 
-Refer to `REQUIREMENTS.md` for the current check/build audit. The unit/widget suite, analyzer and production-store iOS integration flow (including app-scope recreation and offline session restore) passed. The Release iOS Simulator app is available as `build/jdonuts-ios-simulator.zip`; the 61 MB Android release APK is at `build/app/outputs/flutter-apk/app-release.apk`. Android assembly excluded the Gradle `lintVital*` tasks after first-use lint artifact downloads stalled; the Dart analyzer and tests passed separately. The local iOS simulator produced only black screenshots, so a visual screenshot comparison is not claimed.
+Refer to `REQUIREMENTS.md` for the evidence-by-requirement audit. The latest full Dart run passed 44 tests with a clean analyzer, including pull-to-refresh. Register → Welcome → Home → Product and session restoration passed on Android Emulator and iOS Simulator. The longer iOS Simulator walkthrough recording test also passed.
+
+The Android arm64 APK is `build/app/outputs/flutter-apk/app-release.apk` (25.3 MB). Its v2 signature verifies, but the project uses its demo debug signing configuration. The zipped iOS Simulator app is `build/jdonuts-ios-simulator-current.zip` (66 MB); Flutter supports only Debug mode for Simulator builds. The local walkthrough is `build/jdonuts-demo-walkthrough.mov` (211 seconds / 3:31), trimmed to end on the Rewards screen after reviewing the raw Simulator recording.
+
+The simulator/emulator checks are not a complete visual sign-off. Original SVG illustrations differ from the PDF’s product photography. No 60 fps measurement was taken. The integration flow forced the app offline through its connectivity provider; a system airplane-mode toggle was not performed. The PDF and design screenshots remain outside the repository, and no artifact was published or submitted.

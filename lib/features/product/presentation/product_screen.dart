@@ -29,17 +29,27 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
   Widget build(BuildContext context) => Scaffold(
     body: SafeArea(
       child: ref
-          .watch(appDataProvider)
+          .watch(productProvider(widget.productId))
           .when(
             loading: () => Center(
               child: CircularProgressIndicator(
                 value: MediaQuery.disableAnimationsOf(context) ? .65 : null,
               ),
             ),
-            error: (_, _) =>
-                Center(child: Text(context.l10n.productUnavailable)),
-            data: (data) {
-              final product = data.product(widget.productId);
+            error: (_, _) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(context.l10n.productUnavailable),
+                  TextButton(
+                    onPressed: () =>
+                        ref.invalidate(productProvider(widget.productId)),
+                    child: Text(context.l10n.retryLabel),
+                  ),
+                ],
+              ),
+            ),
+            data: (product) {
               if (product == null) {
                 return Center(child: Text(context.l10n.productNotFound));
               }

@@ -23,6 +23,18 @@ void main() {
     expect(data.banners, hasLength(2));
     expect(data.sections, hasLength(3));
     expect(data.shops, hasLength(4));
+    final seasonal = await repository.loadSectionProducts('seasonal');
+    expect(
+      seasonal.fold(
+        (items) => items.map((item) => item.id).toList(),
+        (_) => [],
+      ),
+      ['romance-box', 'family-box'],
+    );
+    expect(
+      await repository.loadSectionProducts('missing'),
+      isA<Error<List<Product>>>(),
+    );
     expect(data.challenges, hasLength(3));
 
     expect(await database.select(database.memberRows).get(), hasLength(1));
@@ -34,7 +46,35 @@ void main() {
     final version = await database
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data['user_version'], 1);
+    expect(version.data['user_version'], 2);
+  });
+
+  test('schema v1 upgrades member records with the bundled avatar default', () async {
+    final database = AppDatabase.forTesting(
+      NativeDatabase.memory(
+        setup: (connection) {
+          connection.execute(
+            'CREATE TABLE member_rows ('
+            'id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, '
+            'tier TEXT NOT NULL, points INTEGER NOT NULL, '
+            'points_to_gold INTEGER NOT NULL, notifications INTEGER NOT NULL)',
+          );
+          connection.execute(
+            "INSERT INTO member_rows VALUES ('member-1', 'Hania', 'Silver', 680000, 500, 2)",
+          );
+          connection.execute('PRAGMA user_version = 1');
+        },
+      ),
+    );
+    addTearDown(database.close);
+
+    final member = await database.select(database.memberRows).getSingle();
+    final version = await database
+        .customSelect('PRAGMA user_version')
+        .getSingle();
+
+    expect(member.image, 'member.svg');
+    expect(version.data['user_version'], 2);
   });
 
   test('overlapping first reads only seed each row once', () async {

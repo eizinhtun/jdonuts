@@ -14,7 +14,7 @@ class LocalAuthRepository implements AuthRepository {
   }) : _sessionStore = sessionStore ?? SecureAuthSessionStore(),
        _accountStore = accountStore ?? MemoryAuthAccountStore(),
        _delay = delay ?? ((duration) => Future<void>.delayed(duration)),
-       _registered = registered ?? {'95987654321'};
+       _registered = Set<String>.of(registered ?? {'95987654321'});
 
   static const _requestLatency = Duration(seconds: 1);
   final AuthSessionStore _sessionStore;
