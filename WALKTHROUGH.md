@@ -13,13 +13,13 @@ The display language and demo content are English. The backend, live SMS, social
 
 ## Design and architecture choices
 
-- **Database is the local source of truth:** bundled JSON and original SVG artwork seed Drift/SQLite on first read in a transaction. Home, Product and Rewards all resolve from this local data repository. The schema version/migration hook supports later changes. With no backend, pull-to-refresh or reconnect only reloads SQLite; neither pretends to fetch updates.
+- **Database is the local source of truth:** bundled JSON seeds Drift/SQLite on first read in a transaction. Catalog photos are bundled raster assets and the remaining illustrations are SVG. Home, Product and Rewards resolve from the shared local data repository. With no backend, pull-to-refresh or reconnect only reloads SQLite; neither pretends to fetch updates.
 - **One member record:** the PDF mock-ups disagree. Home refers to Silver and 500 points to Gold, while Rewards shows the 680,000 points display. The seed uses Silver / 680,000 / 500 remaining and both views consume that record.
 - **Riverpod:** providers construct and dispose database, repository, session, reachability, router and draft dependencies. Tests override providers with deterministic delays, clocks/stores/streams. Widgets own only temporary interaction state.
 - **Domain boundary:** pure Dart validation, OTP policy and repository contracts do not depend on Flutter. Data adapters own Drift and secure storage. Presentation maps state/errors into localized UI.
 - **Session/security:** account profile is stored in local SQLite; secure storage contains the active phone identifier. The sample app has no real secret/token or server authorization.
 - **Reachability:** a connectivity interface event triggers a bounded HTTP `generate_204` probe. A Wi-Fi interface is not treated as proof of internet. This is only an online/offline hint for the demo.
-- **Assets:** vector SVGs were drawn by hand for this project. No PDF screenshots or external image assets are shipped.
+- **Assets:** donut, coffee, seasonal-box, and shop-banner photos were generated specifically for this project; the member avatar and Welcome tiles are hand-authored SVGs. No PDF screenshots or external image assets are shipped.
 - **Motion:** named tokens unify timing/curves. The rewards ring is custom-painted; tabs and content use a moving indicator/AnimatedSwitcher; shared entrance motion uses staggered delays. Reduce Motion disables repeating/attention loops and settles animated values.
 
 ## Likely interview questions
@@ -35,8 +35,8 @@ The display language and demo content are English. The backend, live SMS, social
 
 ## Current verification and limitations
 
-Refer to `REQUIREMENTS.md` for the evidence-by-requirement audit. The latest full Dart run passed 44 tests with a clean analyzer, including pull-to-refresh. Register → Welcome → Home → Product and session restoration passed on Android Emulator and iOS Simulator. The longer iOS Simulator walkthrough recording test also passed.
+Refer to `REQUIREMENTS.md` for the evidence-by-requirement audit. The latest full Dart run passed 46 tests with a clean analyzer, including pull-to-refresh. Register → Welcome → Home → Product passed on the iOS Simulator. Android integration could not be rerun in this pass because the Pixel 10 Pro emulator exited with code 1 during startup.
 
-The Android arm64 APK is `build/app/outputs/flutter-apk/app-release.apk` (25.3 MB). Its v2 signature verifies, but the project uses its demo debug signing configuration. The zipped iOS Simulator app is `build/jdonuts-ios-simulator-current.zip` (66 MB); Flutter supports only Debug mode for Simulator builds. The local walkthrough is `build/jdonuts-demo-walkthrough.mov` (211 seconds / 3:31), trimmed to end on the Rewards screen after reviewing the raw Simulator recording.
+The Android arm64 APK is `build/app/outputs/flutter-apk/app-release.apk` (32.3 MB). Its v2 signature verifies, but the project uses its demo debug signing configuration. The zipped iOS Simulator app is `build/jdonuts-ios-simulator-current.zip`; Flutter supports only Debug mode for Simulator builds. `build/jdonuts-demo-walkthrough.mov` is a 211-second walkthrough from before the final visual changes and should be treated as an older recording; a current recording was not verified.
 
-The simulator/emulator checks are not a complete visual sign-off. Original SVG illustrations differ from the PDF’s product photography. No 60 fps measurement was taken. The integration flow forced the app offline through its connectivity provider; a system airplane-mode toggle was not performed. The PDF and design screenshots remain outside the repository, and no artifact was published or submitted.
+All ten design states were captured and visually reviewed on the iPhone 17 Pro Simulator after the visual pass. This is a manual comparison, not a pixel-diff sign-off. Generated food/shop photos approximate the reference; Welcome tiles and the member avatar remain vector illustrations. No 60 fps measurement was taken. The integration flow forced the app offline through its connectivity provider; a system airplane-mode toggle was not performed. The PDF and design screenshots remain outside the repository, and no artifact was published or submitted.

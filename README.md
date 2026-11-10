@@ -35,17 +35,17 @@ Folder map:
 - lib/features/product: ProductRepository, local adapter, and detail UI
 - lib/features/rewards: RewardsRepository, local adapter, painters, and UI/widgets
 - assets/data: bundled seed JSON and English ARB source
-- assets/images: original offline SVG illustrations
+- assets/images: bundled SVG artwork and original offline raster images
 - lib/l10n: generated localization code
 - test and integration_test: unit, repository, widget, and device-flow checks
 
 ## Offline data and images
 
-The first local repository read seeds bundled JSON into versioned Drift/SQLite tables in a transaction. The database is the rendered source of truth after seeding. Home, Product, and Rewards read through feature-local repository interfaces backed by the same catalog/member records. A schema migration adds the member avatar column.
+The first local repository read seeds bundled JSON into versioned Drift/SQLite tables in a transaction. The database is the rendered source of truth after seeding. Home, Product, and Rewards read through feature-local repository interfaces backed by the same catalog/member records. Schema v2 added the member avatar column; schema v3 migrates the bundled image paths.
 
 The Home and Rewards mock-ups disagree about membership values. The app deliberately uses one seeded Silver member with 680,000 points and 500 points to Gold, matching the Rewards values. The rewards ring counts to 680,000 from this stored member row.
 
-Seed products, banners, and the member avatar use original hand-authored SVG artwork. No third-party image or PDF screenshot is bundled. SeedImage renders bundled files offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs.
+The coconut and chocolate donuts, Dalgona coffee, seasonal donut box, and shop banner are original images generated specifically for this app with OpenAI image generation; they are not stock photography. The remaining welcome tiles and member avatar are hand-authored SVG illustrations. The PDF and its screenshots are not bundled. SeedImage renders bundled SVG, PNG, and JPEG assets offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs. Drift schema v3 migrates previously seeded image paths to the bundled photos without replacing custom image paths.
 
 connectivity_plus interface changes are combined with an HTTP reachability probe. A small offline banner appears when the probe reports no internet. Reconnection and pull-to-refresh re-read SQLite, preserving usable content. There is no backend in this assignment slice, so refresh cannot download catalog updates; the reachability request is only an online/offline hint.
 
@@ -57,22 +57,21 @@ This does not provide real SMS delivery, social sign-in, legal-document destinat
 
 ## Motion and accessibility
 
-Named motion durations and curves are centralized in lib/core/motion/motion.dart. The app includes onboarding and welcome entrances, registration transitions and progress feedback, auth error/OTP feedback, Home shimmer/stagger and carousel, Product Hero/quantity transitions, Rewards points/tier/challenge animations, tab transitions, badge pop, and the active navigation pill. Repeating motion is stopped and animated values settle when MediaQuery.disableAnimations is enabled. Controllers and timers are disposed with their owners.
+Named motion durations and curves are centralized in lib/core/motion/motion.dart. The app includes onboarding and welcome entrances, registration transitions and progress feedback, auth error/OTP feedback, Home shimmer/stagger and carousel, Product Hero/quantity transitions, Rewards points/tier/challenge animations, tab transitions, badge pop, and the active navigation pill. Repeating motion is stopped and animated values settle when MediaQuery.disableAnimations is enabled. Controllers and timers are disposed with their owners. The PDF does not specify a typeface, so the theme uses the platform system sans rather than embedding a guessed font.
 
-## Checks run on 2026-11-10
+## Checks run on 2026-11-11
 
 - dart format lib test integration_test — completed
 - flutter gen-l10n — completed
 - flutter analyze — no issues found
-- flutter test --reporter expanded — all 44 tests passed
-- Android emulator integration: registration → Welcome → offline Home → Product → app-scope recreation/session restore — passed
-- iOS Simulator integration: same flow — passed
-- Android release build: arm64 APK built at build/app/outputs/flutter-apk/app-release.apk (25.3 MB); apksigner verified the v2 signature
+- flutter test --reporter expanded — all 46 tests passed
+- iOS Simulator integration: Register → Welcome → Home → Product — passed on 2026-11-11; the ten-screen offline capture flow also passed.
+- Android release build: arm64 APK built at build/app/outputs/flutter-apk/app-release.apk (32.3 MB); apksigner verified its v2 signature.
 - iOS Simulator app built with flutter build ios --simulator and zipped at build/jdonuts-ios-simulator-current.zip; archive integrity check passed. Flutter does not support release mode for iOS simulators, so this is a debug Simulator app.
-- iOS Simulator walkthrough recording test passed; `build/jdonuts-demo-walkthrough.mov` is 211 seconds (3:31) and ends on Rewards.
-- Simulator launch and onboarding were visually inspected. Full screen-by-screen pixel comparison was not completed.
+- The existing `build/jdonuts-demo-walkthrough.mov` is 211 seconds (3:31), but it predates the final visual pass. A fresh recording of the current UI was not verified, so treat this video as an older walkthrough.
+- Captured and reviewed all ten supplied design states on an iPhone 17 Pro Simulator on 2026-11-11. The review was visual; no pixel-diff tool was used.
 
-No profile-mode frame timing was recorded; no 60 fps claim is made. The integration test forces its connectivity provider offline and tests reconnection through a simulated stream. System-level airplane mode was not toggled.
+No profile-mode frame timing was recorded; no 60 fps claim is made. The integration test forces its connectivity provider offline and tests reconnection through a simulated stream. System-level airplane mode was not toggled. The Android integration test could not be rerun in this pass because the Pixel 10 Pro emulator exited with code 1 during startup; the APK build itself completed.
 
 ## Build artifacts and commands
 
@@ -94,9 +93,9 @@ The .app and zip are local workspace artifacts. They were not published or submi
 - There is no server, live catalog sync, SMS provider, social auth provider, or legal document content.
 - Add-to-cart and challenge Earn feedback are transient; they do not persist or change the member balance.
 - Burmese localization and CI are optional PDF bonuses and are not implemented.
-- Offline repository behavior and the forced-offline integration path are verified; a full fresh-install airplane-mode/relaunch device check remains unverified.
+- Offline repository behavior and the forced-offline iOS integration path are verified; a full fresh-install airplane-mode/relaunch device check remains unverified.
 - Layouts are tested at a compact 320×667 logical-pixel viewport with text scale 1.3, not every physical 4.7–6.9 inch device size.
-- Original SVG artwork differs from the PDF’s photographic product imagery. Visual review was a spot-check, not a pixel-diff of every design.
+- The bundled original food photos approximate the reference imagery; they are not photos of the client’s actual products or shops. The member avatar and Welcome tile art remain vector illustrations.
 - Android release APK signing is for the demo, and only arm64 is packaged.
 - Time spent was not tracked, so no duration is claimed.
 - No repository was published, and no email or external submission was made.
