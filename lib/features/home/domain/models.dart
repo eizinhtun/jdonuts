@@ -7,8 +7,14 @@ class Member {
     required this.pointsToGold,
     required this.notifications,
   });
-  final String id, name, tier;
-  final int points, pointsToGold, notifications;
+
+  final String id;
+  final String name;
+  final String tier;
+  final int points;
+  final int pointsToGold;
+  final int notifications;
+
   factory Member.fromJson(Map<String, dynamic> json) => Member(
     id: json['id'] as String,
     name: json['name'] as String,
@@ -30,10 +36,16 @@ class Product {
     required this.description,
     this.discountPercent,
   });
-  final String id, code, name, image, description;
+
+  final String id;
+  final String code;
+  final String name;
+  final String image;
+  final String description;
   final int priceMmk;
   final bool isNew;
   final int? discountPercent;
+
   factory Product.fromJson(Map<String, dynamic> json) => Product(
     id: json['id'] as String,
     code: json['code'] as String,
@@ -46,6 +58,42 @@ class Product {
   );
 }
 
+class PromoBanner {
+  const PromoBanner({
+    required this.title,
+    required this.subtitle,
+    required this.image,
+  });
+
+  final String title;
+  final String subtitle;
+  final String image;
+
+  factory PromoBanner.fromJson(Map<String, dynamic> json) => PromoBanner(
+    title: json['title'] as String,
+    subtitle: json['subtitle'] as String,
+    image: json['image'] as String,
+  );
+}
+
+class HomeSection {
+  HomeSection({
+    required this.id,
+    required this.title,
+    required List<String> productIds,
+  }) : productIds = List.unmodifiable(productIds);
+
+  final String id;
+  final String title;
+  final List<String> productIds;
+
+  factory HomeSection.fromJson(Map<String, dynamic> json) => HomeSection(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    productIds: (json['productIds'] as List).cast<String>(),
+  );
+}
+
 class Challenge {
   const Challenge({
     required this.id,
@@ -55,8 +103,14 @@ class Challenge {
     required this.points,
     required this.kind,
   });
-  final String id, title, kind;
-  final int progress, target, points;
+
+  final String id;
+  final String title;
+  final String kind;
+  final int progress;
+  final int target;
+  final int points;
+
   factory Challenge.fromJson(Map<String, dynamic> json) => Challenge(
     id: json['id'] as String,
     title: json['title'] as String,
@@ -68,30 +122,43 @@ class Challenge {
 }
 
 class AppData {
-  const AppData({
+  AppData({
     required this.member,
-    required this.products,
-    required this.sections,
-    required this.banners,
-    required this.shops,
-    required this.challenges,
-  });
+    required List<Product> products,
+    required List<HomeSection> sections,
+    required List<PromoBanner> banners,
+    required List<String> shops,
+    required List<Challenge> challenges,
+  }) : products = List.unmodifiable(products),
+       sections = List.unmodifiable(sections),
+       banners = List.unmodifiable(banners),
+       shops = List.unmodifiable(shops),
+       challenges = List.unmodifiable(challenges);
+
   final Member member;
   final List<Product> products;
-  final List<Map<String, dynamic>> sections, banners;
+  final List<HomeSection> sections;
+  final List<PromoBanner> banners;
   final List<String> shops;
   final List<Challenge> challenges;
+
   factory AppData.fromJson(Map<String, dynamic> json) => AppData(
     member: Member.fromJson(json['member'] as Map<String, dynamic>),
     products: (json['products'] as List)
-        .map((e) => Product.fromJson(e as Map<String, dynamic>))
+        .map((value) => Product.fromJson(value as Map<String, dynamic>))
         .toList(),
-    sections: (json['sections'] as List).cast<Map<String, dynamic>>(),
-    banners: (json['banners'] as List).cast<Map<String, dynamic>>(),
+    sections: (json['sections'] as List)
+        .map((value) => HomeSection.fromJson(value as Map<String, dynamic>))
+        .toList(),
+    banners: (json['banners'] as List)
+        .map((value) => PromoBanner.fromJson(value as Map<String, dynamic>))
+        .toList(),
     shops: (json['shops'] as List).cast<String>(),
     challenges: (json['challenges'] as List)
-        .map((e) => Challenge.fromJson(e as Map<String, dynamic>))
+        .map((value) => Challenge.fromJson(value as Map<String, dynamic>))
         .toList(),
   );
-  Product? product(String id) => products.where((p) => p.id == id).firstOrNull;
+
+  Product? product(String id) =>
+      products.where((item) => item.id == id).firstOrNull;
 }

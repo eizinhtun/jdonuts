@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jdonuts/core/presentation/animated_entrance.dart';
+import 'package:jdonuts/core/presentation/seed_image.dart';
+import 'package:jdonuts/l10n/localization.dart';
 
 import '../../../core/motion/motion.dart';
 import '../../../core/theme/tokens.dart';
-import '../../../main.dart';
+import '../../../app/providers.dart';
 import '../domain/models.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -18,22 +21,29 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _pager = PageController(viewportFraction: .88);
   Timer? _carousel;
-  bool _online = true;
+  bool? _reduceMotion;
+
   @override
-  void initState() {
-    super.initState();
-    _carousel = Timer.periodic(Motion.carousel, (_) {
-      if (mounted &&
-          _pager.hasClients &&
-          !MediaQuery.disableAnimationsOf(context)) {
-        final next = ((_pager.page ?? 0).round() + 1) % 2;
-        _pager.animateToPage(
-          next,
-          duration: Motion.standard,
-          curve: Motion.curve,
-        );
-      }
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (_reduceMotion == reduceMotion) return;
+    _reduceMotion = reduceMotion;
+    _carousel?.cancel();
+    _carousel = reduceMotion
+        ? null
+        : Timer.periodic(Motion.carousel, (_) {
+            final bannerCount =
+                ref.read(appDataProvider).asData?.value.banners.length ?? 0;
+            if (!mounted || !_pager.hasClients || bannerCount < 2) return;
+            final next = (((_pager.page ?? 0).round() + 1) % bannerCount)
+                .toInt();
+            _pager.animateToPage(
+              next,
+              duration: Motion.duration(context, Motion.standard),
+              curve: Motion.curve,
+            );
+          });
   }
 
   @override
@@ -44,57 +54,89 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _refresh() async {
-    await ref.read(dataRepositoryProvider).refresh();
-    ref.invalidate(appDataProvider);
+    final result = await ref.read(dataRepositoryProvider).refresh();
+    if (!mounted) return;
+    result.fold<void>(
+      (_) => ref.invalidate(appDataProvider),
+      (failure) =>
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(failure.message))),
+    );
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: ref
-          .watch(appDataProvider)
-          .when(
-            loading: () => const _HomeSkeleton(),
-            error: (e, _) => _StateMessage(
-              title: 'Couldn’t load your home',
-              onRetry: _refresh,
-            ),
-            data: (data) => RefreshIndicator(
-              onRefresh: _refresh,
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(child: _Header(member: data.member)),
-                  if (!_online)
-                    const SliverToBoxAdapter(child: _OfflineNotice()),
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 160,
-                      child: PageView(
-                        controller: _pager,
-                        children: data.banners
-                            .map(
-                              (b) => _BannerCard(
-                                title: b['title'] as String,
-                                subtitle: b['subtitle'] as String,
-                              ),
-                            )
-                            .toList(),
+  Widget build(BuildContext context) {
+    ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
+      if (previous?.asData?.value == false && next.asData?.value == true) {
+        unawaited(_refresh());
+      }
+    });
+    final online = ref.watch(connectivityProvider).asData?.value ?? false;
+    return Scaffold(
+      body: SafeArea(
+        child: ref
+            .watch(appDataProvider)
+            .when(
+              loading: () => const _HomeSkeleton(),
+              error: (e, _) => _StateMessage(
+                title: context.l10n.homeLoadError,
+                onRetry: _refresh,
+              ),
+              data: (data) => RefreshIndicator(
+                onRefresh: _refresh,
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: AnimatedEntrance(
+                        child: _Header(member: data.member),
                       ),
                     ),
-                  ),
-                  for (final section in data.sections)
+                    if (!online)
+                      const SliverToBoxAdapter(child: _OfflineNotice()),
                     SliverToBoxAdapter(
-                      child: _ProductSection(section: section, data: data),
+                      child: AnimatedEntrance(
+                        delay: const Duration(milliseconds: 70),
+                        child: SizedBox(
+                          height: 160,
+                          child: PageView(
+                            controller: _pager,
+                            children: data.banners
+                                .map(
+                                  (b) => _BannerCard(
+                                    title: b.title,
+                                    subtitle: b.subtitle,
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ),
                     ),
-                  SliverToBoxAdapter(child: _shops(data.shops)),
-                  const SliverToBoxAdapter(child: SizedBox(height: 18)),
-                ],
+                    for (var index = 0; index < data.sections.length; index++)
+                      SliverToBoxAdapter(
+                        child: AnimatedEntrance(
+                          delay: Duration(milliseconds: 110 + index * 60),
+                          child: _ProductSection(
+                            section: data.sections[index],
+                            data: data,
+                          ),
+                        ),
+                      ),
+                    SliverToBoxAdapter(
+                      child: AnimatedEntrance(
+                        delay: const Duration(milliseconds: 270),
+                        child: _shops(context, data.shops),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 18)),
+                  ],
+                ),
               ),
             ),
-          ),
-    ),
-    bottomNavigationBar: const AppBottomNav(selected: 0),
-  );
+      ),
+      bottomNavigationBar: const AppBottomNav(selected: 0),
+    );
+  }
 }
 
 class _Header extends StatelessWidget {
@@ -122,12 +164,12 @@ class _Header extends StatelessWidget {
             children: [
               Text(member.name, style: Theme.of(context).textTheme.titleMedium),
               Text(
-                '${member.tier} member',
+                context.l10n.memberTierLabel(member.tier),
                 style: const TextStyle(color: AppColors.muted, fontSize: 12),
               ),
               const SizedBox(height: 4),
               Text(
-                '${member.pointsToGold} points left to become Gold Member',
+                context.l10n.homeGoldProgress(member.pointsToGold),
                 style: const TextStyle(fontSize: 10, color: AppColors.muted),
               ),
             ],
@@ -136,7 +178,7 @@ class _Header extends StatelessWidget {
         IconButton(
           onPressed: () {},
           icon: Badge(
-            label: Text('${member.notifications}'),
+            label: Text(context.l10n.notificationCount(member.notifications)),
             child: const Icon(Icons.notifications_none),
           ),
         ),
@@ -160,7 +202,7 @@ class _BannerCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/images/banner.svg', fit: BoxFit.cover),
+          const SeedImage(assetName: 'banner.svg', fit: BoxFit.cover),
           Positioned(
             left: 24,
             top: 20,
@@ -204,12 +246,14 @@ class _BannerCard extends StatelessWidget {
 
 class _ProductSection extends StatelessWidget {
   const _ProductSection({required this.section, required this.data});
-  final Map<String, dynamic> section;
+  final HomeSection section;
   final AppData data;
   @override
   Widget build(BuildContext context) {
-    final ids = (section['productIds'] as List).cast<String>();
-    final products = ids.map(data.product).whereType<Product>().toList();
+    final products = section.productIds
+        .map(data.product)
+        .whereType<Product>()
+        .toList();
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: Column(
@@ -221,7 +265,7 @@ class _ProductSection extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    section['title'] as String,
+                    section.title,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -233,14 +277,16 @@ class _ProductSection extends StatelessWidget {
           SizedBox(
             height: 174,
             child: products.isEmpty
-                ? const Center(child: Text('No items yet'))
+                ? Center(child: Text(context.l10n.emptyProducts))
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
                     itemCount: products.length,
                     separatorBuilder: (_, _) => const SizedBox(width: 10),
-                    itemBuilder: (context, index) =>
-                        _ProductCard(product: products[index]),
+                    itemBuilder: (context, index) => _ProductCard(
+                      product: products[index],
+                      heroTag: 'product-${products[index].id}-${section.id}',
+                    ),
                   ),
           ),
         ],
@@ -250,11 +296,12 @@ class _ProductSection extends StatelessWidget {
 }
 
 class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
+  const _ProductCard({required this.product, required this.heroTag});
   final Product product;
+  final String heroTag;
   @override
   Widget build(BuildContext context) => InkWell(
-    onTap: () => context.push('/product/${product.id}'),
+    onTap: () => context.push('/product/${product.id}', extra: heroTag),
     borderRadius: BorderRadius.circular(16),
     child: SizedBox(
       width: 128,
@@ -264,16 +311,16 @@ class _ProductCard extends StatelessWidget {
           Expanded(
             child: Stack(
               children: [
-                Container(
-                  width: 128,
-                  decoration: BoxDecoration(
-                    color: AppColors.canvas,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  padding: const EdgeInsets.all(15),
-                  child: Image.asset(
-                    'assets/images/${product.image}',
-                    fit: BoxFit.contain,
+                Hero(
+                  tag: heroTag,
+                  child: Container(
+                    width: 128,
+                    decoration: BoxDecoration(
+                      color: AppColors.canvas,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.all(15),
+                    child: SeedImage(assetName: product.image),
                   ),
                 ),
                 if (product.discountPercent != null)
@@ -309,7 +356,7 @@ class _DiscountBadge extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
     ),
     child: Text(
-      '$value% off',
+      context.l10n.discountLabel(value),
       style: const TextStyle(
         color: Colors.white,
         fontSize: 9,
@@ -319,15 +366,15 @@ class _DiscountBadge extends StatelessWidget {
   );
 }
 
-Widget _shops(List<String> shops) => Container(
+Widget _shops(BuildContext context, List<String> shops) => Container(
   margin: const EdgeInsets.only(top: 18),
   padding: const EdgeInsets.all(18),
   color: AppColors.cyan,
   child: Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const Text(
-        'There are 4 J’Donut shops near you',
+      Text(
+        context.l10n.shopsNear(shops.length),
         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
       ),
       const SizedBox(height: 10),
@@ -355,10 +402,10 @@ Widget _shops(List<String> shops) => Container(
 class _OfflineNotice extends StatelessWidget {
   const _OfflineNotice();
   @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.all(8),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(8),
     child: Text(
-      'You’re offline — showing saved items',
+      context.l10n.offlineNotice,
       textAlign: TextAlign.center,
       style: TextStyle(color: AppColors.muted, fontSize: 12),
     ),
@@ -375,7 +422,7 @@ class _StateMessage extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(title),
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
+        TextButton(onPressed: onRetry, child: Text(context.l10n.retryLabel)),
       ],
     ),
   );
@@ -407,29 +454,38 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) => NavigationBar(
     selectedIndex: selected,
     onDestinationSelected: (index) {
-      if (index == 0)
+      if (index == 0) {
         context.go('/home');
-      else if (index == 2)
+      } else if (index == 2) {
         context.go('/rewards');
-      else if (index == 4)
+      } else if (index == 4) {
         context.push('/settings');
-      else
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('This section is coming soon.')),
-        );
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.comingSoon)));
+      }
     },
-    destinations: const [
-      NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+    destinations: [
       NavigationDestination(
-        icon: Icon(Icons.local_offer_outlined),
-        label: 'Offer',
+        icon: const Icon(Icons.home_outlined),
+        label: context.l10n.homeLabel,
       ),
-      NavigationDestination(icon: Icon(Icons.stars_outlined), label: 'Reward'),
       NavigationDestination(
-        icon: Icon(Icons.shopping_bag_outlined),
-        label: 'Order',
+        icon: const Icon(Icons.local_offer_outlined),
+        label: context.l10n.offersLabel,
       ),
-      NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
+      NavigationDestination(
+        icon: const Icon(Icons.stars_outlined),
+        label: context.l10n.rewardsLabel,
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.shopping_bag_outlined),
+        label: context.l10n.orderLabel,
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.person_outline),
+        label: context.l10n.profileLabel,
+      ),
     ],
   );
 }

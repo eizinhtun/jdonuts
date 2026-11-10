@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jdonuts/core/presentation/seed_image.dart';
+import 'package:jdonuts/l10n/localization.dart';
 
 import '../../../core/motion/motion.dart';
 import '../../../core/theme/tokens.dart';
-import '../../../main.dart';
+import '../../../app/providers.dart';
+import '../../../core/formatters/currency.dart';
 import '../../home/domain/models.dart';
 
 class ProductScreen extends ConsumerStatefulWidget {
-  const ProductScreen({super.key, required this.productId});
+  const ProductScreen({
+    super.key,
+    required this.productId,
+    required this.heroTag,
+  });
   final String productId;
+  final String heroTag;
   @override
   ConsumerState<ProductScreen> createState() => _ProductScreenState();
 }
@@ -23,12 +31,18 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
       child: ref
           .watch(appDataProvider)
           .when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, _) => const Center(child: Text('Product unavailable')),
+            loading: () => Center(
+              child: CircularProgressIndicator(
+                value: MediaQuery.disableAnimationsOf(context) ? .65 : null,
+              ),
+            ),
+            error: (_, _) =>
+                Center(child: Text(context.l10n.productUnavailable)),
             data: (data) {
               final product = data.product(widget.productId);
-              if (product == null)
-                return const Center(child: Text('Product not found'));
+              if (product == null) {
+                return Center(child: Text(context.l10n.productNotFound));
+              }
               return _product(context, product);
             },
           ),
@@ -50,7 +64,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Hero(
-                tag: 'product-${product.id}',
+                tag: widget.heroTag,
                 child: Container(
                   height: 285,
                   width: double.infinity,
@@ -63,7 +77,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.all(32),
-                          child: Image.asset('assets/images/${product.image}'),
+                          child: SeedImage(assetName: product.image),
                         ),
                       ),
                       Positioned(
@@ -78,10 +92,10 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                         ),
                       ),
                       if (product.isNew)
-                        const Positioned(
+                        Positioned(
                           right: 16,
                           top: 14,
-                          child: _NewBadge(),
+                          child: _NewBadge(label: context.l10n.newBadge),
                         ),
                     ],
                   ),
@@ -137,8 +151,8 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                 ),
               ),
               const SizedBox(height: 25),
-              const Text(
-                'What’s this?',
+              Text(
+                context.l10n.whatsThis,
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 8),
@@ -155,18 +169,27 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
         child: FilledButton(
           onPressed: () {
             setState(() => added = true);
-            ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('Added to cart')));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(context.l10n.addedToCart)));
           },
           style: FilledButton.styleFrom(
             backgroundColor: added ? AppColors.orange : AppColors.cyan,
             minimumSize: const Size.fromHeight(54),
           ),
-          child: Text(
-            '${added ? 'ADDED' : 'ADD TO CART'}   ·   ${formatMmk(product.priceMmk * quantity)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
+          child: AnimatedSwitcher(
+            duration: Motion.duration(context, Motion.quick),
+            child: Text(
+              context.l10n.cartTotal(
+                added ? context.l10n.addedLabel : context.l10n.addToCart,
+                formatMmk(product.priceMmk * quantity),
+              ),
+              key: ValueKey('$added-$quantity'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ),
@@ -176,7 +199,8 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
 }
 
 class _NewBadge extends StatelessWidget {
-  const _NewBadge();
+  const _NewBadge({required this.label});
+  final String label;
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -184,8 +208,8 @@ class _NewBadge extends StatelessWidget {
       color: AppColors.orange,
       borderRadius: BorderRadius.circular(16),
     ),
-    child: const Text(
-      'New',
+    child: Text(
+      label,
       style: TextStyle(
         color: Colors.white,
         fontSize: 11,
