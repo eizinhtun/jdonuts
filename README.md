@@ -65,13 +65,19 @@ flutter test
 
 Formatting and localization generation completed, analyzer had no issues, and all 32 Flutter tests passed. Repository and widget tests cover seed/versioning/concurrent seed, offline reads, reachability, auth/OTP/validation/session paths, Home/product layout at text scale 1.3, Rewards tabs and Reduce Motion.
 
-The iOS Simulator integration flow also passed: register → Welcome → offline Home → product, using production SQLite account storage and the secure-session plugin. The Release Simulator app is zipped at `build/jdonuts-ios-simulator.zip`. The Android APK and visual screenshot comparison remain explicitly tracked in `REQUIREMENTS.md`; check there for current status. **Time spent was not recorded with a timer, so no precise total is claimed.**
+The iOS Simulator integration flow also passed: register → Welcome → offline Home → product → app-scope recreation → restored offline Home, using production SQLite account storage and the secure-session plugin. The Release Simulator app is zipped at `build/jdonuts-ios-simulator.zip`. The 61 MB Android APK is at `build/app/outputs/flutter-apk/app-release.apk`; its archive and V2 signature were verified. The simulator screenshot comparison remains unavailable; see `REQUIREMENTS.md`. **Time spent was not recorded with a timer, so no precise total is claimed.**
 
 ## Build commands
 
 ```sh
 # Android release APK (uses the project’s debug signing config for this demo)
 flutter build apk --release
+
+# Android assembly used for the delivered APK when first-use lint model downloads stalled
+cd android
+./gradlew :app:assembleRelease -x lintVitalRelease \
+  -x lintVitalAnalyzeRelease -x lintVitalReportRelease
+cd ..
 
 # iOS Simulator app
 flutter build ios --simulator

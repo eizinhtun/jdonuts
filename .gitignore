@@ -6,6 +6,7 @@ build/
 coverage/
 *.log
 .DS_Store
+android/.kotlin/
 
 .idea/
 *.iml

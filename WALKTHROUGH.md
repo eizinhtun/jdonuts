@@ -35,4 +35,4 @@ The display language and demo content are English. The backend, live SMS, social
 
 ## Current verification and limitations
 
-Refer to `REQUIREMENTS.md` for the current check/build audit. The unit/widget suite, analyzer and updated production-store iOS integration flow passed. The Release iOS Simulator app is available as `build/jdonuts-ios-simulator.zip`; the Android APK build is pending. The local iOS simulator reported a data migration issue and screenshot capture returned black output, so a visual screenshot comparison is not claimed.
+Refer to `REQUIREMENTS.md` for the current check/build audit. The unit/widget suite, analyzer and production-store iOS integration flow (including app-scope recreation and offline session restore) passed. The Release iOS Simulator app is available as `build/jdonuts-ios-simulator.zip`; the 61 MB Android release APK is at `build/app/outputs/flutter-apk/app-release.apk`. Android assembly excluded the Gradle `lintVital*` tasks after first-use lint artifact downloads stalled; the Dart analyzer and tests passed separately. The local iOS simulator produced only black screenshots, so a visual screenshot comparison is not claimed.
