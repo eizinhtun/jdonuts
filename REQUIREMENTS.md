@@ -42,8 +42,8 @@ Status: **Done** means implemented and covered by a completed relevant check; **
 ## Verification and delivery
 
 - [x] `dart format lib test integration_test`, `flutter gen-l10n`, `flutter analyze`, `flutter test`: completed on 2026-11-10; 32 Flutter tests passed, analyzer reported no issues.
-- [x] iOS Simulator integration test: register → welcome → Home → product, with production SQLite account storage, `flutter_secure_storage` session and forced offline state. Completed 2026-11-10; one test passed.
+- [x] iOS Simulator integration test: register → welcome → Home → product, with production SQLite account storage, `flutter_secure_storage` session and forced offline state; recreates the app/provider scope and verifies offline session restoration. Completed 2026-11-10; one test passed.
 - [ ] **Pending:** release APK build is waiting on Gradle’s download/install of Android SDK Platform 35 (API 34 installed successfully). No APK is claimed until the command completes.
 - [x] Release iOS Simulator `.app` built and zipped: `build/ios/iphonesimulator/Runner.app`, `build/jdonuts-ios-simulator.zip` (66 MB). The simulator GUI screenshot verification remains unavailable (simulator reported a data migration failure and captured black output).
 - [x] README, interview walkthrough and this checklist document setup, design choices, tests and known gaps. PDF/screenshots are excluded.
-- [ ] **Not done:** Git commits for this resumed work have not yet been made. No push/publication.
+- [x] Small local commits created: `0830abc` architecture/storage, `a6add49` authentication, `7ddd357` offline screens, `91f6d10` relaunch test, `b6fb095` delivery docs. No push/publication.
