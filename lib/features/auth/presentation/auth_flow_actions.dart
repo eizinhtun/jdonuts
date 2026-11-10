@@ -197,12 +197,23 @@ mixin _AuthFlowActions on _AuthFlowHost {
   }
 
   Future<void> _continueFromBirthDate() async {
-    final validation = validateBirthDate(_birthDate);
+    final validation = validateBirthInputs(
+      _birthMonth.text,
+      _birthDay.text,
+      _birthYear.text,
+      today: ref.read(clockProvider)(),
+    );
     if (validation != null) {
       setState(() => _dateSubmitted = true);
       return;
     }
     if (_loading) return;
+    final birthDate = parseBirthDate(
+      _birthMonth.text,
+      _birthDay.text,
+      _birthYear.text,
+    );
+    if (birthDate == null) return;
     final draft = ref.read(authDraftProvider);
     if (!draft.otpVerified) {
       setState(() => _error = context.l10n.otpInvalid);
@@ -222,7 +233,7 @@ mixin _AuthFlowActions on _AuthFlowHost {
       lastName: _lastName.text.trim().isEmpty
           ? draft.lastName.trim()
           : _lastName.text.trim(),
-      birthDate: _birthDate,
+      birthDate: birthDate,
     );
     final result = await ref.read(authRepositoryProvider).register(user);
     if (!mounted) return;
@@ -231,7 +242,7 @@ mixin _AuthFlowActions on _AuthFlowHost {
         _saveDraft(
           ref
               .read(authDraftProvider)
-              .copyWith(birthDate: _birthDate, otpVerified: false),
+              .copyWith(birthDate: birthDate, otpVerified: false),
         );
         ref.read(authStateProvider.notifier).state = true;
         context.go('/welcome');

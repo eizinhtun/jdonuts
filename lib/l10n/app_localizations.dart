@@ -364,6 +364,24 @@ abstract class AppLocalizations {
   /// **'Select date of birth'**
   String get selectBirthDate;
 
+  /// No description provided for @birthMonthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get birthMonthHint;
+
+  /// No description provided for @birthDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get birthDayHint;
+
+  /// No description provided for @birthYearHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get birthYearHint;
+
   /// No description provided for @invalidBirthDate.
   ///
   /// In en, this message translates to:

@@ -81,11 +81,11 @@ class TierLadder extends StatelessWidget {
   );
 
   Widget _line(double progress) => Padding(
-    padding: const EdgeInsets.only(left: 19),
+    padding: const EdgeInsets.only(left: 17),
     child: SizedBox(
-      height: 32,
+      height: 22,
       child: SizedBox(
-        width: 3,
+        width: 2,
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [
@@ -109,7 +109,7 @@ class TierLadder extends StatelessWidget {
     required double? progress,
     required BuildContext context,
   }) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
     decoration: current
         ? BoxDecoration(
             color: AppColors.palePink,
@@ -119,24 +119,26 @@ class TierLadder extends StatelessWidget {
         : null,
     child: Row(
       children: [
-        Container(
-          width: 40,
-          height: 48,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: .35),
-            border: Border.all(
-              color: current ? AppColors.pink : color,
-              width: current ? 2.5 : 2,
+        SizedBox(
+          width: 36,
+          height: 40,
+          child: CustomPaint(
+            painter: _TierMarkPainter(
+              fill: color.withValues(alpha: .35),
+              stroke: current ? AppColors.pink : color,
+              strokeWidth: current ? 2.5 : 2,
             ),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Center(
-            child: Text(
-              mark,
-              style: TextStyle(
-                color: AppColors.ink.withValues(alpha: .65),
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Text(
+                  mark,
+                  style: TextStyle(
+                    color: AppColors.ink.withValues(alpha: .65),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                  ),
+                ),
               ),
             ),
           ),
@@ -150,6 +152,7 @@ class TierLadder extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
+                  fontSize: 14,
                   fontWeight: FontWeight.w800,
                   color: current ? AppColors.pink : AppColors.ink,
                 ),
@@ -158,7 +161,7 @@ class TierLadder extends StatelessWidget {
                 subtitle,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10, height: 1.25),
+                style: const TextStyle(fontSize: 11, height: 1.2),
               ),
               if (progress != null) ...[
                 const SizedBox(height: 3),
@@ -178,4 +181,46 @@ class TierLadder extends StatelessWidget {
       ],
     ),
   );
+}
+
+class _TierMarkPainter extends CustomPainter {
+  const _TierMarkPainter({
+    required this.fill,
+    required this.stroke,
+    required this.strokeWidth,
+  });
+
+  final Color fill;
+  final Color stroke;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final inset = strokeWidth / 2;
+    final path = Path()
+      ..moveTo(size.width * .18, inset)
+      ..quadraticBezierTo(size.width / 2, -inset, size.width * .82, inset)
+      ..lineTo(size.width - inset, size.height * .58)
+      ..quadraticBezierTo(
+        size.width / 2,
+        size.height + inset,
+        inset,
+        size.height * .58,
+      )
+      ..close();
+    canvas.drawPath(path, Paint()..color = fill);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = stroke
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _TierMarkPainter oldDelegate) =>
+      oldDelegate.fill != fill ||
+      oldDelegate.stroke != stroke ||
+      oldDelegate.strokeWidth != strokeWidth;
 }

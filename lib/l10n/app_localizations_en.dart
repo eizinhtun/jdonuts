@@ -150,6 +150,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectBirthDate => 'Select date of birth';
 
   @override
+  String get birthMonthHint => 'Month';
+
+  @override
+  String get birthDayHint => 'Day';
+
+  @override
+  String get birthYearHint => 'Year';
+
+  @override
   String get invalidBirthDate => 'Choose a real calendar date.';
 
   @override

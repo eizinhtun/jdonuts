@@ -101,15 +101,15 @@ class _ChallengeCardState extends State<ChallengeCard>
                 fraction: fraction,
                 donut: challenge.kind == 'donut',
               ),
-              child: Center(
-                child: Icon(
-                  challenge.kind == 'donut' ? Icons.donut_large : Icons.coffee,
-                  size: 53,
-                  color: challenge.kind == 'donut'
-                      ? AppColors.donutPink
-                      : AppColors.coffeeBrown,
-                ),
-              ),
+              child: challenge.kind == 'donut'
+                  ? null
+                  : const Center(
+                      child: Icon(
+                        Icons.coffee,
+                        size: 48,
+                        color: AppColors.coffeeBrown,
+                      ),
+                    ),
             ),
           ),
           const SizedBox(width: 14),
@@ -211,7 +211,36 @@ class _ChallengePainter extends CustomPainter {
           );
         }
       }
+      _paintDonutSprinkles(canvas, center, radius, progress);
+      for (var i = 1; i < 4; i++) {
+        if (progress >= i / 4) {
+          final angle = -math.pi / 2 + i * math.pi / 2;
+          final start = Offset(
+            center.dx + math.cos(angle) * radius * .48,
+            center.dy + math.sin(angle) * radius * .48,
+          );
+          final end = Offset(
+            center.dx + math.cos(angle) * radius * .98,
+            center.dy + math.sin(angle) * radius * .98,
+          );
+          canvas.drawLine(
+            start,
+            end,
+            Paint()
+              ..color = Colors.white.withValues(alpha: .75)
+              ..strokeWidth = 2,
+          );
+        }
+      }
       canvas.drawCircle(center, radius * .45, Paint()..color = Colors.white);
+      canvas.drawCircle(
+        center,
+        radius * .45,
+        Paint()
+          ..color = AppColors.donutPink.withValues(alpha: .6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
     } else {
       canvas.drawCircle(center, radius, Paint()..color = AppColors.canvas);
       canvas.drawArc(
@@ -225,6 +254,39 @@ class _ChallengePainter extends CustomPainter {
           ..strokeWidth = 15
           ..strokeCap = StrokeCap.round,
       );
+    }
+  }
+
+  void _paintDonutSprinkles(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    double progress,
+  ) {
+    const colors = [Colors.white, Color(0xFFFFE27A), Color(0xFF6BD6E5)];
+    for (var index = 0; index < 16; index++) {
+      final fraction = (index + .5) / 16;
+      if (fraction > progress) continue;
+      final angle = -math.pi / 2 + math.pi * 2 * fraction;
+      final position = Offset(
+        center.dx + math.cos(angle) * radius * .72,
+        center.dy + math.sin(angle) * radius * .72,
+      );
+      canvas.save();
+      canvas.translate(position.dx, position.dy);
+      canvas.rotate(angle + (index.isEven ? .7 : -.7));
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(
+            center: Offset.zero,
+            width: 3,
+            height: index % 3 == 0 ? 7 : 5,
+          ),
+          const Radius.circular(3),
+        ),
+        Paint()..color = colors[index % colors.length],
+      );
+      canvas.restore();
     }
   }
 

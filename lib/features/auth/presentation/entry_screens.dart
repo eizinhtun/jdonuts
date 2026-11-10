@@ -20,7 +20,7 @@ class OnboardingScreen extends StatelessWidget {
     body: _EntryContent(
       child: Column(
         children: [
-          const Spacer(),
+          const SizedBox(height: 0),
           AnimatedEntrance(
             child: SizedBox(
               height: 240,
@@ -56,12 +56,14 @@ class OnboardingScreen extends StatelessWidget {
                       angle: -.18,
                     ),
                   ),
-                  _DonutArt(asset: 'strawberry.svg', size: 170, angle: .08),
+                  _DonutArt(asset: 'coconut-donut.png', size: 180, angle: .08),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: AppSpace.lg),
+          SizedBox(
+            height: (MediaQuery.sizeOf(context).height - 700).clamp(0.0, 132.0),
+          ),
           AnimatedEntrance(
             delay: Motion.onboardingHeadlineDelay,
             child: SizedBox(
@@ -143,7 +145,7 @@ class WelcomeScreen extends StatelessWidget {
     body: _EntryContent(
       child: Column(
         children: [
-          const Spacer(),
+          const SizedBox(height: 0),
           SizedBox(
             height: 330,
             child: GridView.count(
@@ -186,7 +188,9 @@ class WelcomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpace.lg),
+          SizedBox(
+            height: (MediaQuery.sizeOf(context).height - 700).clamp(0.0, 72.0),
+          ),
           AnimatedEntrance(
             delay: Motion.welcomeTitleDelay,
             child: Text(

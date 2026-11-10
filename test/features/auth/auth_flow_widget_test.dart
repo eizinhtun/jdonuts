@@ -64,10 +64,11 @@ void main() {
     requestGate = null;
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Select date of birth'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
-    await tester.pumpAndSettle();
+    final birthFields = find.byType(TextField);
+    await tester.enterText(birthFields.at(0), 'May');
+    await tester.enterText(birthFields.at(1), '1');
+    await tester.enterText(birthFields.at(2), '1980');
+    await tester.pump();
     requestGate = Completer<void>();
     await tester.tap(find.byType(PrimaryButton));
     await tester.pump();

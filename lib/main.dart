@@ -13,6 +13,7 @@ class JDonutsApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
+    debugShowCheckedModeBanner: false,
     onGenerateTitle: (context) => context.l10n.appTitle,
     theme: buildAppTheme(),
     routerConfig: ref.watch(goRouterProvider),

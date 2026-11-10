@@ -1,19 +1,22 @@
 part of 'auth_flow.dart';
 
 mixin _AuthFlowInputs on _AuthFlowHost, _AuthFlowActions {
-  Future<void> _chooseBirthDate() async {
-    final now = ref.read(clockProvider)();
-    final chosen = await showDatePicker(
-      context: context,
-      initialDate: DateTime(now.year - 18),
-      firstDate: DateTime(1900),
-      lastDate: now,
+  void _onBirthPartChanged(String field, String value) {
+    final draft = ref.read(authDraftProvider);
+    final month = field == 'month' ? value : _birthMonth.text;
+    final day = field == 'day' ? value : _birthDay.text;
+    final year = field == 'year' ? value : _birthYear.text;
+    _birthDate = parseBirthDate(month, day, year);
+    _saveDraft(
+      draft.copyWith(
+        birthMonth: month,
+        birthDay: day,
+        birthYear: year,
+        birthDate: _birthDate,
+        clearBirthDate: _birthDate == null,
+      ),
     );
-    if (chosen == null || !mounted) return;
-    _birthDate = chosen;
-    _saveDraft(ref.read(authDraftProvider).copyWith(birthDate: chosen));
     setState(() {
-      _dateSubmitted = true;
       _error = null;
     });
   }
@@ -40,6 +43,7 @@ mixin _AuthFlowInputs on _AuthFlowHost, _AuthFlowActions {
           keyboardType: TextInputType.number,
           textAlign: TextAlign.center,
           maxLength: _otpDigits,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           autofillHints: index == 0 ? const [AutofillHints.oneTimeCode] : null,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           onChanged: (value) => _onOtpFieldChanged(index, value),

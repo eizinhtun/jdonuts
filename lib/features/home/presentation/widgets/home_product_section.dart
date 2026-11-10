@@ -35,7 +35,7 @@ class HomeProductSection extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: 174,
+            height: 158,
             child: products.when(
               loading: () => const _SectionSkeleton(),
               error: (_, _) => _SectionState(

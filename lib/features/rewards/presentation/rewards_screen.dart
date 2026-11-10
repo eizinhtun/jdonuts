@@ -130,14 +130,19 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
           child: LayoutBuilder(
             builder: (context, constraints) {
               final badge = RewardsBadge(animation: _entrance);
-              if (constraints.maxWidth < 380) {
+              final largeText =
+                  MediaQuery.textScalerOf(context).scale(1) > _largeTextScale;
+              if (constraints.maxWidth < 340 || largeText) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       context.l10n.rewardsTitle,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontSize: 23),
+                          ?.copyWith(fontSize: 20),
                     ),
                     Align(alignment: Alignment.centerRight, child: badge),
                   ],
@@ -148,7 +153,11 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                   Expanded(
                     child: Text(
                       context.l10n.rewardsTitle,
-                      style: Theme.of(context).textTheme.headlineMedium,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontSize: 20),
                     ),
                   ),
                   badge,

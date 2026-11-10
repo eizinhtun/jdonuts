@@ -99,7 +99,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: AnimatedEntrance(
                         delay: Motion.homeBannerDelay,
                         child: SizedBox(
-                          height: 160,
+                          height: 132,
                           child: PageView(
                             controller: _pager,
                             children: data.banners

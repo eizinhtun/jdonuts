@@ -41,7 +41,6 @@ ThemeData buildAppTheme() => ThemeData(
   useMaterial3: true,
   scaffoldBackgroundColor: AppColors.white,
   colorScheme: ColorScheme.fromSeed(seedColor: AppColors.pink),
-  fontFamily: 'Arial',
   textTheme: const TextTheme(
     headlineMedium: TextStyle(
       fontSize: 28,

@@ -38,6 +38,9 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
   late final TextEditingController _phone;
   late final TextEditingController _firstName;
   late final TextEditingController _lastName;
+  late final TextEditingController _birthMonth;
+  late final TextEditingController _birthDay;
+  late final TextEditingController _birthYear;
   late final List<TextEditingController> _otpFields;
   final _otpFocus = List.generate(_otpDigits, (_) => FocusNode());
   final _phoneFocus = FocusNode();
@@ -64,7 +67,27 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
     _phone = TextEditingController(text: draft.phone);
     _firstName = TextEditingController(text: draft.firstName);
     _lastName = TextEditingController(text: draft.lastName);
-    _birthDate = draft.birthDate;
+    final storedDate = draft.birthDate;
+    _birthMonth = TextEditingController(
+      text: draft.birthMonth.isNotEmpty
+          ? draft.birthMonth
+          : storedDate?.month.toString() ?? '',
+    );
+    _birthDay = TextEditingController(
+      text: draft.birthDay.isNotEmpty
+          ? draft.birthDay
+          : storedDate?.day.toString() ?? '',
+    );
+    _birthYear = TextEditingController(
+      text: draft.birthYear.isNotEmpty
+          ? draft.birthYear
+          : storedDate?.year.toString() ?? '',
+    );
+    _birthDate = parseBirthDate(
+      _birthMonth.text,
+      _birthDay.text,
+      _birthYear.text,
+    );
     _otpFields = List.generate(_otpDigits, (index) {
       final digit = index < draft.otp.length ? draft.otp[index] : '';
       return TextEditingController(text: digit);
@@ -91,6 +114,9 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
     _phone.dispose();
     _firstName.dispose();
     _lastName.dispose();
+    _birthMonth.dispose();
+    _birthDay.dispose();
+    _birthYear.dispose();
     _phoneFocus
       ..removeListener(_onPhoneFocusChanged)
       ..dispose();
@@ -172,7 +198,7 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
   }
 
   OutlineInputBorder _inputBorder({Color? color}) => OutlineInputBorder(
-    borderRadius: BorderRadius.circular(14),
+    borderRadius: BorderRadius.circular(8),
     borderSide: BorderSide(color: color ?? Colors.transparent),
   );
 }

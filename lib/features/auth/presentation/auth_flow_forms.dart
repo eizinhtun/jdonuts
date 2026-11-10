@@ -66,9 +66,10 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'[0-9 -]')),
         ],
+        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         onChanged: _onPhoneChanged,
         decoration: InputDecoration(
-          labelText: context.l10n.phoneLabel,
+          hintText: context.l10n.phoneHint,
           prefixIcon: Padding(
             padding: const EdgeInsets.only(left: 14, right: 10),
             child: Center(
@@ -82,7 +83,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           fillColor: AppColors.white,
           border: _inputBorder(),
           enabledBorder: _inputBorder(),
-          focusedBorder: _inputBorder(color: AppColors.pink),
+          focusedBorder: _inputBorder(),
         ),
       ),
       if (_error != null) ...[
@@ -173,6 +174,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
       TextField(
         controller: _firstName,
         enabled: !_loading,
+        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         textCapitalization: TextCapitalization.words,
         maxLength: 50,
         onChanged: (value) {
@@ -180,7 +182,8 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           setState(() {});
         },
         decoration: InputDecoration(
-          labelText: context.l10n.firstNameLabel,
+          hintText: context.l10n.firstNameLabel,
+          counterText: '',
           errorText: _nameSubmitted
               ? _validationMessage(validateFirstName(_firstName.text))
               : null,
@@ -188,13 +191,14 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           fillColor: AppColors.white,
           border: _inputBorder(),
           enabledBorder: _inputBorder(),
-          focusedBorder: _inputBorder(color: AppColors.pink),
+          focusedBorder: _inputBorder(),
         ),
       ),
       const SizedBox(height: AppSpace.md),
       TextField(
         controller: _lastName,
         enabled: !_loading,
+        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         textCapitalization: TextCapitalization.words,
         maxLength: 50,
         onChanged: (value) {
@@ -202,7 +206,8 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           setState(() {});
         },
         decoration: InputDecoration(
-          labelText: context.l10n.lastNameLabel,
+          hintText: context.l10n.lastNameLabel,
+          counterText: '',
           errorText: _nameSubmitted
               ? _validationMessage(validateLastName(_lastName.text))
               : null,
@@ -210,7 +215,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           fillColor: AppColors.white,
           border: _inputBorder(),
           enabledBorder: _inputBorder(),
-          focusedBorder: _inputBorder(color: AppColors.pink),
+          focusedBorder: _inputBorder(),
         ),
       ),
       if (_error != null)
@@ -231,20 +236,43 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
       const SizedBox(height: AppSpace.sm),
       Text(context.l10n.ageRequirement),
       const SizedBox(height: AppSpace.lg),
-      OutlinedButton.icon(
-        onPressed: _loading ? null : _chooseBirthDate,
-        icon: const Icon(Icons.calendar_month),
-        label: Text(
-          _birthDate == null
-              ? context.l10n.selectBirthDate
-              : '${_birthDate!.month}/${_birthDate!.day}/${_birthDate!.year}',
-        ),
+      _birthDateField(
+        controller: _birthMonth,
+        hint: context.l10n.birthMonthHint,
+        onChanged: (value) => _onBirthPartChanged('month', value),
+        capitalization: TextCapitalization.words,
+      ),
+      const SizedBox(height: AppSpace.sm),
+      _birthDateField(
+        controller: _birthDay,
+        hint: context.l10n.birthDayHint,
+        onChanged: (value) => _onBirthPartChanged('day', value),
+        keyboardType: TextInputType.number,
+        formatter: FilteringTextInputFormatter.digitsOnly,
+        maxLength: 2,
+      ),
+      const SizedBox(height: AppSpace.sm),
+      _birthDateField(
+        controller: _birthYear,
+        hint: context.l10n.birthYearHint,
+        onChanged: (value) => _onBirthPartChanged('year', value),
+        keyboardType: TextInputType.number,
+        formatter: FilteringTextInputFormatter.digitsOnly,
+        maxLength: 4,
       ),
       if (_dateSubmitted)
         Padding(
           padding: const EdgeInsets.only(top: AppSpace.sm),
           child: Text(
-            _validationMessage(validateBirthDate(_birthDate)) ?? '',
+            _validationMessage(
+                  validateBirthInputs(
+                    _birthMonth.text,
+                    _birthDay.text,
+                    _birthYear.text,
+                    today: ref.read(clockProvider)(),
+                  ),
+                ) ??
+                '',
             style: const TextStyle(color: AppColors.error),
           ),
         ),
@@ -253,10 +281,46 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
       const Spacer(),
       PrimaryButton(
         label: context.l10n.continueButton,
-        enabled: validateBirthDate(_birthDate) == null,
+        enabled:
+            validateBirthInputs(
+              _birthMonth.text,
+              _birthDay.text,
+              _birthYear.text,
+              today: ref.read(clockProvider)(),
+            ) ==
+            null,
         loading: _loading,
         onPressed: _continueFromBirthDate,
       ),
     ],
+  );
+
+  Widget _birthDateField({
+    required TextEditingController controller,
+    required String hint,
+    required ValueChanged<String> onChanged,
+    TextCapitalization capitalization = TextCapitalization.none,
+    TextInputType? keyboardType,
+    TextInputFormatter? formatter,
+    int? maxLength,
+  }) => TextField(
+    controller: controller,
+    enabled: !_loading,
+    textCapitalization: capitalization,
+    keyboardType: keyboardType,
+    maxLength: maxLength,
+    inputFormatters: formatter == null ? null : [formatter],
+    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+    onChanged: onChanged,
+    decoration: InputDecoration(
+      hintText: hint,
+      counterText: '',
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      filled: true,
+      fillColor: AppColors.white,
+      border: _inputBorder(),
+      enabledBorder: _inputBorder(),
+      focusedBorder: _inputBorder(),
+    ),
   );
 }

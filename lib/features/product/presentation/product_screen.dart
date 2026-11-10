@@ -27,6 +27,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
   bool added = false;
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppColors.canvas,
     body: SafeArea(
       child: ref
           .watch(productProvider(widget.productId))
@@ -58,153 +59,196 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
           ),
     ),
   );
-  Widget _product(BuildContext context, Product product) => Column(
-    children: [
-      Align(
-        alignment: Alignment.centerLeft,
-        child: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-      ),
-      Expanded(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(22, 8, 22, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Hero(
-                tag: widget.heroTag,
-                child: Container(
-                  height: 285,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppColors.canvas,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: SeedImage(assetName: product.image),
+  Widget _product(BuildContext context, Product product) => LayoutBuilder(
+    builder: (context, constraints) {
+      final cardHeight = (constraints.maxHeight * .43).clamp(300.0, 390.0);
+      return Column(
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              onPressed: () => context.pop(),
+              icon: const Icon(Icons.arrow_back),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    height: cardHeight,
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              product.code,
+                              style: const TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 12,
+                              ),
+                            ),
+                            if (product.isNew)
+                              _NewBadge(label: context.l10n.newBadge),
+                          ],
                         ),
-                      ),
-                      Positioned(
-                        left: 18,
-                        top: 18,
-                        child: Text(
-                          product.code,
-                          style: const TextStyle(
-                            color: AppColors.muted,
-                            fontSize: 11,
+                        const SizedBox(height: 8),
+                        Text(
+                          product.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          formatMmk(product.priceMmk),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: Hero(
+                            tag: widget.heroTag,
+                            child: SeedImage(
+                              assetName: product.image,
+                              semanticsLabel: product.name,
+                            ),
                           ),
                         ),
-                      ),
-                      if (product.isNew)
-                        Positioned(
-                          right: 16,
-                          top: 14,
-                          child: _NewBadge(label: context.l10n.newBadge),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Text(product.name, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 5),
-              Text(
-                formatMmk(product.priceMmk),
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 18),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: AppColors.canvas,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        onPressed: quantity > 1
-                            ? () => setState(() => quantity--)
-                            : null,
-                        icon: const Icon(
-                          Icons.remove_circle,
-                          color: AppColors.cyan,
+                  Transform.translate(
+                    offset: const Offset(0, -16),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.canvas,
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: quantity > 1
+                                  ? () => setState(() => quantity--)
+                                  : null,
+                              icon: const Icon(
+                                Icons.remove_circle,
+                                color: AppColors.cyan,
+                              ),
+                            ),
+                            AnimatedSwitcher(
+                              duration: Motion.duration(context, Motion.quick),
+                              child: Text(
+                                '$quantity',
+                                key: ValueKey(quantity),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => setState(() => quantity++),
+                              icon: const Icon(
+                                Icons.add_circle,
+                                color: AppColors.cyan,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      AnimatedSwitcher(
-                        duration: Motion.duration(context, Motion.quick),
-                        child: Text(
-                          '$quantity',
-                          key: ValueKey(quantity),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 18,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(2, 0, 2, 14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 3, right: 10),
+                          child: Icon(
+                            Icons.check_circle,
+                            color: Color(0xFF70B84B),
+                            size: 18,
                           ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () => setState(() => quantity++),
-                        icon: const Icon(
-                          Icons.add_circle,
-                          color: AppColors.cyan,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context.l10n.whatsThis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                product.description,
+                                style: const TextStyle(
+                                  color: AppColors.muted,
+                                  height: 1.4,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 25),
-              Text(
-                context.l10n.whatsThis,
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                product.description,
-                style: const TextStyle(color: AppColors.muted, height: 1.5),
-              ),
-            ],
-          ),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(18, 6, 18, 18),
-        child: FilledButton(
-          onPressed: () {
-            setState(() => added = true);
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(context.l10n.addedToCart)));
-          },
-          style: FilledButton.styleFrom(
-            backgroundColor: added ? AppColors.orange : AppColors.cyan,
-            minimumSize: const Size.fromHeight(54),
-          ),
-          child: AnimatedSwitcher(
-            duration: Motion.duration(context, Motion.quick),
-            child: Text(
-              context.l10n.cartTotal(
-                added ? context.l10n.addedLabel : context.l10n.addToCart,
-                formatMmk(product.priceMmk * quantity),
-              ),
-              key: ValueKey('$added-$quantity'),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
+                ],
               ),
             ),
           ),
-        ),
-      ),
-    ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 6, 18, 12),
+            child: FilledButton(
+              onPressed: () {
+                setState(() => added = true);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(context.l10n.addedToCart)),
+                );
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: added ? AppColors.orange : AppColors.cyan,
+                minimumSize: const Size.fromHeight(54),
+                shape: const StadiumBorder(),
+              ),
+              child: AnimatedSwitcher(
+                duration: Motion.duration(context, Motion.quick),
+                child: Text(
+                  context.l10n.cartTotal(
+                    added ? context.l10n.addedLabel : context.l10n.addToCart,
+                    formatMmk(product.priceMmk * quantity),
+                  ),
+                  key: ValueKey('$added-$quantity'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
   );
 }
 

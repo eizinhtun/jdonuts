@@ -64,6 +64,26 @@ void main() {
       expect(validateBirthDate(DateTime(2000, 2, 29), today: today), isNull);
       expect(validateBirthParts(2001, 2, 29, today: today), isNotNull);
     });
+    test('parses the three design fields and validates their boundaries', () {
+      expect(parseBirthDate('May', '1', '1980'), DateTime(1980, 5, 1));
+      expect(parseBirthDate('5', '1', '1980'), DateTime(1980, 5, 1));
+      expect(parseBirthDate('Feb', '29', '2000'), DateTime(2000, 2, 29));
+      expect(parseBirthDate('Feb', '29', '2001'), isNull);
+      expect(
+        validateBirthInputs('', '', '', today: today),
+        AuthValidationError.birthDateRequired,
+      );
+      expect(
+        validateBirthInputs('May', '32', '1980', today: today),
+        AuthValidationError.invalidBirthDate,
+      );
+      expect(validateBirthInputs('May', '1', '2013', today: today), isNull);
+      expect(
+        validateBirthInputs('Nov', '11', '2026', today: today),
+        AuthValidationError.futureBirthDate,
+      );
+      expect(validateBirthInputs('Nov', '10', '2013', today: today), isNull);
+    });
     test(
       'rejects impossible calendar date',
       () => expect(

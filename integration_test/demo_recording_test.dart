@@ -45,10 +45,10 @@ void main() {
     await tester.pumpAndSettle();
     await _hold(tester, const Duration(seconds: 3));
 
-    await tester.tap(find.text('Select date of birth'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
-    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(0), 'May');
+    await tester.enterText(find.byType(TextField).at(1), '1');
+    await tester.enterText(find.byType(TextField).at(2), '1980');
+    await tester.pump();
     await tester.tap(find.text('CONTINUE'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('LET’S EXPLORE'));

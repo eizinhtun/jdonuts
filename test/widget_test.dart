@@ -147,10 +147,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('What’s your date of birth?'), findsOneWidget);
 
-    await tester.tap(find.text('Select date of birth'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
-    await tester.pumpAndSettle();
+    final birthFields = find.byType(TextField);
+    await tester.enterText(birthFields.at(0), 'May');
+    await tester.enterText(birthFields.at(1), '1');
+    await tester.enterText(birthFields.at(2), '1980');
+    await tester.pump();
     await tester.tap(find.text('CONTINUE'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));

@@ -54,6 +54,61 @@ AuthValidationError? validateBirthDate(DateTime? date, {DateTime? today}) =>
     ? AuthValidationError.birthDateRequired
     : validateBirthParts(date.year, date.month, date.day, today: today);
 
+AuthValidationError? validateBirthInputs(
+  String monthInput,
+  String dayInput,
+  String yearInput, {
+  DateTime? today,
+}) {
+  if (monthInput.trim().isEmpty &&
+      dayInput.trim().isEmpty &&
+      yearInput.trim().isEmpty) {
+    return AuthValidationError.birthDateRequired;
+  }
+  final date = parseBirthDate(monthInput, dayInput, yearInput);
+  if (date == null) return AuthValidationError.invalidBirthDate;
+  return validateBirthDate(date, today: today);
+}
+
+DateTime? parseBirthDate(String monthInput, String dayInput, String yearInput) {
+  final month = _monthNumber(monthInput.trim());
+  final day = int.tryParse(dayInput.trim());
+  final year = int.tryParse(yearInput.trim());
+  if (month == null || day == null || year == null || year < 1 || year > 9999) {
+    return null;
+  }
+  if (day < 1 || day > DateTime(year, month + 1, 0).day) return null;
+  return DateTime(year, month, day);
+}
+
+int? _monthNumber(String value) {
+  final number = int.tryParse(value);
+  if (number != null) return number >= 1 && number <= 12 ? number : null;
+  const months = [
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december',
+  ];
+  final normalized = value.toLowerCase();
+  if (normalized.isEmpty) return null;
+  for (var index = 0; index < months.length; index++) {
+    if (months[index] == normalized ||
+        (normalized.length >= 3 && months[index].startsWith(normalized))) {
+      return index + 1;
+    }
+  }
+  return null;
+}
+
 AuthValidationError? validateBirthParts(
   int year,
   int month,
