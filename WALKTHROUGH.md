@@ -1,26 +1,38 @@
 # Interview walkthrough
 
-## How the app is organized
+## Suggested demo path
 
-Each feature is grouped under `lib/features/<feature>/`. Domain code holds business rules and interfaces; data adapters implement those interfaces; presentation consumes repositories via Riverpod. Shared result types and design tokens live under `lib/core/`.
+1. Start from onboarding. Register with a valid `+95` number and enter demo OTP `123456`.
+2. Show name and DOB validation, including Myanmar name support and the 13-year age boundary.
+3. Finish registration, enter Welcome, then Home. Home’s member record, offline notice, seeded sections and shops are database-backed.
+4. Open a product from a section. Point out the stable route ID/Hero, minimum-one quantity, live MMK total and add feedback.
+5. Open Rewards to show the shared member points, animated points ring, tier ladder, Earn/Gift tabs and challenge progress.
+6. Open Settings and log out; reopen to exercise session restore and the router guard.
 
-## Decisions to explain
+The display language and demo content are English. The backend, live SMS, social providers, legal documents, persistent cart and persisted reward claims are intentionally not simulated as if real.
 
-- **One member record:** the seed uses Silver, 680,000 points, and 500 remaining to Gold, then feeds both Home and Rewards. This chooses Rewards' points value while retaining the Gold progress copy shared in the Home mock-up.
-- **Offline-first:** catalog and illustrations ship with the app. This means the primary screens work in airplane mode from first launch. A production follow-up would store the seed in a versioned Drift database, use its queries as the UI source of truth, then transactionally apply remote refreshes.
-- **Fake auth boundary:** `AuthRepository` separates screens from the demo implementation and enforces one-second latency. Replace that adapter with a remote implementation without rewriting validators/screens.
-- **Pure validation:** validators can run without Flutter or platform plugins; the name rule uses Unicode letters so Myanmar script is accepted.
-- **Motion:** durations and curves are named centrally. Rewards progress is custom-painted; challenge progress uses quarter fills / arcs.
+## Design and architecture choices
+
+- **Database is the local source of truth:** bundled JSON and original SVG artwork seed Drift/SQLite on first read in a transaction. Home, Product and Rewards all resolve from this local data repository. The schema version/migration hook supports later changes. With no backend, pull-to-refresh or reconnect only reloads SQLite; neither pretends to fetch updates.
+- **One member record:** the PDF mock-ups disagree. Home refers to Silver and 500 points to Gold, while Rewards shows the 680,000 points display. The seed uses Silver / 680,000 / 500 remaining and both views consume that record.
+- **Riverpod:** providers construct and dispose database, repository, session, reachability, router and draft dependencies. Tests override providers with deterministic delays, clocks/stores/streams. Widgets own only temporary interaction state.
+- **Domain boundary:** pure Dart validation, OTP policy and repository contracts do not depend on Flutter. Data adapters own Drift and secure storage. Presentation maps state/errors into localized UI.
+- **Session/security:** account profile is stored in local SQLite; secure storage contains the active phone identifier. The sample app has no real secret/token or server authorization.
+- **Reachability:** a connectivity interface event triggers a bounded HTTP `generate_204` probe. A Wi-Fi interface is not treated as proof of internet. This is only an online/offline hint for the demo.
+- **Assets:** vector SVGs were drawn by hand for this project. No PDF screenshots or external image assets are shipped.
+- **Motion:** named tokens unify timing/curves. The rewards ring is custom-painted; tabs and content use a moving indicator/AnimatedSwitcher; shared entrance motion uses staggered delays. Reduce Motion disables repeating/attention loops and settles animated values.
 
 ## Likely interview questions
 
-1. **Why keep presentation separate from the domain?** It lets validation and rules run in plain Dart and leaves UI replaceable.
-2. **How would you make the database authoritative?** Add Drift tables and migration versions, seed once from bundled JSON, expose watched DAO queries, and update those tables in a transaction after refresh.
-3. **How would session restore work?** Persist only a session token/identifier in secure storage; load it before router redirects, then resolve the user from local data or an API.
-4. **How do you prevent duplicate auth requests?** The presentation state gates requests while the fake repository returns typed success/failure; server-side idempotency belongs in the eventual API contract.
-5. **How would you test age boundaries?** Inject `today`, validate leap/calendar dates, and test the exact 13th birthday and the day before.
-6. **How is Reduce Motion handled?** Read `MediaQuery.disableAnimations` and skip durations/looping behavior. Audit every repeating animation when adding more.
+1. **Why use SQLite if the catalog is bundled?** It demonstrates a durable, versioned local source of truth and lets tests prove the app still reads after assets become unavailable. A real sync layer could transactionally upsert server responses without changing screen models.
+2. **How would remote refresh work?** Keep SQLite as the rendered source, fetch through a repository sync adapter, validate/version the response, then commit updates transactionally. Preserve the old rows if the request fails.
+3. **Why persist only a phone identifier in secure storage?** The fake adapter has no access token. A real service should persist its opaque refresh/session credential and resolve the account on startup; a phone number alone is not authentication proof.
+4. **How are resend limits protected?** A shared draft stores an absolute deadline and attempt count across auth subroutes; the repository owns OTP verification. Production enforcement must also happen server-side.
+5. **Why is the fake OTP in the client?** This is a test-only local flow, visibly documented in the README. Production OTP codes are server-generated and never embedded in an app.
+6. **How do duplicate taps and errors work?** The flow sets a busy state before awaiting repository work; controls disable while busy and typed failures map to inline feedback.
+7. **How was age validation tested?** `today` is injectable. Tests cover leap-day and invalid dates, future dates and the exact thirteenth birthday.
+8. **What is Reduce Motion?** `MediaQuery.disableAnimations` is read by the shared motion helper and repeating loops. The Rewards widget suite also builds with this flag enabled.
 
-## Current limitations
+## Current verification and limitations
 
-See README known gaps. Package access prevented confirming the requested storage/network adapters, session persistence, analyzer and tests during this pass. Explain that limitation directly rather than describing those pieces as implemented.
+Refer to `REQUIREMENTS.md` for the current check/build audit. The unit/widget suite, analyzer and updated production-store iOS integration flow passed. The Release iOS Simulator app is available as `build/jdonuts-ios-simulator.zip`; the Android APK build is pending. The local iOS simulator reported a data migration issue and screenshot capture returned black output, so a visual screenshot comparison is not claimed.
