@@ -59,6 +59,14 @@ void main() {
     expect(find.text('3,200 MMK'), findsOneWidget);
     expect(tester.takeException(), isNull);
     expect((await sessionStore.read())?.phone, '959254135592');
+
+    // Recreate the app/provider scope to exercise durable session restore.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_testApp(sessionStore));
+    await tester.pumpAndSettle();
+    expect(find.text('Seasonal specials'), findsOneWidget);
+    expect(find.text('You’re offline — showing saved items'), findsOneWidget);
     await sessionStore.clear();
   });
 }
