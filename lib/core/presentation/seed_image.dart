@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/tokens.dart';
 
-/// Uses bundled vector artwork for offline seeds and disk cache for remote rasters.
+/// Uses bundled vector/raster assets offline and disk cache for remote images.
 class SeedImage extends StatelessWidget {
   const SeedImage({
     super.key,
@@ -28,11 +28,23 @@ class SeedImage extends StatelessWidget {
         errorWidget: (_, _, _) => const _ImageFailure(),
       );
     }
-    return SvgPicture.asset(
+    if (assetName.toLowerCase().endsWith('.svg')) {
+      return SvgPicture.asset(
+        'assets/images/$assetName',
+        fit: fit,
+        semanticsLabel: semanticsLabel,
+        placeholderBuilder: (_) => const ColoredBox(color: AppColors.canvas),
+        errorBuilder: (_, _, _) => const _ImageFailure(),
+      );
+    }
+    return Image.asset(
       'assets/images/$assetName',
       fit: fit,
-      semanticsLabel: semanticsLabel,
-      placeholderBuilder: (_) => const ColoredBox(color: AppColors.canvas),
+      semanticLabel: semanticsLabel,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) =>
+          wasSynchronouslyLoaded || frame != null
+          ? child
+          : const ColoredBox(color: AppColors.canvas),
       errorBuilder: (_, _, _) => const _ImageFailure(),
     );
   }

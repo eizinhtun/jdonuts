@@ -1,13 +1,13 @@
 {
   "member":{"id":"member-1","name":"Hania","tier":"Silver","points":680000,"pointsToGold":500,"notifications":2,"image":"member.svg"},
   "products":[
-    {"id":"coconut","code":"JD022123","name":"Coconut Donut","priceMmk":3200,"isNew":true,"discountPercent":null,"image":"coconut.svg","description":"Enjoy our scrumptious donuts — soft, sweet, and satisfying in every bite. Choose from classic glazed, white chocolate, or fun sprinkles. Dive into deliciousness now!"},
-    {"id":"strawberry","code":"JD022124","name":"Strawberry Chocolate Donut","priceMmk":3500,"isNew":false,"discountPercent":null,"image":"strawberry.svg","description":"A soft donut topped with strawberry glaze and chocolate drizzle."},
-    {"id":"coffee","code":"JD034012","name":"Dalgona Creamy Coffee","priceMmk":4500,"isNew":true,"discountPercent":null,"image":"coffee.svg","description":"Cold creamy coffee topped with whipped dalgona foam."},
-    {"id":"romance-box","code":"JD099201","name":"Mistletoe Romance box","priceMmk":15000,"isNew":false,"discountPercent":20,"image":"box.svg","description":"A seasonal box of freshly baked favorites."},
-    {"id":"family-box","code":"JD099202","name":"Christmas Mix Family box","priceMmk":22000,"isNew":false,"discountPercent":15,"image":"box.svg","description":"A shareable box of assorted J’Donuts."}
+    {"id":"coconut","code":"JD022123","name":"Coconut Donut","priceMmk":3200,"isNew":true,"discountPercent":null,"image":"coconut-donut.png","description":"Enjoy our scrumptious donuts — soft, sweet, and satisfying in every bite. Choose from classic glazed, white chocolate, or fun sprinkles. Dive into deliciousness now!"},
+    {"id":"strawberry","code":"JD022124","name":"Strawberry Chocolate Donut","priceMmk":3500,"isNew":false,"discountPercent":null,"image":"chocolate-donut.png","description":"A soft donut topped with strawberry glaze and chocolate drizzle."},
+    {"id":"coffee","code":"JD034012","name":"Dalgona Creamy Coffee","priceMmk":4500,"isNew":true,"discountPercent":null,"image":"dalgona-coffee.png","description":"Cold creamy coffee topped with whipped dalgona foam."},
+    {"id":"romance-box","code":"JD099201","name":"Mistletoe Romance box","priceMmk":15000,"isNew":false,"discountPercent":20,"image":"seasonal-donut-box.jpg","description":"A seasonal box of freshly baked favorites."},
+    {"id":"family-box","code":"JD099202","name":"Christmas Mix Family box","priceMmk":22000,"isNew":false,"discountPercent":15,"image":"seasonal-donut-box.jpg","description":"A shareable box of assorted J’Donuts."}
   ],
-  "banners":[{"title":"We are now at Central Boulevard","subtitle":"New shop","image":"banner.svg"},{"title":"Hot chocolate season","subtitle":"50% off","image":"banner.svg"}],
+  "banners":[{"title":"We are now at Central Boulevard","subtitle":"New shop","image":"shop-banner.jpg"},{"title":"Hot chocolate season","subtitle":"50% off","image":"shop-banner.jpg"}],
   "sections":[{"id":"seasonal","title":"Seasonal specials","productIds":["romance-box","family-box"]},{"id":"popular","title":"Popular","productIds":["strawberry","coffee","coconut"]},{"id":"order-again","title":"Order again","productIds":["coconut","coffee"]}],
   "shops":["J’Donuts Central Boulevard","J’Donuts Junction City","J’Donuts Myanmar Plaza","J’Donuts Sanchaung"],
   "challenges":[{"id":"donut-4","title":"Eat 4 Coco donuts","progress":4,"target":4,"points":100,"kind":"donut"},{"id":"donut-4-again","title":"Share donuts with friends","progress":1,"target":4,"points":150,"kind":"donut"},{"id":"coffee-12","title":"Enjoy coffee moments","progress":9,"target":12,"points":200,"kind":"coffee"}]

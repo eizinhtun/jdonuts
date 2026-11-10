@@ -96,7 +96,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -105,6 +105,27 @@ class AppDatabase extends _$AppDatabase {
       if (from < 1 && to >= 1) await migrator.createAll();
       if (from < 2 && to >= 2) {
         await migrator.addColumn(memberRows, memberRows.image);
+      }
+      if (from < 3 && to >= 3) {
+        await customStatement('''
+          UPDATE product_rows
+          SET image = CASE id
+            WHEN 'coconut' THEN 'coconut-donut.png'
+            WHEN 'strawberry' THEN 'chocolate-donut.png'
+            WHEN 'coffee' THEN 'dalgona-coffee.png'
+            WHEN 'romance-box' THEN 'seasonal-donut-box.jpg'
+            WHEN 'family-box' THEN 'seasonal-donut-box.jpg'
+            ELSE image
+          END
+          WHERE (id = 'coconut' AND image = 'coconut.svg')
+            OR (id = 'strawberry' AND image = 'strawberry.svg')
+            OR (id = 'coffee' AND image = 'coffee.svg')
+            OR (id = 'romance-box' AND image = 'box.svg')
+            OR (id = 'family-box' AND image = 'box.svg')
+        ''');
+        await customStatement(
+          "UPDATE banner_rows SET image = 'shop-banner.jpg' WHERE image = 'banner.svg'",
+        );
       }
     },
   );

@@ -46,7 +46,7 @@ void main() {
     final version = await database
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data['user_version'], 2);
+    expect(version.data['user_version'], 3);
   });
 
   test('schema v1 upgrades member records with the bundled avatar default', () async {
@@ -58,6 +58,12 @@ void main() {
             'id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, '
             'tier TEXT NOT NULL, points INTEGER NOT NULL, '
             'points_to_gold INTEGER NOT NULL, notifications INTEGER NOT NULL)',
+          );
+          connection.execute(
+            'CREATE TABLE product_rows (id TEXT NOT NULL PRIMARY KEY, image TEXT NOT NULL)',
+          );
+          connection.execute(
+            'CREATE TABLE banner_rows (id TEXT NOT NULL PRIMARY KEY, image TEXT NOT NULL)',
           );
           connection.execute(
             "INSERT INTO member_rows VALUES ('member-1', 'Hania', 'Silver', 680000, 500, 2)",
@@ -74,8 +80,63 @@ void main() {
         .getSingle();
 
     expect(member.image, 'member.svg');
-    expect(version.data['user_version'], 2);
+    expect(version.data['user_version'], 3);
   });
+
+  test(
+    'schema v2 upgrades bundled image paths without replacing records',
+    () async {
+      final database = AppDatabase.forTesting(
+        NativeDatabase.memory(
+          setup: (connection) {
+            connection.execute(
+              'CREATE TABLE product_rows ('
+              'id TEXT NOT NULL PRIMARY KEY, code TEXT NOT NULL, '
+              'name TEXT NOT NULL, price_mmk INTEGER NOT NULL, '
+              'is_new INTEGER NOT NULL, discount_percent INTEGER, '
+              'image TEXT NOT NULL, description TEXT NOT NULL)',
+            );
+            connection.execute(
+              'CREATE TABLE banner_rows ('
+              'id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, '
+              'subtitle TEXT NOT NULL, image TEXT NOT NULL)',
+            );
+            connection.execute(
+              "INSERT INTO product_rows VALUES "
+              "('coconut', 'JD1', 'Coconut', 1, 1, NULL, 'coconut.svg', ''), "
+              "('coffee', 'JD2', 'Coffee', 1, 1, NULL, 'coffee.svg', ''), "
+              "('custom', 'JD3', 'Custom', 1, 0, NULL, 'custom.png', ''), "
+              "('romance-box', 'JD4', 'Box', 1, 0, NULL, 'custom-box.png', '')",
+            );
+            connection.execute(
+              "INSERT INTO banner_rows VALUES "
+              "('banner-0', 'Shop', 'New', 'banner.svg'), "
+              "('banner-1', 'Shop', 'New', 'banner.svg')",
+            );
+            connection.execute('PRAGMA user_version = 2');
+          },
+        ),
+      );
+      addTearDown(database.close);
+
+      final products = await database.select(database.productRows).get();
+      final banners = await database.select(database.bannerRows).get();
+
+      expect(
+        {for (final product in products) product.id: product.image},
+        {
+          'coconut': 'coconut-donut.png',
+          'coffee': 'dalgona-coffee.png',
+          'custom': 'custom.png',
+          'romance-box': 'custom-box.png',
+        },
+      );
+      expect(
+        banners.map((banner) => banner.image),
+        everyElement('shop-banner.jpg'),
+      );
+    },
+  );
 
   test('overlapping first reads only seed each row once', () async {
     final database = AppDatabase.forTesting(NativeDatabase.memory());
