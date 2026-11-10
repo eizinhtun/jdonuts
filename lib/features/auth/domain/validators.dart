@@ -1,5 +1,18 @@
+import 'package:characters/characters.dart';
+
 const minimumAge = 13;
-final RegExp _personName = RegExp(r"^[\p{L}\p{M} ]{1,50}$", unicode: true);
+final RegExp _personName = RegExp(r"^[\p{L}\p{M} ]+$", unicode: true);
+
+enum AuthValidationError {
+  invalidPhone,
+  invalidOtp,
+  firstNameRequired,
+  invalidName,
+  birthDateRequired,
+  invalidBirthDate,
+  futureBirthDate,
+  underage,
+}
 
 String normalizePhone(String input) {
   var value = input.replaceAll(RegExp(r'[\s-]'), '');
@@ -7,46 +20,58 @@ String normalizePhone(String input) {
   return value;
 }
 
-String? validatePhone(String input) {
+AuthValidationError? validatePhone(String input) {
   final value = normalizePhone(input);
-  if (!RegExp(r'^9\d{7,9}$').hasMatch(value))
-    return 'Enter a valid Myanmar mobile number.';
+  if (!RegExp(r'^9\d{7,9}$').hasMatch(value)) {
+    return AuthValidationError.invalidPhone;
+  }
   return null;
 }
 
-String? validateOtp(String input) =>
-    RegExp(r'^\d{6}$').hasMatch(input) ? null : 'Enter all 6 digits.';
+AuthValidationError? validateOtp(String input) =>
+    RegExp(r'^\d{6}$').hasMatch(input) ? null : AuthValidationError.invalidOtp;
 
-String? validateFirstName(String input) {
+AuthValidationError? validateFirstName(String input) {
   final value = input.trim();
-  if (value.isEmpty) return 'First name is required.';
-  if (value.length > 50 || !_personName.hasMatch(value))
-    return 'Use up to 50 letters and spaces.';
+  if (value.isEmpty) return AuthValidationError.firstNameRequired;
+  if (value.characters.length > 50 || !_personName.hasMatch(value)) {
+    return AuthValidationError.invalidName;
+  }
   return null;
 }
 
-String? validateLastName(String input) {
+AuthValidationError? validateLastName(String input) {
   final value = input.trim();
   if (value.isEmpty) return null;
-  if (value.length > 50 || !_personName.hasMatch(value))
-    return 'Use up to 50 letters and spaces.';
+  if (value.characters.length > 50 || !_personName.hasMatch(value)) {
+    return AuthValidationError.invalidName;
+  }
   return null;
 }
 
-String? validateBirthDate(DateTime? date, {DateTime? today}) => date == null
-    ? 'Choose your date of birth.'
+AuthValidationError? validateBirthDate(DateTime? date, {DateTime? today}) =>
+    date == null
+    ? AuthValidationError.birthDateRequired
     : validateBirthParts(date.year, date.month, date.day, today: today);
 
-String? validateBirthParts(int year, int month, int day, {DateTime? today}) {
-  if (month < 1 || month > 12 || day < 1) return 'Choose a real calendar date.';
+AuthValidationError? validateBirthParts(
+  int year,
+  int month,
+  int day, {
+  DateTime? today,
+}) {
+  if (month < 1 || month > 12 || day < 1) {
+    return AuthValidationError.invalidBirthDate;
+  }
   final daysInMonth = DateTime(year, month + 1, 0).day;
-  if (day > daysInMonth) return 'Choose a real calendar date.';
+  if (day > daysInMonth) return AuthValidationError.invalidBirthDate;
   final date = DateTime(year, month, day);
   final now = today ?? DateTime.now();
-  if (date.isAfter(DateTime(now.year, now.month, now.day)))
-    return 'Date cannot be in the future.';
+  if (date.isAfter(DateTime(now.year, now.month, now.day))) {
+    return AuthValidationError.futureBirthDate;
+  }
   var age = now.year - year;
   if (now.month < month || (now.month == month && now.day < day)) age--;
-  if (age < minimumAge) return 'You must be at least $minimumAge years old.';
+  if (age < minimumAge) return AuthValidationError.underage;
   return null;
 }

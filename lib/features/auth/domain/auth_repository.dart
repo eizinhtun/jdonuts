@@ -7,15 +7,20 @@ class AuthUser {
     required this.lastName,
     required this.birthDate,
   });
-  final String phone, firstName, lastName;
+
+  final String phone;
+  final String firstName;
+  final String lastName;
   final DateTime? birthDate;
 }
 
 abstract interface class AuthRepository {
   Future<bool> hasSession();
   Future<bool> isRegistered(String phone);
+  Future<Result<bool>> requestOtp(String phone);
+  Future<Result<bool>> verifyOtp(String phone, String code);
+  Future<Result<bool>> saveRegistrationProfile(AuthUser user);
   Future<Result<AuthUser>> login(String phone, String code);
-  Future<Result<AuthUser>> register(AuthUser user, String code);
+  Future<Result<AuthUser>> register(AuthUser user);
   Future<void> logout();
-  Future<void> remember(AuthUser user);
 }

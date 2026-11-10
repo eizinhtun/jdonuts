@@ -4,6 +4,7 @@ import 'package:jdonuts/core/theme/tokens.dart';
 
 class PrimaryButton extends StatefulWidget {
   const PrimaryButton({
+    super.key,
     required this.label,
     required this.onPressed,
     this.enabled = true,
@@ -38,22 +39,28 @@ class PrimaryButtonState extends State<PrimaryButton> {
           color: widget.enabled ? AppColors.cyan : const Color(0xFFB9C0C2),
           borderRadius: BorderRadius.circular(28),
         ),
-        child: widget.loading
-            ? const SizedBox(
-                width: 21,
-                height: 21,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
+        child: AnimatedSwitcher(
+          duration: Motion.duration(context, Motion.quick),
+          child: widget.loading
+              ? SizedBox(
+                  key: ValueKey('loading'),
+                  width: 21,
+                  height: 21,
+                  child: CircularProgressIndicator(
+                    value: MediaQuery.disableAnimationsOf(context) ? .65 : null,
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  widget.label,
+                  key: ValueKey(widget.label),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              )
-            : Text(
-                widget.label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+        ),
       ),
     ),
   );

@@ -6,6 +6,7 @@ void main() {
     test('removes one leading zero, spaces and dashes', () {
       expect(normalizePhone('0 925-413-5592'), '9254135592');
       expect(validatePhone('0 925-413-5592'), isNull);
+      expect(validatePhone('00925135592'), AuthValidationError.invalidPhone);
     });
     test('accepts 9 then seven to nine digits only', () {
       expect(validatePhone('91234567'), isNull);
@@ -66,8 +67,8 @@ void main() {
     test(
       'rejects impossible calendar date',
       () => expect(
-        validateBirthDate(DateTime(2020, 4, 31), today: today),
-        isNotNull,
+        validateBirthParts(2020, 4, 31, today: today),
+        AuthValidationError.invalidBirthDate,
       ),
     );
     test(
