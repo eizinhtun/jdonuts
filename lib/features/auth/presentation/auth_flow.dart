@@ -286,9 +286,11 @@ class _ProgressIndicator extends StatelessWidget {
               opacity: compact ? 1 - checkProgress : 1,
               child: CircularProgressIndicator(
                 value: animatedProgress,
-                strokeWidth: compact ? 7 : 4,
-                strokeCap: compact ? StrokeCap.round : StrokeCap.butt,
-                backgroundColor: compact ? AppColors.cyan : AppColors.canvas,
+                strokeWidth: compact ? 9 : 4,
+                strokeCap: StrokeCap.butt,
+                backgroundColor: compact
+                    ? AppColors.authProgressTrack
+                    : AppColors.canvas,
                 color: AppColors.pink,
               ),
             ),

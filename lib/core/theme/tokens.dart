@@ -54,6 +54,7 @@ abstract final class AppColors {
   static const welcomeCircleBlue = Color(0xFFC7E0F0);
   static const welcomeCircleLavender = Color(0xFFBFD8EF);
   static const onboardingBlue = Color(0xFFAECFED);
+  static const authProgressTrack = Color(0xFF9DDEF1);
   static const memberPlaceholder = Color(0xFF9D8C7D);
   static const inputSlate = Color(0xFF8996A3);
   static const helpGreen = Color(0xFF83BF49);
