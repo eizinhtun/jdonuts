@@ -73,9 +73,8 @@ mixin _AuthFlowLayout on _AuthFlowHost, _AuthFlowActions, _AuthFlowForms {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final availableHeight =
-                        MediaQuery.sizeOf(context).height -
-                        MediaQuery.viewInsetsOf(context).bottom;
+                    final hasStickyAction =
+                        widget.step == 'name' || widget.step == 'dob';
                     final step = AnimatedSwitcher(
                       duration: Motion.duration(
                         context,
@@ -110,14 +109,24 @@ mixin _AuthFlowLayout on _AuthFlowHost, _AuthFlowActions, _AuthFlowForms {
                       },
                       child: KeyedSubtree(
                         key: ValueKey(widget.step),
-                        child: _buildStep(phoneError),
+                        child: widget.step == 'name'
+                            ? _nameStepScreen()
+                            : widget.step == 'dob'
+                            ? _birthDateStepScreen()
+                            : _buildStep(phoneError),
                       ),
                     );
-                    final scrollableStep =
-                        (widget.step == 'dob' || widget.step == 'name') &&
-                            availableHeight < 760
-                        ? step
-                        : IntrinsicHeight(child: step);
+                    if (hasStickyAction) {
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: referenceLayout
+                              ? (contentLeft + contentRight) / 2
+                              : 24,
+                        ),
+                        child: step,
+                      );
+                    }
+                    final scrollableStep = IntrinsicHeight(child: step);
                     return SingleChildScrollView(
                       padding: EdgeInsets.fromLTRB(
                         referenceLayout ? contentLeft : 24,

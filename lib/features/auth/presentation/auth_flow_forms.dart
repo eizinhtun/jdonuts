@@ -4,8 +4,8 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
   Widget _buildStep(String? phoneError) => switch (widget.step) {
     'phone' => _phoneStep(phoneError),
     'otp' => _otpStep(),
-    'name' => _nameStep(),
-    'dob' => _birthDateStep(),
+    'name' => _nameStepFields(),
+    'dob' => _birthDateStepFields(),
     _ => _phoneStep(phoneError),
   };
 
@@ -293,11 +293,35 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     );
   }
 
-  Widget _nameStep() {
-    final availableHeight =
-        MediaQuery.sizeOf(context).height -
-        MediaQuery.viewInsetsOf(context).bottom;
-    final anchorButtonAtBottom = availableHeight >= 760;
+  Widget _stickyFormScreen({required Widget fields, required Widget action}) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.only(top: _useReferenceAuthLayout ? 30 : 20),
+              child: fields,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(bottom: _useReferenceAuthLayout ? 57 : 14),
+            child: action,
+          ),
+        ],
+      );
+
+  Widget _nameStepScreen() => _stickyFormScreen(
+    fields: _nameStepFields(),
+    action: _nameContinueButton(),
+  );
+
+  Widget _birthDateStepScreen() => _stickyFormScreen(
+    fields: _birthDateStepFields(),
+    action: _birthDateContinueButton(),
+  );
+
+  Widget _nameStepFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -374,30 +398,23 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
         ),
         if (_error != null)
           Text(_error!, style: const TextStyle(color: AppColors.error)),
-        if (anchorButtonAtBottom)
-          const Spacer()
-        else
-          const SizedBox(height: AppSpace.lg),
-        DefaultTextStyle.merge(
-          style: _useReferenceAuthLayout
-              ? const TextStyle(fontSize: 16, letterSpacing: .5)
-              : const TextStyle(),
-          child: PrimaryButton(
-            label: context.l10n.continueButton,
-            height: _useReferenceAuthLayout ? 56 : 52,
-            loading: _loading,
-            onPressed: _continueFromName,
-          ),
-        ),
       ],
     );
   }
 
-  Widget _birthDateStep() {
-    final availableHeight =
-        MediaQuery.sizeOf(context).height -
-        MediaQuery.viewInsetsOf(context).bottom;
-    final anchorButtonAtBottom = availableHeight >= 760;
+  Widget _nameContinueButton() => DefaultTextStyle.merge(
+    style: _useReferenceAuthLayout
+        ? const TextStyle(fontSize: 16, letterSpacing: .5)
+        : const TextStyle(),
+    child: PrimaryButton(
+      label: context.l10n.continueButton,
+      height: _useReferenceAuthLayout ? 56 : 52,
+      loading: _loading,
+      onPressed: _continueFromName,
+    ),
+  );
+
+  Widget _birthDateStepFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -449,25 +466,22 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           ),
         if (_error != null)
           Text(_error!, style: const TextStyle(color: AppColors.error)),
-        if (anchorButtonAtBottom)
-          const Spacer()
-        else
-          const SizedBox(height: AppSpace.lg),
-        DefaultTextStyle.merge(
-          style: _useReferenceAuthLayout
-              ? const TextStyle(fontSize: 16, letterSpacing: .5)
-              : const TextStyle(),
-          child: PrimaryButton(
-            label: context.l10n.continueButton,
-            height: _useReferenceAuthLayout ? 56 : 52,
-            enabled: !_loading,
-            loading: _loading,
-            onPressed: _continueFromBirthDate,
-          ),
-        ),
       ],
     );
   }
+
+  Widget _birthDateContinueButton() => DefaultTextStyle.merge(
+    style: _useReferenceAuthLayout
+        ? const TextStyle(fontSize: 16, letterSpacing: .5)
+        : const TextStyle(),
+    child: PrimaryButton(
+      label: context.l10n.continueButton,
+      height: _useReferenceAuthLayout ? 56 : 52,
+      enabled: !_loading,
+      loading: _loading,
+      onPressed: _continueFromBirthDate,
+    ),
+  );
 
   Widget _birthDateField({
     required TextEditingController controller,

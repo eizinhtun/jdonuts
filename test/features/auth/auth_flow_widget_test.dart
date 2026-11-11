@@ -352,6 +352,130 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('name form scrolls without overflow while keyboard is open', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewInsets);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AuthFlow(mode: 'register', step: 'name'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final title = find.text('What’s your name?');
+    final titleTopWithoutKeyboard = tester.getTopLeft(title).dy;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 420);
+    await tester.pumpAndSettle();
+    final titleTopWithKeyboard = tester.getTopLeft(title).dy;
+    expect(
+      (titleTopWithKeyboard - titleTopWithoutKeyboard).abs(),
+      lessThan(10),
+      reason: 'Opening the keyboard should not reposition the form heading.',
+    );
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.first, 'Hania');
+    final titleTopAfterFocus = tester.getTopLeft(title).dy;
+    expect(
+      (titleTopAfterFocus - titleTopWithKeyboard).abs(),
+      lessThan(10),
+      reason: 'Focusing a field should not jump the form vertically.',
+    );
+    await tester.enterText(fields.at(1), 'Aung');
+    await tester.pump();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('What’s your name?'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    tester.view.viewInsets = FakeViewPadding.zero;
+    await tester.pumpAndSettle();
+    expect(
+      (tester.getTopLeft(title).dy - titleTopWithoutKeyboard).abs(),
+      lessThan(10),
+    );
+    expect(
+      tester
+          .widgetList<TextField>(fields)
+          .map((field) => field.controller!.text),
+      ['Hania', 'Aung'],
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('birth date form scrolls without jumping when keyboard opens', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewInsets);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AuthFlow(mode: 'register', step: 'dob'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final title = find.text('What’s your date of birth?');
+    final titleTopWithoutKeyboard = tester.getTopLeft(title).dy;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 420);
+    await tester.pumpAndSettle();
+    final titleTopWithKeyboard = tester.getTopLeft(title).dy;
+    expect(
+      (titleTopWithKeyboard - titleTopWithoutKeyboard).abs(),
+      lessThan(10),
+      reason: 'Opening the keyboard should not reposition the DOB heading.',
+    );
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.first, 'May');
+    expect(
+      (tester.getTopLeft(title).dy - titleTopWithKeyboard).abs(),
+      lessThan(10),
+      reason: 'Focusing a DOB field should not jump the form vertically.',
+    );
+    await tester.enterText(fields.at(1), '1');
+    await tester.enterText(fields.at(2), '1980');
+    await tester.pump();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    tester.view.viewInsets = FakeViewPadding.zero;
+    await tester.pumpAndSettle();
+    expect(
+      (tester.getTopLeft(title).dy - titleTopWithoutKeyboard).abs(),
+      lessThan(10),
+    );
+    expect(
+      tester
+          .widgetList<TextField>(fields)
+          .map((field) => field.controller!.text),
+      ['May', '1', '1980'],
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a pending phone submission cannot be started twice', (
     tester,
   ) async {
