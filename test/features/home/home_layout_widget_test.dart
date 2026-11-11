@@ -15,6 +15,20 @@ import 'package:jdonuts/features/product/presentation/product_screen.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
+  testWidgets('home dock fits at the label width breakpoint', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(388, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(_homeWithBanners(_sampleData, reduceMotion: true));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Home'), findsOneWidget);
+    final renderError = tester.takeException();
+    expect(renderError, isNull, reason: '$renderError');
+  });
+
   testWidgets('banner autoplay waits for and yields to manual swipes', (
     tester,
   ) async {

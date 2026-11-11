@@ -31,17 +31,18 @@ class HomeShops extends StatelessWidget {
             child: CustomPaint(painter: _ShopLandscapePainter()),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpace.md,
-              AppSpace.md,
-              0,
-              AppSpace.xl,
-            ),
+            padding: const EdgeInsets.only(bottom: AppSpace.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: AppSpace.md),
+                Container(
+                  color: AppColors.cyan,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpace.md,
+                    AppSpace.md,
+                    AppSpace.md,
+                    AppSpace.smPlus,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -71,7 +72,7 @@ class HomeShops extends StatelessWidget {
                     child: Center(
                       child: Text(
                         context.l10n.noNearbyShops,
-                        style: const TextStyle(color: AppColors.white),
+                        style: const TextStyle(color: AppColors.ink),
                       ),
                     ),
                   )
@@ -80,7 +81,9 @@ class HomeShops extends StatelessWidget {
                     height: cardHeight,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.only(right: AppSpace.md),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpace.md,
+                      ),
                       itemCount: shops.length,
                       separatorBuilder: (_, _) =>
                           const SizedBox(width: AppSpace.sm),
@@ -226,7 +229,7 @@ class _ShopLandscapePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawColor(AppColors.cyan, BlendMode.src);
+    canvas.drawColor(AppColors.rewardsCanvas, BlendMode.src);
     final backHill = Path()
       ..moveTo(0, size.height * .78)
       ..cubicTo(

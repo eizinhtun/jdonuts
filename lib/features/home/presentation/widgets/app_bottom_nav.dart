@@ -23,9 +23,13 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = _items(context);
     if (homeStyle) {
+      final navItemWidth =
+          (MediaQuery.sizeOf(context).width -
+              2 * _homeNavigationSideInset -
+              16) /
+          items.length;
       final compact =
-          MediaQuery.sizeOf(context).width < 380 ||
-          MediaQuery.textScalerOf(context).scale(1) > 1.2;
+          navItemWidth < 68 || MediaQuery.textScalerOf(context).scale(1) > 1.2;
       final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
       final panelHeight = _homeNavigationContentHeight + bottomInset;
       final pinkBackingHeight = _homePinkBackingHeight + bottomInset;
@@ -161,7 +165,11 @@ class _HomeNavigationItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: selected ? 8 : 10,
+            horizontal: selected && showLabel
+                ? 7
+                : selected
+                ? 8
+                : 10,
             vertical: 9,
           ),
           child: Row(
@@ -170,12 +178,17 @@ class _HomeNavigationItem extends StatelessWidget {
               Icon(icon, size: 21, color: AppColors.white),
               if (showLabel) ...[
                 const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
