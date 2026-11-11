@@ -26,24 +26,53 @@ class LocalAuthRepository implements AuthRepository {
   AuthUser? _session;
 
   @override
-  Future<bool> hasSession() async {
-    _session ??= await _sessionStore.read();
-    return _session != null;
+  Future<Result<bool>> hasSession() async {
+    try {
+      _session ??= await _sessionStore.read();
+      return Success(_session != null);
+    } on Object catch (error) {
+      return Error(StorageFailure('Could not restore the session: $error'));
+    }
   }
 
   @override
-  Future<bool> isRegistered(String phone) async =>
-      _registered.contains(phone) || await _accountStore.contains(phone);
+  Future<Result<bool>> isRegistered(String phone) async {
+    try {
+      return Success(
+        _registered.contains(phone) || await _accountStore.contains(phone),
+      );
+    } on Object catch (error) {
+      return Error(StorageFailure('Could not check the saved account: $error'));
+    }
+  }
 
   @override
   Future<Result<bool>> requestOtp(String phone) async {
-    await _delay(_requestLatency);
-    return const Success(true);
+    try {
+      await _delay(_requestLatency);
+      return const Success(true);
+    } on Object catch (error) {
+      return Error(
+        AuthFailure(
+          AuthFailureCode.serviceUnavailable,
+          'Could not request a verification code: $error',
+        ),
+      );
+    }
   }
 
   @override
   Future<Result<bool>> verifyOtp(String phone, String code) async {
-    await _delay(_requestLatency);
+    try {
+      await _delay(_requestLatency);
+    } on Object catch (error) {
+      return Error(
+        AuthFailure(
+          AuthFailureCode.serviceUnavailable,
+          'Could not verify the code: $error',
+        ),
+      );
+    }
     if (code != fakeOtpCode) {
       return const Error(
         AuthFailure(
@@ -58,7 +87,16 @@ class LocalAuthRepository implements AuthRepository {
 
   @override
   Future<Result<bool>> saveRegistrationProfile(AuthUser user) async {
-    await _delay(_requestLatency);
+    try {
+      await _delay(_requestLatency);
+    } on Object catch (error) {
+      return Error(
+        AuthFailure(
+          AuthFailureCode.serviceUnavailable,
+          'Could not save the profile: $error',
+        ),
+      );
+    }
     if (!_verifiedNumbers.contains(user.phone)) {
       return const Error(
         AuthFailure(
@@ -73,7 +111,16 @@ class LocalAuthRepository implements AuthRepository {
 
   @override
   Future<Result<AuthUser>> login(String phone, String code) async {
-    await _delay(_requestLatency);
+    try {
+      await _delay(_requestLatency);
+    } on Object catch (error) {
+      return Error(
+        AuthFailure(
+          AuthFailureCode.serviceUnavailable,
+          'Could not sign in: $error',
+        ),
+      );
+    }
     if (code != fakeOtpCode) {
       return const Error(
         AuthFailure(
@@ -82,7 +129,12 @@ class LocalAuthRepository implements AuthRepository {
         ),
       );
     }
-    final storedUser = await _accountStore.find(phone);
+    AuthUser? storedUser;
+    try {
+      storedUser = await _accountStore.find(phone);
+    } on Object catch (error) {
+      return Error(StorageFailure('Could not load the saved account: $error'));
+    }
     if (!_registered.contains(phone) && storedUser == null) {
       return const Error(
         AuthFailure(AuthFailureCode.unknownNumber, 'Number is not registered.'),
@@ -100,7 +152,16 @@ class LocalAuthRepository implements AuthRepository {
 
   @override
   Future<Result<AuthUser>> register(AuthUser user) async {
-    await _delay(_requestLatency);
+    try {
+      await _delay(_requestLatency);
+    } on Object catch (error) {
+      return Error(
+        AuthFailure(
+          AuthFailureCode.serviceUnavailable,
+          'Could not complete registration: $error',
+        ),
+      );
+    }
     if (!_verifiedNumbers.contains(user.phone) ||
         !_registrationProfiles.containsKey(user.phone) ||
         user.birthDate == null) {
@@ -119,6 +180,15 @@ class LocalAuthRepository implements AuthRepository {
     try {
       await _sessionStore.write(user);
     } on Object catch (error) {
+      try {
+        await _accountStore.delete(user.phone);
+      } on Object catch (rollbackError) {
+        return Error(
+          StorageFailure(
+            'Could not save the session or undo the account write: $rollbackError',
+          ),
+        );
+      }
       return Error(StorageFailure('Could not save the session: $error'));
     }
     _registered.add(user.phone);
@@ -129,9 +199,14 @@ class LocalAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> logout() async {
-    await _sessionStore.clear();
-    _session = null;
+  Future<Result<bool>> logout() async {
+    try {
+      await _sessionStore.clear();
+      _session = null;
+      return const Success(true);
+    } on Object catch (error) {
+      return Error(StorageFailure('Could not clear the session: $error'));
+    }
   }
 
   AuthUser _sampleMember(String phone) =>

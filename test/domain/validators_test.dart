@@ -91,6 +91,16 @@ void main() {
         AuthValidationError.invalidBirthDate,
       ),
     );
+    test('rejects years outside the supported calendar range', () {
+      expect(
+        validateBirthParts(0, 1, 1, today: today),
+        AuthValidationError.invalidBirthDate,
+      );
+      expect(
+        validateBirthParts(10000, 1, 1, today: today),
+        AuthValidationError.invalidBirthDate,
+      );
+    });
     test(
       'rejects missing date',
       () => expect(validateBirthDate(null, today: today), isNotNull),

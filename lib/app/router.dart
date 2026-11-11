@@ -23,7 +23,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final session = ref.read(sessionProvider);
       if (session.isLoading && explicitAuthState == null) return null;
 
-      final isAuthenticated = explicitAuthState ?? session.value ?? false;
+      final restoredSession = session.value?.fold<bool>(
+        (hasSession) => hasSession,
+        (_) => false,
+      );
+      final isAuthenticated = explicitAuthState ?? restoredSession ?? false;
       final location = state.matchedLocation;
       final isAuthLocation =
           location.startsWith('/auth') || location == '/onboarding';

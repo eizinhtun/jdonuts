@@ -115,7 +115,7 @@ AuthValidationError? validateBirthParts(
   int day, {
   DateTime? today,
 }) {
-  if (month < 1 || month > 12 || day < 1) {
+  if (year < 1 || year > 9999 || month < 1 || month > 12 || day < 1) {
     return AuthValidationError.invalidBirthDate;
   }
   final daysInMonth = DateTime(year, month + 1, 0).day;

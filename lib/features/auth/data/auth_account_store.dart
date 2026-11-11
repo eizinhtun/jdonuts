@@ -7,6 +7,7 @@ abstract interface class AuthAccountStore {
   Future<AuthUser?> find(String phone);
   Future<bool> contains(String phone);
   Future<void> save(AuthUser user);
+  Future<void> delete(String phone);
 }
 
 class DriftAuthAccountStore implements AuthAccountStore {
@@ -47,6 +48,13 @@ class DriftAuthAccountStore implements AuthAccountStore {
           ),
         );
   }
+
+  @override
+  Future<void> delete(String phone) async {
+    await (_database.delete(
+      _database.authAccountRows,
+    )..where((account) => account.phone.equals(phone))).go();
+  }
 }
 
 class MemoryAuthAccountStore implements AuthAccountStore {
@@ -60,4 +68,7 @@ class MemoryAuthAccountStore implements AuthAccountStore {
 
   @override
   Future<void> save(AuthUser user) async => _users[user.phone] = user;
+
+  @override
+  Future<void> delete(String phone) async => _users.remove(phone);
 }

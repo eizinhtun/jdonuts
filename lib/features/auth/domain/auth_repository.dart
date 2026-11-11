@@ -15,12 +15,12 @@ class AuthUser {
 }
 
 abstract interface class AuthRepository {
-  Future<bool> hasSession();
-  Future<bool> isRegistered(String phone);
+  Future<Result<bool>> hasSession();
+  Future<Result<bool>> isRegistered(String phone);
   Future<Result<bool>> requestOtp(String phone);
   Future<Result<bool>> verifyOtp(String phone, String code);
   Future<Result<bool>> saveRegistrationProfile(AuthUser user);
   Future<Result<AuthUser>> login(String phone, String code);
   Future<Result<AuthUser>> register(AuthUser user);
-  Future<void> logout();
+  Future<Result<bool>> logout();
 }

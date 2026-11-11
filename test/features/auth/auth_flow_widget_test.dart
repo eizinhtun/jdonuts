@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/app/providers.dart';
@@ -105,6 +106,13 @@ void main() {
 
     final fields = find.byType(TextField);
     expect(tester.getSize(fields.first), const Size(48, 64));
+    expect(
+      tester.widget<TextField>(fields.first).keyboardType,
+      TextInputType.number,
+    );
+    await tester.enterText(fields.first, '1');
+    await tester.pump();
+    expect(tester.widget<TextField>(fields.at(1)).focusNode!.hasFocus, isTrue);
     await tester.enterText(fields.first, '123456');
     await tester.pump();
     final boxes = tester.widgetList<TextField>(fields).toList();
@@ -116,6 +124,79 @@ void main() {
     await tester.pump();
     expect(boxes.map((field) => field.controller!.text).join(), '12345');
     expect(boxes[4].focusNode!.hasFocus, isTrue);
+    await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+    await tester.pump();
+    expect(boxes.map((field) => field.controller!.text).join(), '1234');
+    expect(boxes[3].focusNode!.hasFocus, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('registration shows name and calendar validation inline', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 892);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final repository = LocalAuthRepository(
+      delay: (_) async {},
+      registered: {},
+      sessionStore: MemoryAuthSessionStore(),
+    );
+    await tester.pumpWidget(
+      _testApp(repository, clock: () => DateTime(2026, 11, 11)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('LET’S GET STARTED'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '9254135592');
+    await tester.pump();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '123456');
+    await tester.pump();
+    await tester.tap(find.text('VERIFY'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'May3');
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Use up to 50 letters and spaces.'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, 'May');
+    await tester.enterText(find.byType(TextField).at(1), 'Aung2');
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Use up to 50 letters and spaces.'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).at(1), 'Aung');
+    tester.testTextInput.hide();
+    await tester.pump();
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField && widget.decoration?.hintText == 'Month',
+      ),
+      findsOneWidget,
+    );
+    await tester.enterText(find.byType(TextField).at(0), 'April');
+    await tester.enterText(find.byType(TextField).at(1), '31');
+    await tester.enterText(find.byType(TextField).at(2), '1980');
+    tester.testTextInput.hide();
+    await tester.pump();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Choose a real calendar date.'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).at(1), '11');
+    await tester.enterText(find.byType(TextField).at(2), '2015');
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(find.text('You must be at least 13 years old.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -206,16 +287,116 @@ void main() {
     );
   });
 
+  testWidgets('failed phone request stays on the form and can be retried', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    var failRequest = true;
+    final repository = LocalAuthRepository(
+      delay: (_) async {
+        if (failRequest) throw StateError('temporary request failure');
+      },
+      registered: {},
+      sessionStore: MemoryAuthSessionStore(),
+    );
+    await tester.pumpWidget(_testApp(repository));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('LET’S GET STARTED'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '9254135592');
+    await tester.pump();
+
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Enter your phone number'), findsOneWidget);
+    expect(find.text('Verify your number'), findsNothing);
+
+    failRequest = false;
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Verify your number'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'session write failure is recoverable and is not an OTP failure',
+    (tester) async {
+      _disableMotion(tester);
+      final sessions = _ToggleFailureSessionStore()..failWrite = true;
+      final repository = LocalAuthRepository(
+        delay: (_) async {},
+        registered: {'95987654321'},
+        sessionStore: sessions,
+      );
+      await tester.pumpWidget(_testApp(repository));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Already have an account? Log In'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '987654321');
+      await tester.pump();
+      await tester.tap(find.byType(PrimaryButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '123456');
+      await tester.pump();
+
+      await tester.tap(find.text('VERIFY'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      expect(find.text('That code is incorrect.'), findsNothing);
+      expect(
+        tester
+            .widgetList<TextField>(find.byType(TextField))
+            .map((field) => field.controller!.text)
+            .join(),
+        '123456',
+      );
+      expect(
+        (await repository.hasSession()).fold((value) => value, (_) => true),
+        isFalse,
+      );
+
+      sessions.failWrite = false;
+      await tester.tap(find.text('VERIFY'));
+      await tester.pumpAndSettle();
+      expect(find.text('Seasonal specials'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.settings_outlined));
+      await tester.pumpAndSettle();
+      sessions.failClear = true;
+      await tester.tap(find.text('Log out'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      expect(find.text('Settings'), findsOneWidget);
+
+      sessions.failClear = false;
+      await tester.tap(find.text('Log out'));
+      await tester.pumpAndSettle();
+      expect(find.text('LET’S GET STARTED'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('third wrong code locks entry until the five-minute resend', (
     tester,
   ) async {
     _disableMotion(tester);
     var now = DateTime(2026, 2, 1, 12);
-    final repository = LocalAuthRepository(
-      delay: (_) async {},
-      registered: {},
-      sessionStore: MemoryAuthSessionStore(),
-    );
+    Completer<void>? resendGate;
+    final repository = _CountingAuthRepository((_) async {
+      if (resendGate case final gate?) await gate.future;
+    });
     await tester.pumpWidget(_testApp(repository, clock: () => now));
     await tester.pumpAndSettle();
     await tester.tap(find.text('LET’S GET STARTED'));
@@ -224,6 +405,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byType(PrimaryButton));
     await tester.pumpAndSettle();
+    expect(repository.otpRequests, 1);
     expect(find.text('VERIFY'), findsNothing);
 
     for (var attempt = 0; attempt < 3; attempt++) {
@@ -254,11 +436,25 @@ void main() {
           .onPressed,
       isNotNull,
     );
+    resendGate = Completer<void>();
     await tester.tap(find.text('Resend code'));
+    await tester.pump();
+    await tester.tap(find.text('Resend code'));
+    await tester.pump();
+    expect(repository.otpRequests, 2);
+    resendGate.complete();
     await tester.pumpAndSettle();
     expect(
       find.text('Too many attempts. Resend the code when the timer ends.'),
       findsNothing,
+    );
+    expect(
+      tester
+          .widgetList<TextField>(find.byType(TextField))
+          .every(
+            (field) => field.enabled == true && field.controller!.text.isEmpty,
+          ),
+      isTrue,
     );
   });
 }
@@ -330,6 +526,27 @@ class _CountingAuthRepository extends LocalAuthRepository {
   Future<Result<AuthUser>> register(AuthUser user) {
     registrations++;
     return super.register(user);
+  }
+}
+
+class _ToggleFailureSessionStore implements AuthSessionStore {
+  AuthUser? user;
+  bool failWrite = false;
+  bool failClear = false;
+
+  @override
+  Future<AuthUser?> read() async => user;
+
+  @override
+  Future<void> write(AuthUser value) async {
+    if (failWrite) throw StateError('session storage unavailable');
+    user = value;
+  }
+
+  @override
+  Future<void> clear() async {
+    if (failClear) throw StateError('session clear unavailable');
+    user = null;
   }
 }
 

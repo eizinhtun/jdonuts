@@ -72,7 +72,7 @@ final rewardsDataProvider = FutureProvider<RewardsSnapshot>(
   ),
   retry: (_, _) => null,
 );
-final sessionProvider = FutureProvider<bool>(
+final sessionProvider = FutureProvider<Result<bool>>(
   (ref) => ref.watch(authRepositoryProvider).hasSession(),
 );
 final authStateProvider = StateProvider<bool?>((ref) => null);

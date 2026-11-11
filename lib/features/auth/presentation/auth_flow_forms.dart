@@ -447,14 +447,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           child: PrimaryButton(
             label: context.l10n.continueButton,
             height: _useReferenceAuthLayout ? 56 : 52,
-            enabled:
-                validateBirthInputs(
-                  _birthMonth.text,
-                  _birthDay.text,
-                  _birthYear.text,
-                  today: ref.read(clockProvider)(),
-                ) ==
-                null,
+            enabled: !_loading,
             loading: _loading,
             onPressed: _continueFromBirthDate,
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jdonuts/app/providers.dart';
 import 'package:jdonuts/core/storage/app_database.dart';
 import 'package:jdonuts/core/result/result.dart';
@@ -9,6 +10,7 @@ import 'package:jdonuts/features/home/domain/models.dart';
 import 'package:jdonuts/features/home/domain/home_repository.dart';
 import 'package:jdonuts/features/auth/data/local_auth_repository.dart';
 import 'package:jdonuts/features/auth/data/auth_session_store.dart';
+import 'package:jdonuts/features/auth/domain/auth_repository.dart';
 import 'package:jdonuts/main.dart';
 
 void main() {
@@ -20,6 +22,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('LET’S GET STARTED'), findsOneWidget);
     expect(find.text('Already have an account? Log In'), findsOneWidget);
+  });
+
+  testWidgets('securely restored session opens Home after relaunch', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    FlutterSecureStorage.setMockInitialValues({});
+    final sessionStore = SecureAuthSessionStore();
+    await sessionStore.write(
+      const AuthUser(
+        phone: '95987654321',
+        firstName: 'Hania',
+        lastName: '',
+        birthDate: null,
+      ),
+    );
+
+    await tester.pumpWidget(_testApp(sessionStore: sessionStore));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Seasonal specials'), findsOneWidget);
+    expect(find.text('LET’S GET STARTED'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a returning member logs in and can log out from Settings', (
@@ -192,7 +217,10 @@ Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
   }
 }
 
-Widget _testApp({Set<String> registered = const {}}) => ProviderScope(
+Widget _testApp({
+  Set<String> registered = const {},
+  AuthSessionStore? sessionStore,
+}) => ProviderScope(
   overrides: [
     appDatabaseProvider.overrideWith((ref) {
       final database = AppDatabase.forTesting(NativeDatabase.memory());
@@ -206,7 +234,7 @@ Widget _testApp({Set<String> registered = const {}}) => ProviderScope(
       (ref) => LocalAuthRepository(
         delay: (_) async {},
         registered: registered,
-        sessionStore: MemoryAuthSessionStore(),
+        sessionStore: sessionStore ?? MemoryAuthSessionStore(),
       ),
     ),
   ],

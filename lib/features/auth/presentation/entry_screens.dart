@@ -102,23 +102,50 @@ class _WelcomeBackground extends StatelessWidget {
   );
 }
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _loggingOut = false;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(context.l10n.settingsTitle)),
     body: ListTile(
       leading: const Icon(Icons.logout),
       title: Text(context.l10n.logoutLabel),
-      onTap: () async {
-        await ref.read(authRepositoryProvider).logout();
-        ref.read(authDraftProvider.notifier).state = const AuthDraft();
-        ref.read(authStateProvider.notifier).state = false;
-        if (context.mounted) context.go('/onboarding');
-      },
+      trailing: _loggingOut
+          ? const SizedBox.square(
+              dimension: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : null,
+      onTap: _loggingOut ? null : _logout,
     ),
   );
+
+  Future<void> _logout() async {
+    if (_loggingOut) return;
+    setState(() => _loggingOut = true);
+    final result = await ref.read(authRepositoryProvider).logout();
+    if (!mounted) return;
+    result.fold<void>(
+      (_) {
+        ref.read(authDraftProvider.notifier).state = const AuthDraft();
+        ref.read(authStateProvider.notifier).state = false;
+        context.go('/onboarding');
+      },
+      (_) {
+        setState(() => _loggingOut = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.genericError)));
+      },
+    );
+  }
 }
 
 class _WelcomeArtwork extends StatelessWidget {

@@ -11,13 +11,20 @@ mixin _AuthFlowActions on _AuthFlowHost {
     });
 
     final repository = ref.read(authRepositoryProvider);
-    if (!_isRegistration && !await repository.isRegistered(canonical)) {
+    if (!_isRegistration) {
+      final registeredResult = await repository.isRegistered(canonical);
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = context.l10n.unknownNumber;
-      });
-      return;
+      final registrationFailure = registeredResult.fold<String?>(
+        (registered) => registered ? null : context.l10n.unknownNumber,
+        _failureMessage,
+      );
+      if (registrationFailure != null) {
+        setState(() {
+          _loading = false;
+          _error = registrationFailure;
+        });
+        return;
+      }
     }
     if (!mounted) return;
     final hasActiveCode =
@@ -132,7 +139,12 @@ mixin _AuthFlowActions on _AuthFlowHost {
           setState(() => _error = context.l10n.unknownNumber);
           return;
         }
-        _recordWrongCode();
+        if (failure is AuthFailure &&
+            failure.code == AuthFailureCode.incorrectCode) {
+          _recordWrongCode();
+          return;
+        }
+        setState(() => _error = _failureMessage(failure));
       },
     );
   }
@@ -264,6 +276,7 @@ mixin _AuthFlowActions on _AuthFlowHost {
         AuthFailureCode.unknownNumber => context.l10n.unknownNumber,
         AuthFailureCode.unverifiedNumber => context.l10n.otpInvalid,
         AuthFailureCode.registrationIncomplete => context.l10n.invalidName,
+        AuthFailureCode.serviceUnavailable => context.l10n.genericError,
       };
     }
     return context.l10n.genericError;

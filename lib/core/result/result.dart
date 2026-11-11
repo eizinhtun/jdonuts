@@ -18,6 +18,7 @@ enum AuthFailureCode {
   unknownNumber,
   unverifiedNumber,
   registrationIncomplete,
+  serviceUnavailable,
 }
 
 final class StorageFailure extends Failure {

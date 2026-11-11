@@ -73,7 +73,7 @@ void main() {
     await tester.tap(find.text('Coconut Donut').first);
     await tester.pumpAndSettle();
     expect(find.text('JD022123'), findsOneWidget);
-    expect(find.text('3,200 MMK'), findsOneWidget);
+    expect(find.text('3,200 MMK'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
     expect((await sessionStore.read())?.phone, '959254135592');
 
