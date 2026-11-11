@@ -16,6 +16,21 @@ import 'package:jdonuts/features/rewards/presentation/widgets/tier_ladder.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
+  testWidgets('Rewards navigation fits at the label breakpoint', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(380, 800);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(_rewardsApp(textScale: 1.1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Reward'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Rewards fits a small portrait viewport at 1.3 text scale', (
     tester,
   ) async {

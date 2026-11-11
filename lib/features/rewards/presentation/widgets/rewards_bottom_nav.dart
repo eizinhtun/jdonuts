@@ -136,12 +136,16 @@ class _RewardsNavItem extends StatelessWidget {
                   Icon(icon, size: 21, color: AppColors.white),
                   if (showLabel) ...[
                     const SizedBox(width: 3),
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
