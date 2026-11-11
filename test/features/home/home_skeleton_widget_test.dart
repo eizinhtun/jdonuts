@@ -19,4 +19,21 @@ void main() {
     expect(tester.takeException(), isNull);
     tester.view.platformDispatcher.clearAccessibilityFeaturesTestValue();
   });
+
+  testWidgets('Home skeleton shimmer pauses and resumes with app lifecycle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeSkeleton()));
+    await tester.pump();
+    expect(tester.binding.transientCallbackCount, greaterThan(0));
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    expect(tester.binding.transientCallbackCount, 0);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(tester.binding.transientCallbackCount, greaterThan(0));
+    expect(tester.takeException(), isNull);
+  });
 }

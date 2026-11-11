@@ -11,13 +11,17 @@ class HomeSkeleton extends StatefulWidget {
 }
 
 class _HomeSkeletonState extends State<HomeSkeleton>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _shimmer;
   bool? _reduceMotion;
+  bool _appIsResumed = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _appIsResumed = lifecycle == null || lifecycle == AppLifecycleState.resumed;
     _shimmer = AnimationController(
       vsync: this,
       duration: Motion.skeletonShimmer,
@@ -30,7 +34,19 @@ class _HomeSkeletonState extends State<HomeSkeleton>
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     if (_reduceMotion == reduceMotion) return;
     _reduceMotion = reduceMotion;
-    if (reduceMotion) {
+    _syncShimmer();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appIsResumed = state == AppLifecycleState.resumed;
+    _syncShimmer();
+  }
+
+  void _syncShimmer() {
+    if (!_appIsResumed) {
+      _shimmer.stop();
+    } else if (_reduceMotion ?? false) {
       _shimmer.stop();
       _shimmer.value = .5;
     } else {
@@ -40,6 +56,7 @@ class _HomeSkeletonState extends State<HomeSkeleton>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _shimmer.dispose();
     super.dispose();
   }
