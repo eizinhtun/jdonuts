@@ -6,6 +6,9 @@ import 'package:jdonuts/l10n/localization.dart';
 
 const _rewardsCanvasColor = AppColors.rewardsCanvas;
 const _navigationContentHeight = 72.0;
+const _navigationTopSpacing = 12.0;
+const _navigationSideInset = 17.0;
+const _pinkBackingContentHeight = _navigationContentHeight / 2;
 
 class RewardsBottomNav extends StatelessWidget {
   const RewardsBottomNav({super.key});
@@ -27,51 +30,66 @@ class RewardsBottomNav extends StatelessWidget {
       context.l10n.orderLabel,
       context.l10n.profileLabel,
     ];
-    // Scaffold removes bottom padding from its navigation bar slot. Use the
-    // view padding to retain the device's safe-area height for the pink base.
+    // Scaffold removes bottom padding from its navigation bar slot. Preserve
+    // that space in the cyan panel and pink backing to match the reference.
     final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-    final dockHeight = _navigationContentHeight + bottomInset;
-    const itemFlex = [14, 17, 15, 10, 8];
+    final panelHeight = _navigationContentHeight + bottomInset;
+    final pinkBackingHeight = _pinkBackingContentHeight + bottomInset;
+    const itemFlex = [14, 19, 14, 9, 14];
     final showRewardLabel =
         MediaQuery.sizeOf(context).width >= 380 &&
         MediaQuery.textScalerOf(context).scale(1) <= 1.1;
-    return Container(
-      height: dockHeight,
-      color: _rewardsCanvasColor,
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: SizedBox(
-          height: dockHeight,
-          child: Container(
-            color: AppColors.pink,
-            padding: const EdgeInsets.only(left: 22),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                height: _navigationContentHeight,
-                decoration: const BoxDecoration(
-                  color: AppColors.cyan,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                child: Row(
-                  children: [
-                    for (var index = 0; index < labels.length; index++)
-                      Expanded(
-                        flex: itemFlex[index],
-                        child: _RewardsNavItem(
-                          selected: index == 1,
-                          showLabel: index == 1 && showRewardLabel,
-                          label: labels[index],
-                          icon: _icons[index],
-                          onTap: () => _select(context, index),
+    return SizedBox(
+      key: const ValueKey('rewards-bottom-nav'),
+      height: _navigationTopSpacing + panelHeight,
+      child: Stack(
+        children: [
+          const Positioned.fill(child: ColoredBox(color: _rewardsCanvasColor)),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: pinkBackingHeight,
+            child: const ColoredBox(
+              key: ValueKey('rewards-navigation-pink-backing'),
+              color: AppColors.pink,
+            ),
+          ),
+          Positioned(
+            left: _navigationSideInset,
+            right: _navigationSideInset,
+            bottom: 0,
+            height: panelHeight,
+            child: Container(
+              key: const ValueKey('rewards-navigation-cyan-panel'),
+              decoration: const BoxDecoration(
+                color: AppColors.cyan,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  height: _navigationContentHeight,
+                  child: Row(
+                    children: [
+                      for (var index = 0; index < labels.length; index++)
+                        Expanded(
+                          flex: itemFlex[index],
+                          child: _RewardsNavItem(
+                            selected: index == 1,
+                            showLabel: index == 1 && showRewardLabel,
+                            label: labels[index],
+                            icon: _icons[index],
+                            onTap: () => _select(context, index),
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -109,13 +127,18 @@ class _RewardsNavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final pill = Material(
       color: selected ? AppColors.pink : AppColors.transparent,
-      borderRadius: BorderRadius.circular(24),
+      shape: RoundedRectangleBorder(
+        side: selected
+            ? const BorderSide(color: AppColors.white, width: 1.5)
+            : BorderSide.none,
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: SizedBox(
-          width: selected && showLabel ? 102 : null,
-          height: selected && showLabel ? 44 : null,
+          width: selected && showLabel ? 90 : null,
+          height: selected && showLabel ? 38 : null,
           child: Center(
             child: Padding(
               padding: EdgeInsets.symmetric(

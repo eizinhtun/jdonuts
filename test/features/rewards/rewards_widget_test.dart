@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/app/providers.dart';
 import 'package:jdonuts/core/result/result.dart';
-import 'package:jdonuts/core/theme/tokens.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
 import 'package:jdonuts/features/rewards/domain/rewards_repository.dart';
 import 'package:jdonuts/features/rewards/presentation/rewards_screen.dart';
@@ -33,7 +32,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('pink backing extends through the bottom safe area', (
+  testWidgets('Rewards dock matches the inset panel and pink lower band', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -46,21 +45,20 @@ void main() {
     await tester.pumpWidget(_rewardsApp(textScale: 1));
     await tester.pumpAndSettle();
 
-    final pinkBacking = find.byWidgetPredicate(
-      (widget) =>
-          widget is Container &&
-          widget.color == AppColors.pink &&
-          widget.padding == const EdgeInsets.only(left: 22),
+    final dock = find.byKey(const ValueKey('rewards-bottom-nav'));
+    final pinkBacking = find.byKey(
+      const ValueKey('rewards-navigation-pink-backing'),
     );
-    final cyanPanel = find.byWidgetPredicate(
-      (widget) =>
-          widget is Container &&
-          widget.decoration is BoxDecoration &&
-          (widget.decoration! as BoxDecoration).color == AppColors.cyan,
+    final cyanPanel = find.byKey(
+      const ValueKey('rewards-navigation-cyan-panel'),
     );
 
-    expect(tester.getSize(pinkBacking).height, 106);
-    expect(tester.getSize(cyanPanel).height, 72);
+    expect(tester.getSize(dock), const Size(390, 118));
+    expect(tester.getSize(pinkBacking), const Size(390, 70));
+    expect(tester.getSize(cyanPanel), const Size(356, 106));
+    final dockTop = tester.getTopLeft(dock).dy;
+    expect(tester.getTopLeft(cyanPanel), Offset(17, dockTop + 12));
+    expect(tester.getTopLeft(pinkBacking).dy, dockTop + 48);
     expect(tester.takeException(), isNull);
   });
 
