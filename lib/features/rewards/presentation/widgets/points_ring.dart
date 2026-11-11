@@ -31,7 +31,7 @@ class PointsRing extends StatelessWidget {
               dimension: diameter,
               child: CustomPaint(
                 painter: PointsRingPainter(
-                  progress: progress.nextTierFraction * animatedValue,
+                  progress: progress.pointsRingFraction * animatedValue,
                 ),
                 child: Center(
                   child: Column(

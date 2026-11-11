@@ -37,7 +37,7 @@ void main() {
                   id: 'member',
                   name: 'Hania',
                   tier: 'Silver',
-                  points: 1000000,
+                  points: 680000,
                   pointsToGold: 500,
                   notifications: 2,
                 ),

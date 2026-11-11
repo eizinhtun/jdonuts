@@ -89,7 +89,7 @@ void main() {
 
     await tester.pumpWidget(_rewardsApp(textScale: 1.3));
     await tester.pumpAndSettle();
-    expect(find.text('1,000,000'), findsOneWidget);
+    expect(find.text('680,000'), findsOneWidget);
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -180));
     await tester.pumpAndSettle();
     expect(find.text('Eat more earn more'), findsOneWidget);
@@ -113,7 +113,7 @@ void main() {
 
     await tester.pumpWidget(_rewardsApp(textScale: 1, disableAnimations: true));
     await tester.pump();
-    expect(find.text('1,000,000'), findsOneWidget);
+    expect(find.text('680,000'), findsOneWidget);
     expect(find.text('EARN'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
@@ -136,16 +136,16 @@ void main() {
     final middleSweep = _pointsRingProgress(tester);
     final middleTierProgress = _tierProgress(tester);
     expect(middlePoints, greaterThan(0));
-    expect(middlePoints, lessThan(1000000));
+    expect(middlePoints, lessThan(680000));
     expect(middleSweep, greaterThan(0));
     expect(middleSweep, lessThan(1));
     expect(middleTierProgress, greaterThan(0));
     expect(middleTierProgress, lessThan(1));
 
     await tester.pump(const Duration(milliseconds: 400));
-    expect(_displayedPoints(tester), 1000000);
-    expect(_pointsRingProgress(tester), closeTo(1000000 / 1000500, .00001));
-    expect(_tierProgress(tester), closeTo(1000000 / 1000500, .00001));
+    expect(_displayedPoints(tester), 680000);
+    expect(_pointsRingProgress(tester), closeTo(.68, .00001));
+    expect(_tierProgress(tester), closeTo(680000 / 680500, .00001));
     await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);
   });
@@ -249,7 +249,7 @@ void main() {
     result.complete(_snapshot(challenges: [_sampleData.challenges[1]]));
     await tester.pumpAndSettle();
     expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(find.text('1,000,000'), findsOneWidget);
+    expect(find.text('680,000'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -356,7 +356,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.refreshes, 1);
-    expect(find.text('1,000,000'), findsOneWidget);
+    expect(find.text('680,000'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
@@ -389,7 +389,7 @@ final _sampleData = AppData(
     id: 'member-1',
     name: 'Hania',
     tier: 'Silver',
-    points: 1000000,
+    points: 680000,
     pointsToGold: 500,
     notifications: 2,
   ),

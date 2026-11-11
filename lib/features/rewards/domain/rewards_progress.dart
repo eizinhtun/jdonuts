@@ -1,16 +1,20 @@
 import '../../home/domain/models.dart';
 
+const int rewardPointsRingRange = 1000000;
+
 enum MembershipTier { silver, gold, platinum, unknown }
 
 class MemberRewardProgress {
   const MemberRewardProgress({
     required this.points,
+    required this.pointsRingFraction,
     required this.pointsToNextTier,
     required this.nextTierFraction,
     required this.currentTier,
   });
 
   final int points;
+  final double pointsRingFraction;
   final int pointsToNextTier;
   final double nextTierFraction;
   final MembershipTier currentTier;
@@ -18,6 +22,9 @@ class MemberRewardProgress {
   factory MemberRewardProgress.fromMember(Member member) {
     final points = member.points.clamp(0, 0x7fffffff).toInt();
     final pointsToNextTier = member.pointsToGold.clamp(0, 0x7fffffff).toInt();
+    final pointsRingFraction = rewardPointsRingRange <= 0
+        ? 0.0
+        : (points / rewardPointsRingRange).clamp(0.0, 1.0).toDouble();
     final target = points + pointsToNextTier;
     final currentTier = switch (member.tier.trim().toLowerCase()) {
       'silver' => MembershipTier.silver,
@@ -30,6 +37,7 @@ class MemberRewardProgress {
         : points / target;
     return MemberRewardProgress(
       points: points,
+      pointsRingFraction: pointsRingFraction,
       pointsToNextTier: pointsToNextTier,
       nextTierFraction: fraction.clamp(0.0, 1.0).toDouble(),
       currentTier: currentTier,

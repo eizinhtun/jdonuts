@@ -8,6 +8,7 @@ part 'app_database.g.dart';
 
 const _previousDemoMemberPoints = 680000;
 const _currentDemoMemberPoints = 1000000;
+const _displayedDemoMemberPoints = 680000;
 
 class MemberRows extends Table {
   TextColumn get id => text()();
@@ -99,7 +100,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -135,6 +136,13 @@ class AppDatabase extends _$AppDatabase {
           UPDATE member_rows
           SET points = $_currentDemoMemberPoints
           WHERE id = 'member-1' AND points = $_previousDemoMemberPoints
+        ''');
+      }
+      if (from < 5 && to >= 5) {
+        await customStatement('''
+          UPDATE member_rows
+          SET points = $_displayedDemoMemberPoints
+          WHERE id = 'member-1' AND points = $_currentDemoMemberPoints
         ''');
       }
     },

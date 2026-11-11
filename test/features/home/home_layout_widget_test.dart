@@ -512,7 +512,7 @@ final _sampleData = AppData(
     id: 'member-1',
     name: 'Hania',
     tier: 'Silver',
-    points: 1000000,
+    points: 680000,
     pointsToGold: 500,
     notifications: 2,
   ),
