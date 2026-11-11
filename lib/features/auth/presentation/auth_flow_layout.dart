@@ -77,18 +77,37 @@ mixin _AuthFlowLayout on _AuthFlowHost, _AuthFlowActions, _AuthFlowForms {
                         MediaQuery.sizeOf(context).height -
                         MediaQuery.viewInsetsOf(context).bottom;
                     final step = AnimatedSwitcher(
-                      duration: Motion.duration(context, Motion.standard),
-                      switchInCurve: Motion.curve,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(.05, 0),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
+                      duration: Motion.duration(
+                        context,
+                        Motion.authStepTransition,
                       ),
+                      switchInCurve: Motion.authStepCurve,
+                      switchOutCurve: Motion.authStepCurve,
+                      transitionBuilder: (child, animation) {
+                        final isIncoming = child.key == ValueKey(widget.step);
+                        final direction = isIncoming
+                            ? _stepDirection
+                            : -_stepDirection;
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position:
+                                Tween<Offset>(
+                                  begin: Offset(
+                                    Motion.authStepSlideDistance * direction,
+                                    0,
+                                  ),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Motion.authStepCurve,
+                                  ),
+                                ),
+                            child: child,
+                          ),
+                        );
+                      },
                       child: KeyedSubtree(
                         key: ValueKey(widget.step),
                         child: _buildStep(phoneError),

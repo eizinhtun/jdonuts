@@ -249,7 +249,12 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                       opacity: animation,
                       child: SlideTransition(
                         position: Tween<Offset>(
-                          begin: Offset(tab == 0 ? -.06 : .06, 0),
+                          begin: Offset(
+                            tab == 0
+                                ? -Motion.rewardTabSlideDistance
+                                : Motion.rewardTabSlideDistance,
+                            0,
+                          ),
                           end: Offset.zero,
                         ).animate(animation),
                         child: child,
@@ -284,9 +289,13 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                                 return AnimatedBuilder(
                                   animation: _entrance,
                                   builder: (context, child) {
-                                    final start = (index * .13)
-                                        .clamp(0.0, .65)
-                                        .toDouble();
+                                    final start =
+                                        (index * Motion.rewardChallengeStagger)
+                                            .clamp(
+                                              0.0,
+                                              Motion.rewardChallengeMaxStagger,
+                                            )
+                                            .toDouble();
                                     final progress = Motion.curve.transform(
                                       (_entrance.value - start)
                                           .clamp(0.0, 1.0)
@@ -295,7 +304,11 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                                     return Opacity(
                                       opacity: progress,
                                       child: Transform.translate(
-                                        offset: Offset(0, 35 * (1 - progress)),
+                                        offset: Offset(
+                                          0,
+                                          Motion.rewardChallengeSlideDistance *
+                                              (1 - progress),
+                                        ),
                                         child: child,
                                       ),
                                     );

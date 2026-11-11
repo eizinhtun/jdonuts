@@ -152,6 +152,7 @@ class _RewardsNavItem extends StatelessWidget {
         ),
       ),
     );
+    final heroEnabled = !MediaQuery.disableAnimationsOf(context);
     return Semantics(
       button: true,
       selected: selected,
@@ -159,7 +160,10 @@ class _RewardsNavItem extends StatelessWidget {
       child: ExcludeSemantics(
         child: Center(
           child: selected
-              ? Hero(tag: Motion.navigationPillHeroTag, child: pill)
+              ? HeroMode(
+                  enabled: heroEnabled,
+                  child: Hero(tag: Motion.navigationPillHeroTag, child: pill),
+                )
               : pill,
         ),
       ),

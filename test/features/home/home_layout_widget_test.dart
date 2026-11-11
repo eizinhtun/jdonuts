@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jdonuts/app/providers.dart';
+import 'package:jdonuts/app/route_observer.dart';
 import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/features/home/domain/home_repository.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
@@ -13,6 +14,105 @@ import 'package:jdonuts/features/product/presentation/product_screen.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
+  testWidgets('banner autoplay waits for and yields to manual swipes', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(375, 850);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final data = _dataWithBanners(3);
+
+    await tester.pumpWidget(_homeWithBanners(data));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 2));
+    expect(_bannerPage(tester), 0);
+
+    await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
+    await tester.pumpAndSettle();
+    expect(_bannerPage(tester), 1);
+
+    await tester.pump(const Duration(milliseconds: 4500));
+    expect(_bannerPage(tester), 1);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    expect(_bannerPage(tester), 2);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('reduced motion leaves the banner carousel at its current page', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(375, 850);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final data = _dataWithBanners(3);
+
+    await tester.pumpWidget(_homeWithBanners(data, reduceMotion: true));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 12));
+
+    expect(_bannerPage(tester), 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('banner autoplay pauses while Home is covered by another route', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(375, 850);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final data = _dataWithBanners(3);
+    final router = GoRouter(
+      initialLocation: '/home',
+      observers: [appRouteObserver],
+      routes: [
+        GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+        GoRoute(
+          path: '/other',
+          builder: (_, _) => const Scaffold(body: Text('Other route')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appDataProvider.overrideWith((ref) async => data),
+          dataRepositoryProvider.overrideWith(
+            (ref) => _FakeDataRepository(data),
+          ),
+          connectivityProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 2));
+
+    router.push('/other');
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 6));
+    expect(find.text('Other route'), findsOneWidget);
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(_bannerPage(tester), 0);
+
+    await tester.pump(const Duration(milliseconds: 4500));
+    expect(_bannerPage(tester), 0);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    expect(_bannerPage(tester), 1);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('an empty section does not hide populated Home sections', (
     tester,
   ) async {
@@ -231,6 +331,45 @@ void main() {
     },
   );
 }
+
+Widget _homeWithBanners(AppData data, {bool reduceMotion = false}) =>
+    ProviderScope(
+      overrides: [
+        appDataProvider.overrideWith((ref) async => data),
+        dataRepositoryProvider.overrideWith((ref) => _FakeDataRepository(data)),
+        connectivityProvider.overrideWith((ref) => Stream.value(true)),
+      ],
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(disableAnimations: reduceMotion),
+            child: const HomeScreen(),
+          ),
+        ),
+      ),
+    );
+
+double _bannerPage(WidgetTester tester) =>
+    tester.widget<PageView>(find.byType(PageView)).controller!.page!;
+
+AppData _dataWithBanners(int count) => AppData(
+  member: _sampleData.member,
+  products: const [],
+  sections: const [],
+  banners: List.generate(
+    count,
+    (index) => PromoBanner(
+      title: 'Banner ${index + 1}',
+      subtitle: 'Shop ${index + 1}',
+      image: 'banner.svg',
+    ),
+  ),
+  shops: const [],
+  challenges: const [],
+);
 
 Widget _scaledScreen(Widget child) => Builder(
   builder: (context) => MediaQuery(

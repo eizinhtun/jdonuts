@@ -15,6 +15,68 @@ import 'package:jdonuts/features/auth/presentation/widgets/primary_button.dart';
 import 'package:jdonuts/main.dart';
 
 void main() {
+  testWidgets(
+    'registration progress advances and reverses with directional steps',
+    (tester) async {
+      final repository = LocalAuthRepository(
+        delay: (_) async {},
+        registered: {},
+        sessionStore: MemoryAuthSessionStore(),
+      );
+      await tester.pumpWidget(_testApp(repository));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('LET’S GET STARTED'));
+      await tester.pumpAndSettle();
+      expect(_authProgress(tester), .25);
+
+      await tester.enterText(find.byType(TextField).first, '9254135592');
+      await tester.pump();
+      await tester.tap(find.byType(PrimaryButton));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(find.text('Verify your number'), findsOneWidget);
+      final forwardOffset = tester
+          .widget<SlideTransition>(
+            find
+                .ancestor(
+                  of: find.text('Verify your number'),
+                  matching: find.byType(SlideTransition),
+                )
+                .first,
+          )
+          .position
+          .value
+          .dx;
+      expect(forwardOffset, greaterThan(0));
+      await tester.pumpAndSettle();
+      expect(_authProgress(tester), .5);
+
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      final backwardOffset = tester
+          .widget<SlideTransition>(
+            find
+                .ancestor(
+                  of: find.text('Enter your phone number'),
+                  matching: find.byType(SlideTransition),
+                )
+                .first,
+          )
+          .position
+          .value
+          .dx;
+      expect(backwardOffset, lessThan(0));
+      await tester.pumpAndSettle();
+      expect(_authProgress(tester), .25);
+      expect(
+        tester.widget<TextField>(find.byType(TextField).first).controller?.text,
+        '9254135592',
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('each authentication request ignores a second submit tap', (
     tester,
   ) async {
@@ -458,6 +520,13 @@ void main() {
     );
   });
 }
+
+double _authProgress(WidgetTester tester) => tester
+    .widgetList<CircularProgressIndicator>(
+      find.byType(CircularProgressIndicator),
+    )
+    .first
+    .value!;
 
 Widget _testApp(AuthRepository repository, {DateTime Function()? clock}) =>
     ProviderScope(

@@ -211,11 +211,14 @@ class _ProductHeroCard extends StatelessWidget {
               child: SizedBox(
                 width: imageWidth,
                 height: 266,
-                child: Hero(
-                  tag: heroTag,
-                  child: SeedImage(
-                    assetName: product.image,
-                    semanticsLabel: product.name,
+                child: HeroMode(
+                  enabled: !MediaQuery.disableAnimationsOf(context),
+                  child: Hero(
+                    tag: heroTag,
+                    child: SeedImage(
+                      assetName: product.image,
+                      semanticsLabel: product.name,
+                    ),
                   ),
                 ),
               ),

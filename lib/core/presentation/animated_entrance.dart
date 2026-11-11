@@ -12,7 +12,7 @@ class AnimatedEntrance extends StatefulWidget {
     required this.child,
     this.delay = Duration.zero,
     this.duration = Motion.entrance,
-    this.beginOffset = const Offset(0, .08),
+    this.beginOffset = const Offset(0, Motion.entranceDistance),
   });
 
   final Widget child;

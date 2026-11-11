@@ -194,14 +194,7 @@ class _ProductCard extends StatelessWidget {
                 if (seasonal)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Hero(
-                      tag: heroTag,
-                      child: SeedImage(
-                        assetName: product.image,
-                        fit: BoxFit.cover,
-                        semanticsLabel: product.name,
-                      ),
-                    ),
+                    child: _heroImage(context, fit: BoxFit.cover),
                   )
                 else
                   Container(
@@ -210,13 +203,7 @@ class _ProductCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     padding: const EdgeInsets.all(12),
-                    child: Hero(
-                      tag: heroTag,
-                      child: SeedImage(
-                        assetName: product.image,
-                        semanticsLabel: product.name,
-                      ),
-                    ),
+                    child: _heroImage(context),
                   ),
                 if (product.discountPercent != null)
                   Positioned(
@@ -243,6 +230,18 @@ class _ProductCard extends StatelessWidget {
       ),
     ),
   );
+
+  Widget _heroImage(BuildContext context, {BoxFit fit = BoxFit.contain}) {
+    final image = SeedImage(
+      assetName: product.image,
+      fit: fit,
+      semanticsLabel: product.name,
+    );
+    return HeroMode(
+      enabled: !MediaQuery.disableAnimationsOf(context),
+      child: Hero(tag: heroTag, child: image),
+    );
+  }
 }
 
 class _DiscountBadge extends StatelessWidget {

@@ -11,6 +11,7 @@ import 'package:jdonuts/features/rewards/presentation/rewards_screen.dart';
 import 'package:jdonuts/features/rewards/presentation/widgets/points_ring.dart';
 import 'package:jdonuts/features/rewards/presentation/widgets/points_ring_painter.dart';
 import 'package:jdonuts/features/rewards/presentation/widgets/challenge_artwork.dart';
+import 'package:jdonuts/features/rewards/presentation/widgets/challenge_card.dart';
 import 'package:jdonuts/features/rewards/presentation/widgets/tier_ladder.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
@@ -110,6 +111,9 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
+    expect(find.byType(ClipPath), findsNothing);
+    await tester.pump(const Duration(milliseconds: 260));
     expect(find.byType(ClipPath), findsOneWidget);
 
     await tester.pumpWidget(
@@ -121,7 +125,27 @@ void main() {
         ),
       ),
     );
+    await tester.pump(const Duration(milliseconds: 600));
     expect(find.byType(ClipPath), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('completed challenge cue plays once and settles', (tester) async {
+    await tester.pumpWidget(
+      _rewardsApp(textScale: 1, disableAnimations: false),
+    );
+    await tester.pump(const Duration(milliseconds: 900));
+
+    final cue = tester.widget<ScaleTransition>(
+      find.descendant(
+        of: find.byType(ChallengeCard).first,
+        matching: find.byType(ScaleTransition),
+      ),
+    );
+    expect(cue.scale.value, closeTo(1, .001));
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(cue.scale.value, closeTo(1, .001));
     expect(tester.takeException(), isNull);
   });
 

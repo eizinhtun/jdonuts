@@ -64,8 +64,12 @@ mixin _AuthFlowInputs on _AuthFlowHost, _AuthFlowActions {
                 ? const BoxConstraints(minHeight: 64)
                 : null,
             border: _inputBorder(),
-            enabledBorder: _inputBorder(),
-            focusedBorder: _inputBorder(color: AppColors.pink),
+            enabledBorder: _inputBorder(
+              color: _error == null ? null : AppColors.error,
+            ),
+            focusedBorder: _inputBorder(
+              color: _error == null ? AppColors.pink : AppColors.error,
+            ),
           ),
         ),
       ),

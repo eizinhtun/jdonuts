@@ -56,6 +56,7 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
   bool _dateSubmitted = false;
   String? _error;
   DateTime? _birthDate;
+  double _stepDirection = 1;
 
   bool get _isRegistration => widget.mode == 'register';
   bool get _useReferenceAuthLayout =>
@@ -103,11 +104,35 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
     _shakeController = AnimationController(vsync: this, duration: Motion.shake);
     _shakeOffset =
         TweenSequence<double>([
-          TweenSequenceItem(tween: Tween(begin: 0, end: -10), weight: 1),
-          TweenSequenceItem(tween: Tween(begin: -10, end: 10), weight: 2),
-          TweenSequenceItem(tween: Tween(begin: 10, end: -7), weight: 2),
-          TweenSequenceItem(tween: Tween(begin: -7, end: 5), weight: 2),
-          TweenSequenceItem(tween: Tween(begin: 5, end: 0), weight: 1),
+          TweenSequenceItem(
+            tween: Tween(begin: 0, end: -Motion.otpShakeFullDistance),
+            weight: 1,
+          ),
+          TweenSequenceItem(
+            tween: Tween(
+              begin: -Motion.otpShakeFullDistance,
+              end: Motion.otpShakeFullDistance,
+            ),
+            weight: 2,
+          ),
+          TweenSequenceItem(
+            tween: Tween(
+              begin: Motion.otpShakeFullDistance,
+              end: -Motion.otpShakeMediumDistance,
+            ),
+            weight: 2,
+          ),
+          TweenSequenceItem(
+            tween: Tween(
+              begin: -Motion.otpShakeMediumDistance,
+              end: Motion.otpShakeSmallDistance,
+            ),
+            weight: 2,
+          ),
+          TweenSequenceItem(
+            tween: Tween(begin: Motion.otpShakeSmallDistance, end: 0),
+            weight: 1,
+          ),
         ]).animate(
           CurvedAnimation(parent: _shakeController, curve: Motion.softCurve),
         );
@@ -140,6 +165,9 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
   void didUpdateWidget(covariant AuthFlow oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.step == widget.step) return;
+    _stepDirection = _stepOrder(widget.step) >= _stepOrder(oldWidget.step)
+        ? 1
+        : -1;
     if (widget.step == 'otp') {
       _startCountdown();
     } else {
@@ -192,7 +220,7 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
       _saveDraft(draft.copyWith(resendDeadline: deadline));
     }
     _updateCountdown();
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+    _countdownTimer = Timer.periodic(Motion.otpCountdownTick, (_) {
       if (mounted) _updateCountdown();
     });
   }
@@ -210,6 +238,14 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
     ),
     borderSide: BorderSide(color: color ?? Colors.transparent),
   );
+
+  int _stepOrder(String step) => switch (step) {
+    'phone' => 0,
+    'otp' => 1,
+    'name' => 2,
+    'dob' => 3,
+    _ => 0,
+  };
 }
 
 class _AuthFlowState extends _AuthFlowHost
@@ -232,44 +268,79 @@ class _ProgressIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
     tween: Tween<double>(end: progress),
-    duration: Motion.duration(context, Motion.standard),
+    duration: Motion.duration(context, Motion.authProgressMorph),
     curve: Motion.curve,
-    builder: (context, animatedProgress, _) => compact && done
-        ? Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: AppColors.pink,
-              shape: BoxShape.circle,
+    builder: (context, animatedProgress, _) {
+      final checkProgress = done
+          ? ((animatedProgress - Motion.authProgressCheckReveal) /
+                    (1 - Motion.authProgressCheckReveal))
+                .clamp(0.0, 1.0)
+          : 0.0;
+      final size = compact ? 36.0 : 44.0;
+      return SizedBox.square(
+        dimension: size,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Opacity(
+              opacity: compact ? 1 - checkProgress : 1,
+              child: CircularProgressIndicator(
+                value: animatedProgress,
+                strokeWidth: compact ? 6 : 3,
+                strokeCap: compact ? StrokeCap.round : StrokeCap.butt,
+                backgroundColor: compact ? AppColors.cyan : AppColors.canvas,
+                color: AppColors.pink,
+              ),
             ),
-            alignment: Alignment.center,
-            child: const Icon(Icons.check, size: 18, color: AppColors.white),
-          )
-        : SizedBox(
-            width: compact ? 36 : 44,
-            height: compact ? 36 : 44,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: animatedProgress,
-                  strokeWidth: compact ? 6 : 3,
-                  strokeCap: compact ? StrokeCap.round : StrokeCap.butt,
-                  backgroundColor: compact ? AppColors.cyan : AppColors.canvas,
-                  color: AppColors.pink,
+            if (compact)
+              Opacity(
+                opacity: checkProgress,
+                child: Transform.scale(
+                  scale: checkProgress,
+                  child: Container(
+                    width: size,
+                    height: size,
+                    decoration: const BoxDecoration(
+                      color: AppColors.pink,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.check,
+                      size: 18,
+                      color: AppColors.white,
+                    ),
+                  ),
                 ),
-                if (!compact)
-                  AnimatedSwitcher(
-                    duration: Motion.duration(context, Motion.quick),
-                    child: Icon(
-                      done ? Icons.check : Icons.circle,
-                      key: ValueKey(done),
-                      size: done ? 18 : 6,
+              )
+            else
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Opacity(
+                    opacity: 1 - checkProgress,
+                    child: const Icon(
+                      Icons.circle,
+                      size: 6,
                       color: AppColors.pink,
                     ),
                   ),
-              ],
-            ),
-          ),
+                  Opacity(
+                    opacity: checkProgress,
+                    child: Transform.scale(
+                      scale: checkProgress,
+                      child: const Icon(
+                        Icons.check,
+                        size: 18,
+                        color: AppColors.pink,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      );
+    },
   );
 }

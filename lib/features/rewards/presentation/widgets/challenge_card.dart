@@ -19,6 +19,7 @@ class ChallengeCard extends StatefulWidget {
 class _ChallengeCardState extends State<ChallengeCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _attention;
+  late final Animation<double> _attentionScale;
   bool? _reduceMotion;
   bool? _wasComplete;
 
@@ -32,6 +33,22 @@ class _ChallengeCardState extends State<ChallengeCard>
       vsync: this,
       duration: Motion.rewardAttention,
     );
+    _attentionScale =
+        TweenSequence<double>([
+          TweenSequenceItem(
+            tween: Tween(begin: 1, end: Motion.rewardAttentionPeakScale),
+            weight: 1,
+          ),
+          TweenSequenceItem(
+            tween: Tween(begin: Motion.rewardAttentionPeakScale, end: 1),
+            weight: 1,
+          ),
+        ]).animate(
+          CurvedAnimation(
+            parent: _attention,
+            curve: Motion.rewardAttentionCurve,
+          ),
+        );
   }
 
   @override
@@ -56,7 +73,7 @@ class _ChallengeCardState extends State<ChallengeCard>
     _reduceMotion = reduceMotion;
     _wasComplete = complete;
     if (complete && !reduceMotion) {
-      _attention.repeat(reverse: true);
+      _attention.forward(from: 0);
     } else {
       _attention.stop();
       _attention.value = 0;
@@ -138,12 +155,7 @@ class _ChallengeCardState extends State<ChallengeCard>
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     ScaleTransition(
-                      scale: Tween<double>(begin: 1, end: 1.035).animate(
-                        CurvedAnimation(
-                          parent: _attention,
-                          curve: Motion.softCurve,
-                        ),
-                      ),
+                      scale: _attentionScale,
                       child: FilledButton(
                         onPressed: complete ? _showEarnFeedback : null,
                         style: FilledButton.styleFrom(

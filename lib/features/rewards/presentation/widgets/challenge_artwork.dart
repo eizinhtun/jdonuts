@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:jdonuts/core/motion/motion.dart';
 import 'package:jdonuts/core/theme/tokens.dart';
 
 class ChallengeArtwork extends StatelessWidget {
@@ -14,11 +15,23 @@ class ChallengeArtwork extends StatelessWidget {
   final double progress;
 
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-    child: kind == 'donut'
-        ? _DonutProgress(progress: progress)
-        : _CoffeeProgress(progress: progress),
-  );
+  Widget build(BuildContext context) {
+    final target = progress.isFinite
+        ? progress.clamp(0.0, 1.0).toDouble()
+        : 0.0;
+    return ExcludeSemantics(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: target),
+        duration: Motion.duration(context, Motion.rewardArtwork),
+        curve: Motion.rewardProgressCurve,
+        builder: (context, animatedProgress, _) => RepaintBoundary(
+          child: kind == 'donut'
+              ? _DonutProgress(progress: animatedProgress)
+              : _CoffeeProgress(progress: animatedProgress),
+        ),
+      ),
+    );
+  }
 }
 
 class _DonutProgress extends StatelessWidget {

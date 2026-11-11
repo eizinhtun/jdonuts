@@ -147,7 +147,9 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           fillColor: AppColors.white,
           border: _inputBorder(),
           enabledBorder: _inputBorder(),
-          focusedBorder: _inputBorder(),
+          focusedBorder: _inputBorder(color: AppColors.pink),
+          errorBorder: _inputBorder(color: AppColors.error),
+          focusedErrorBorder: _inputBorder(color: AppColors.error),
         ),
       ),
       if (_error != null) ...[
@@ -327,7 +329,9 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
               : null,
           border: _inputBorder(),
           enabledBorder: _inputBorder(),
-          focusedBorder: _inputBorder(),
+          focusedBorder: _inputBorder(color: AppColors.pink),
+          errorBorder: _inputBorder(color: AppColors.error),
+          focusedErrorBorder: _inputBorder(color: AppColors.error),
         ),
       ),
       SizedBox(height: _useReferenceAuthLayout ? 20 : AppSpace.md),
@@ -360,7 +364,9 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
               : null,
           border: _inputBorder(),
           enabledBorder: _inputBorder(),
-          focusedBorder: _inputBorder(),
+          focusedBorder: _inputBorder(color: AppColors.pink),
+          errorBorder: _inputBorder(color: AppColors.error),
+          focusedErrorBorder: _inputBorder(color: AppColors.error),
         ),
       ),
       if (_error != null)
@@ -489,7 +495,9 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
       fillColor: AppColors.white,
       border: _inputBorder(),
       enabledBorder: _inputBorder(),
-      focusedBorder: _inputBorder(),
+      focusedBorder: _inputBorder(color: AppColors.pink),
+      errorBorder: _inputBorder(color: AppColors.error),
+      focusedErrorBorder: _inputBorder(color: AppColors.error),
     ),
   );
 }

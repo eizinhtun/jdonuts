@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'route_observer.dart';
 import '../features/auth/presentation/auth_flow.dart';
 import '../features/auth/presentation/entry_screens.dart';
 import '../features/auth/presentation/onboarding_screen.dart';
@@ -18,6 +19,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: '/onboarding',
     refreshListenable: refresh,
+    observers: [appRouteObserver],
     redirect: (context, state) {
       final explicitAuthState = ref.read(authStateProvider);
       final session = ref.read(sessionProvider);

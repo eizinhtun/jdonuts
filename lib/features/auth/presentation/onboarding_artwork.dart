@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:jdonuts/core/presentation/animated_entrance.dart';
+import 'package:jdonuts/core/motion/motion.dart';
 import 'package:jdonuts/core/presentation/seed_image.dart';
 import 'package:jdonuts/core/theme/tokens.dart';
 
@@ -20,64 +22,87 @@ class OnboardingArtwork extends StatelessWidget {
             Positioned(
               left: -width * .41,
               top: -height * .12,
-              child: _ArtBubble(
-                size: width * .62,
-                color: const Color(0xFF48CDE2),
-                image: 'chocolate-donut.png',
-                opacity: .25,
-                rotation: -.42,
+              child: AnimatedEntrance(
+                beginOffset: const Offset(-Motion.onboardingArtDrift, 0),
+                child: _ArtBubble(
+                  size: width * .62,
+                  color: const Color(0xFF48CDE2),
+                  image: 'chocolate-donut.png',
+                  opacity: .25,
+                  rotation: -.42,
+                ),
               ),
             ),
             Positioned(
               right: -width * .27,
               top: -height * .12,
-              child: _ArtBubble(
-                size: width * .43,
-                color: const Color(0xFFC7E0F0),
-                image: 'strawberry.svg',
-                opacity: .56,
-                rotation: .48,
-                lowerColor: const Color(0xFFF8D5E2),
+              child: AnimatedEntrance(
+                delay: Motion.onboardingArtStagger,
+                beginOffset: const Offset(Motion.onboardingArtDrift, 0),
+                child: _ArtBubble(
+                  size: width * .43,
+                  color: const Color(0xFFC7E0F0),
+                  image: 'strawberry.svg',
+                  opacity: .56,
+                  rotation: .48,
+                  lowerColor: const Color(0xFFF8D5E2),
+                ),
               ),
             ),
             Positioned(
               left: -width * .19,
               top: height * .48,
-              child: _ArtBubble(
-                size: width * .4,
-                color: const Color(0xFFBFD8EF),
-                image: 'coconut.svg',
-                opacity: .82,
-                rotation: -.35,
+              child: AnimatedEntrance(
+                delay: Motion.onboardingArtStagger * 2,
+                beginOffset: Offset(-Motion.onboardingArtDrift, 0),
+                child: _ArtBubble(
+                  size: width * .4,
+                  color: const Color(0xFFBFD8EF),
+                  image: 'coconut.svg',
+                  opacity: .82,
+                  rotation: -.35,
+                ),
               ),
             ),
             Positioned(
               right: -width * .27,
               top: height * .43,
-              child: _ArtBubble(
-                size: width * .42,
-                color: const Color(0xFFAECFED),
-                image: 'strawberry.svg',
-                opacity: .78,
-                rotation: .32,
+              child: AnimatedEntrance(
+                delay: Motion.onboardingArtStagger * 3,
+                beginOffset: Offset(Motion.onboardingArtDrift, 0),
+                child: _ArtBubble(
+                  size: width * .42,
+                  color: const Color(0xFFAECFED),
+                  image: 'strawberry.svg',
+                  opacity: .78,
+                  rotation: .32,
+                ),
               ),
             ),
             Positioned(
               left: (width - heroSize) / 2,
               top: heroTop,
-              child: _HeroHalo(size: heroSize),
+              child: AnimatedEntrance(
+                delay: Motion.onboardingHeroDelay,
+                beginOffset: const Offset(0, -Motion.onboardingArtDrift),
+                child: _HeroHalo(size: heroSize),
+              ),
             ),
             Positioned(
               left: (width - heroSize) / 2,
               top: heroTop + heroSize * .18,
-              child: SizedBox(
-                width: heroSize,
-                height: heroSize * .68,
-                child: Transform.rotate(
-                  angle: .08,
-                  child: const SeedImage(
-                    assetName: 'onboarding-hero-donut.png',
-                    semanticsLabel: 'Pink iced donut with sprinkles',
+              child: AnimatedEntrance(
+                delay: Motion.onboardingHeroDelay,
+                beginOffset: const Offset(0, -Motion.onboardingArtDrift),
+                child: SizedBox(
+                  width: heroSize,
+                  height: heroSize * .68,
+                  child: Transform.rotate(
+                    angle: .08,
+                    child: const SeedImage(
+                      assetName: 'onboarding-hero-donut.png',
+                      semanticsLabel: 'Pink iced donut with sprinkles',
+                    ),
                   ),
                 ),
               ),
@@ -85,12 +110,16 @@ class OnboardingArtwork extends StatelessWidget {
             Positioned(
               left: (width - width * .48) / 2,
               top: height * .76,
-              child: _ArtBubble(
-                size: width * .48,
-                color: const Color(0xFFFFD58B),
-                image: 'coconut.svg',
-                opacity: .2,
-                rotation: -.12,
+              child: AnimatedEntrance(
+                delay: Motion.onboardingArtStagger * 4,
+                beginOffset: const Offset(0, Motion.onboardingArtDrift),
+                child: _ArtBubble(
+                  size: width * .48,
+                  color: const Color(0xFFFFD58B),
+                  image: 'coconut.svg',
+                  opacity: .2,
+                  rotation: -.12,
+                ),
               ),
             ),
             Positioned(

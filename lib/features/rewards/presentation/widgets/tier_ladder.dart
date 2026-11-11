@@ -30,7 +30,7 @@ class TierLadder extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _stagger(
-                0,
+                Motion.rewardSilverTierStart,
                 _tier(
                   'S',
                   context.l10n.silverTier,
@@ -48,7 +48,7 @@ class TierLadder extends StatelessWidget {
                 height: compact ? 55 : 69,
               ),
               _stagger(
-                .16,
+                Motion.rewardGoldTierStart,
                 _tier(
                   'G',
                   context.l10n.goldTier,
@@ -65,7 +65,7 @@ class TierLadder extends StatelessWidget {
                 height: compact ? 35 : 49,
               ),
               _stagger(
-                .32,
+                Motion.rewardTierStagger,
                 _tier(
                   'P',
                   context.l10n.platinumTier,
@@ -138,7 +138,7 @@ class TierLadder extends StatelessWidget {
       return Opacity(
         opacity: progress,
         child: Transform.translate(
-          offset: Offset(-18 * (1 - progress), 0),
+          offset: Offset(-Motion.rewardTierSlideDistance * (1 - progress), 0),
           child: child,
         ),
       );
