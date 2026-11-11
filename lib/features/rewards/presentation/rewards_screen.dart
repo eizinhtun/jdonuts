@@ -19,7 +19,7 @@ const _compactRewardOverviewHeight = 390.0;
 const _compactRewardWidth = 380.0;
 const _largeTextScale = 1.1;
 const _rewardsCanvasColor = AppColors.rewardsCanvas;
-const _stackedRewardsAppBarHeight = 84.0;
+const _rewardsHeaderHeight = 84.0;
 
 class RewardsScreen extends ConsumerStatefulWidget {
   const RewardsScreen({super.key});
@@ -104,18 +104,6 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AppColors.white,
-    appBar: AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: AppColors.white,
-      surfaceTintColor: AppColors.white,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      titleSpacing: 0,
-      toolbarHeight: _stackRewardsAppBar(context)
-          ? _stackedRewardsAppBarHeight
-          : kToolbarHeight,
-      title: _rewardsAppBarTitle(context),
-    ),
     body: SafeArea(
       child: ref
           .watch(rewardsDataProvider)
@@ -153,11 +141,11 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
     bottomNavigationBar: const RewardsBottomNav(),
   );
 
-  bool _stackRewardsAppBar(BuildContext context) =>
+  bool _stackRewardsHeader(BuildContext context) =>
       MediaQuery.sizeOf(context).width - 28 < 340 ||
       MediaQuery.textScalerOf(context).scale(1) > _largeTextScale;
 
-  Widget _rewardsAppBarTitle(BuildContext context) {
+  Widget _rewardsHeader(BuildContext context) {
     final title = Text(
       context.l10n.rewardsTitle,
       maxLines: 1,
@@ -169,24 +157,24 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
 
     return Padding(
       padding: const EdgeInsets.only(left: 28),
-      child: _stackRewardsAppBar(context)
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                title,
-                Align(alignment: Alignment.centerRight, child: badge),
-              ],
-            )
-          : Transform.translate(
-              offset: const Offset(0, 8),
-              child: Row(
+      child: SizedBox(
+        height: _rewardsHeaderHeight,
+        child: _stackRewardsHeader(context)
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  title,
+                  Align(alignment: Alignment.centerRight, child: badge),
+                ],
+              )
+            : Row(
                 children: [
                   Expanded(child: title),
                   badge,
                 ],
               ),
-            ),
+      ),
     );
   }
 
@@ -211,6 +199,12 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
             color: _rewardsCanvasColor,
             child: CustomScrollView(
               slivers: [
+                SliverToBoxAdapter(
+                  child: ColoredBox(
+                    color: AppColors.white,
+                    child: _rewardsHeader(context),
+                  ),
+                ),
                 SliverToBoxAdapter(
                   child: ColoredBox(
                     color: AppColors.white,

@@ -16,14 +16,16 @@ import 'package:jdonuts/features/rewards/presentation/widgets/tier_ladder.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('Rewards title and badge are in the app bar', (tester) async {
+  testWidgets('Rewards title and badge are in the body without an app bar', (
+    tester,
+  ) async {
     await tester.pumpWidget(_rewardsApp(textScale: 1));
     await tester.pumpAndSettle();
 
-    expect(find.byType(AppBar), findsOneWidget);
+    expect(find.byType(AppBar), findsNothing);
     expect(
       find.descendant(
-        of: find.byType(AppBar),
+        of: find.byType(CustomScrollView),
         matching: find.text('J’ Donuts Rewards'),
       ),
       findsOneWidget,
