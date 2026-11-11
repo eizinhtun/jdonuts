@@ -284,7 +284,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                             padding: EdgeInsets.fromLTRB(
                               compactLayout ? 16 : 22,
                               19,
-                              compactLayout ? 16 : 0,
+                              compactLayout ? 16 : 22,
                               20,
                             ),
                             child: Column(
