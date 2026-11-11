@@ -13,7 +13,9 @@ import 'package:jdonuts/features/auth/data/auth_session_store.dart';
 import 'package:jdonuts/features/auth/data/auth_account_store.dart';
 import 'package:jdonuts/features/auth/data/local_auth_repository.dart';
 import 'package:jdonuts/features/auth/domain/auth_repository.dart';
+import 'package:jdonuts/features/auth/presentation/auth_flow.dart';
 import 'package:jdonuts/features/auth/presentation/widgets/primary_button.dart';
+import 'package:jdonuts/l10n/app_localizations.dart';
 import 'package:jdonuts/main.dart';
 
 void main() {
@@ -316,6 +318,37 @@ void main() {
     await tester.tap(find.byType(PrimaryButton));
     await tester.pumpAndSettle();
     expect(find.text('What’s your date of birth?'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('name validation does not overflow near the layout breakpoint', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 760);
+    tester.view.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AuthFlow(mode: 'register', step: 'name'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '123');
+    await tester.enterText(find.byType(TextField).at(1), '456');
+    await tester.pump();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Use up to 50 letters and spaces.'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
   });
 

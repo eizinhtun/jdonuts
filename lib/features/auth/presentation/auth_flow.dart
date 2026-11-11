@@ -23,6 +23,7 @@ part 'auth_flow_forms.dart';
 part 'auth_flow_inputs.dart';
 
 const _otpDigits = 6;
+const _minimumAnchoredAuthHeight = 760.0;
 
 class AuthFlow extends ConsumerStatefulWidget {
   const AuthFlow({super.key, required this.mode, required this.step});
@@ -65,6 +66,15 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
           widget.step == 'otp' ||
           widget.step == 'name' ||
           widget.step == 'dob');
+  bool get _anchorStepButtonAtBottom {
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final availableHeight =
+        MediaQuery.sizeOf(context).height - viewInsets.bottom;
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    return viewInsets.bottom == 0 &&
+        availableHeight >= _minimumAnchoredAuthHeight * textScale;
+  }
+
   String get _phoneValue => normalizePhone(_phone.text);
   String get _otpValue => _otpFields.map((field) => field.text).join();
 
