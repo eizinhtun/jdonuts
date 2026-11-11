@@ -17,6 +17,22 @@ import 'package:jdonuts/features/rewards/presentation/widgets/tier_ladder.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
+  testWidgets('Rewards title and badge are in the app bar', (tester) async {
+    await tester.pumpWidget(_rewardsApp(textScale: 1));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AppBar), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text('J’ Donuts Rewards'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Rewards'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('pink backing extends through the bottom safe area', (
     tester,
   ) async {

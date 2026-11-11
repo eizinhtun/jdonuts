@@ -19,6 +19,7 @@ const _compactRewardOverviewHeight = 390.0;
 const _compactRewardWidth = 380.0;
 const _largeTextScale = 1.1;
 const _rewardsCanvasColor = AppColors.rewardsCanvas;
+const _stackedRewardsAppBarHeight = 84.0;
 
 class RewardsScreen extends ConsumerStatefulWidget {
   const RewardsScreen({super.key});
@@ -103,6 +104,18 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AppColors.white,
+    appBar: AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: AppColors.white,
+      surfaceTintColor: AppColors.white,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      titleSpacing: 0,
+      toolbarHeight: _stackRewardsAppBar(context)
+          ? _stackedRewardsAppBarHeight
+          : kToolbarHeight,
+      title: _rewardsAppBarTitle(context),
+    ),
     body: SafeArea(
       child: ref
           .watch(rewardsDataProvider)
@@ -139,6 +152,44 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
     ),
     bottomNavigationBar: const RewardsBottomNav(),
   );
+
+  bool _stackRewardsAppBar(BuildContext context) =>
+      MediaQuery.sizeOf(context).width - 28 < 340 ||
+      MediaQuery.textScalerOf(context).scale(1) > _largeTextScale;
+
+  Widget _rewardsAppBarTitle(BuildContext context) {
+    final title = Text(
+      context.l10n.rewardsTitle,
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.ellipsis,
+      style: _rewardsTitleStyle(context),
+    );
+    final badge = RewardsBadge(animation: _entrance);
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 28),
+      child: _stackRewardsAppBar(context)
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                title,
+                Align(alignment: Alignment.centerRight, child: badge),
+              ],
+            )
+          : Transform.translate(
+              offset: const Offset(0, 8),
+              child: Row(
+                children: [
+                  Expanded(child: title),
+                  badge,
+                ],
+              ),
+            ),
+    );
+  }
+
   Widget _content(
     BuildContext context,
     Member member,
@@ -155,48 +206,6 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
     final ringDiameter = compactWidth ? 220.0 : 256.0;
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(28, 4, 0, 4),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final badge = RewardsBadge(animation: _entrance);
-              final largeText =
-                  MediaQuery.textScalerOf(context).scale(1) > _largeTextScale;
-              if (constraints.maxWidth < 340 || largeText) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.rewardsTitle,
-                      maxLines: 1,
-                      softWrap: false,
-                      overflow: TextOverflow.ellipsis,
-                      style: _rewardsTitleStyle(context),
-                    ),
-                    Align(alignment: Alignment.centerRight, child: badge),
-                  ],
-                );
-              }
-              return Transform.translate(
-                offset: const Offset(0, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        context.l10n.rewardsTitle,
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.ellipsis,
-                        style: _rewardsTitleStyle(context),
-                      ),
-                    ),
-                    badge,
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
         Expanded(
           child: ColoredBox(
             color: _rewardsCanvasColor,
