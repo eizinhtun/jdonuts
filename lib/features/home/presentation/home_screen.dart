@@ -267,8 +267,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 controller: _pager,
                                 children: data.banners
                                     .map(
-                                      (banner) =>
-                                          HomeBannerCard(banner: banner),
+                                      (banner) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: AppSpace.xs,
+                                        ),
+                                        child: HomeBannerCard(banner: banner),
+                                      ),
                                     )
                                     .toList(),
                               ),
