@@ -34,6 +34,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingHeadline => 'Round food for every mood';
 
   @override
+  String get accountPrompt => 'Already have an account?';
+
+  @override
+  String get loginAction => 'Log In';
+
+  @override
+  String get onboardingLegalPrefix =>
+      'By continuing, you acknowledge that you have read and agree to our ';
+
+  @override
+  String get legalAnd => ' and ';
+
+  @override
   String get getStarted => 'LET’S GET STARTED';
 
   @override

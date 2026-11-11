@@ -45,7 +45,7 @@ The first local repository read seeds bundled JSON into versioned Drift/SQLite t
 
 The Home and Rewards mock-ups disagree about membership values. The app deliberately uses one seeded Silver member with 680,000 points and 500 points to Gold, matching the Rewards values. The rewards ring counts to 680,000 from this stored member row.
 
-The coconut and chocolate donuts, Dalgona coffee, seasonal donut box, and shop banner are original images generated specifically for this app with OpenAI image generation; they are not stock photography. The remaining welcome tiles and member avatar are hand-authored SVG illustrations. The PDF and its screenshots are not bundled. SeedImage renders bundled SVG, PNG, and JPEG assets offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs. Drift schema v3 migrates previously seeded image paths to the bundled photos without replacing custom image paths.
+The onboarding hero donut, coconut and chocolate donuts, Dalgona coffee, seasonal donut box, and shop banner are original images generated specifically for this app with OpenAI image generation; they are not stock photography. The remaining welcome tiles and member avatar are hand-authored SVG illustrations. The PDF and its screenshots are not bundled. SeedImage renders bundled SVG, PNG, and JPEG assets offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs. Drift schema v3 migrates previously seeded image paths to the bundled photos without replacing custom image paths.
 
 connectivity_plus interface changes are combined with an HTTP reachability probe. A small offline banner appears when the probe reports no internet. Reconnection and pull-to-refresh re-read SQLite, preserving usable content. There is no backend in this assignment slice, so refresh cannot download catalog updates; the reachability request is only an online/offline hint.
 
@@ -57,7 +57,7 @@ This does not provide real SMS delivery, social sign-in, legal-document destinat
 
 ## Motion and accessibility
 
-Named motion durations and curves are centralized in lib/core/motion/motion.dart. The app includes onboarding and welcome entrances, registration transitions and progress feedback, auth error/OTP feedback, Home shimmer/stagger and carousel, Product Hero/quantity transitions, Rewards points/tier/challenge animations, tab transitions, badge pop, and the active navigation pill. Repeating motion is stopped and animated values settle when MediaQuery.disableAnimations is enabled. Controllers and timers are disposed with their owners. The PDF does not specify a typeface, so the theme uses the platform system sans rather than embedding a guessed font.
+Named motion durations and curves are centralized in lib/core/motion/motion.dart. The app includes onboarding and welcome entrances, registration transitions and progress feedback, auth error/OTP feedback, Home shimmer/stagger and carousel, Product Hero/quantity transitions, Rewards points/tier/challenge animations, tab transitions, badge pop, and the active navigation pill. Repeating motion is stopped and animated values settle when MediaQuery.disableAnimations is enabled. Controllers and timers are disposed with their owners. The PDF supplies no font file or family name. On iOS, the onboarding headline requests the system SF Pro Rounded face as a local rounded fallback; the exact reference typeface remains unverified. Other text and Android use platform system sans.
 
 ## Checks run on 2026-11-11
 

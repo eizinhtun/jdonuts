@@ -7,11 +7,13 @@ class PrimaryButton extends StatefulWidget {
     super.key,
     required this.label,
     required this.onPressed,
+    this.height = 52,
     this.enabled = true,
     this.loading = false,
   });
   final String label;
   final VoidCallback? onPressed;
+  final double height;
   final bool enabled, loading;
   @override
   State<PrimaryButton> createState() => PrimaryButtonState();
@@ -32,7 +34,7 @@ class PrimaryButtonState extends State<PrimaryButton> {
       duration: Motion.duration(context, Motion.quick),
       child: AnimatedContainer(
         duration: Motion.duration(context, Motion.quick),
-        height: 52,
+        height: widget.height,
         width: double.infinity,
         alignment: Alignment.center,
         decoration: BoxDecoration(

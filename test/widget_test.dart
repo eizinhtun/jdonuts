@@ -19,7 +19,7 @@ void main() {
     await tester.pumpWidget(_testApp());
     await tester.pumpAndSettle();
     expect(find.text('LET’S GET STARTED'), findsOneWidget);
-    expect(find.text('Already have an account? Log in'), findsOneWidget);
+    expect(find.text('Already have an account? Log In'), findsOneWidget);
   });
 
   testWidgets('a returning member logs in and can log out from Settings', (
@@ -28,7 +28,7 @@ void main() {
     _disableMotion(tester);
     await tester.pumpWidget(_testApp(registered: {'95987654321'}));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Already have an account? Log in'));
+    await tester.tap(find.text('Already have an account? Log In'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, '987654321');
@@ -56,7 +56,7 @@ void main() {
     _disableMotion(tester);
     await tester.pumpWidget(_testApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Already have an account? Log in'));
+    await tester.tap(find.text('Already have an account? Log In'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, '9254135592');
     await tester.pump();

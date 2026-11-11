@@ -142,6 +142,30 @@ abstract class AppLocalizations {
   /// **'Round food for every mood'**
   String get onboardingHeadline;
 
+  /// No description provided for @accountPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get accountPrompt;
+
+  /// No description provided for @loginAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Log In'**
+  String get loginAction;
+
+  /// No description provided for @onboardingLegalPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you acknowledge that you have read and agree to our '**
+  String get onboardingLegalPrefix;
+
+  /// No description provided for @legalAnd.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get legalAnd;
+
   /// No description provided for @getStarted.
   ///
   /// In en, this message translates to:
