@@ -3,6 +3,7 @@ import 'package:jdonuts/l10n/localization.dart';
 
 import '../../../../core/motion/motion.dart';
 import '../../../../core/theme/tokens.dart';
+import '../../domain/rewards_progress.dart';
 import '../../../home/domain/models.dart';
 
 class TierLadder extends StatelessWidget {
@@ -12,6 +13,7 @@ class TierLadder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final progress = MemberRewardProgress.fromMember(member);
     final narrow =
         MediaQuery.sizeOf(context).width < 380 ||
         MediaQuery.textScalerOf(context).scale(1) > 1.1;
@@ -32,15 +34,16 @@ class TierLadder extends StatelessWidget {
                 _tier(
                   'S',
                   context.l10n.silverTier,
-                  context.l10n.currentTier,
+                  _silverSubtitle(context, progress),
                   AppColors.silver,
                   stars: 1,
+                  isCurrent: progress.isCurrentTier(MembershipTier.silver),
                   context: context,
                   gap: iconLabelGap,
                 ),
               ),
-              _line(
-                _goldProgress,
+              _animatedLine(
+                _silverToGoldProgress(progress),
                 color: const Color(0xFF74777A),
                 height: compact ? 55 : 69,
               ),
@@ -49,22 +52,27 @@ class TierLadder extends StatelessWidget {
                 _tier(
                   'G',
                   context.l10n.goldTier,
-                  context.l10n.pointsRemaining(member.pointsToGold),
+                  _goldSubtitle(context, progress),
                   AppColors.gold,
                   stars: 2,
+                  isCurrent: progress.isCurrentTier(MembershipTier.gold),
                   context: context,
                   gap: iconLabelGap,
                 ),
               ),
-              _line(0, height: compact ? 35 : 49),
+              _animatedLine(
+                progress.isCurrentTier(MembershipTier.platinum) ? 1 : 0,
+                height: compact ? 35 : 49,
+              ),
               _stagger(
                 .32,
                 _tier(
                   'P',
                   context.l10n.platinumTier,
-                  context.l10n.futureTier,
+                  _platinumSubtitle(context, progress),
                   AppColors.platinum,
                   stars: 3,
+                  isCurrent: progress.isCurrentTier(MembershipTier.platinum),
                   context: context,
                   gap: iconLabelGap,
                 ),
@@ -76,11 +84,50 @@ class TierLadder extends StatelessWidget {
     );
   }
 
-  double get _goldProgress {
-    final targetPoints = member.points + member.pointsToGold;
-    if (targetPoints <= 0) return 0;
-    return (member.points / targetPoints).clamp(0.0, 1.0).toDouble();
-  }
+  String _goldSubtitle(BuildContext context, MemberRewardProgress progress) =>
+      switch (progress.currentTier) {
+        MembershipTier.silver => context.l10n.pointsRemaining(
+          progress.pointsToNextTier,
+        ),
+        MembershipTier.gold => context.l10n.currentTier,
+        MembershipTier.platinum => context.l10n.tierCompleted,
+        MembershipTier.unknown => context.l10n.futureTier,
+      };
+
+  String _silverSubtitle(BuildContext context, MemberRewardProgress progress) =>
+      switch (progress.currentTier) {
+        MembershipTier.silver => context.l10n.currentTier,
+        MembershipTier.gold ||
+        MembershipTier.platinum => context.l10n.tierCompleted,
+        MembershipTier.unknown => context.l10n.futureTier,
+      };
+
+  String _platinumSubtitle(
+    BuildContext context,
+    MemberRewardProgress progress,
+  ) => progress.isCurrentTier(MembershipTier.platinum)
+      ? context.l10n.currentTier
+      : context.l10n.futureTier;
+
+  double _silverToGoldProgress(MemberRewardProgress progress) =>
+      switch (progress.currentTier) {
+        MembershipTier.silver => progress.nextTierFraction,
+        MembershipTier.gold || MembershipTier.platinum => 1,
+        MembershipTier.unknown => 0,
+      };
+
+  Widget _animatedLine(
+    double targetProgress, {
+    Color color = AppColors.pink,
+    double height = 52,
+  }) => AnimatedBuilder(
+    animation: animation,
+    builder: (context, _) => _line(
+      targetProgress * Motion.curve.transform(animation.value),
+      color: color,
+      height: height,
+    ),
+  );
 
   Widget _stagger(double start, Widget child) => AnimatedBuilder(
     animation: animation,
@@ -131,6 +178,7 @@ class TierLadder extends StatelessWidget {
     String subtitle,
     Color color, {
     required int stars,
+    required bool isCurrent,
     required BuildContext context,
     required double gap,
   }) => Container(
@@ -188,7 +236,7 @@ class TierLadder extends StatelessWidget {
                 title,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w700,
                   color: AppColors.ink,
                   fontFamily: Theme.of(context).platform == TargetPlatform.iOS
                       ? 'SF Pro Rounded'

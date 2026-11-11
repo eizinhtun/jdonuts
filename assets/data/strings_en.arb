@@ -173,13 +173,8 @@
   "verifyButton": "VERIFY",
   "genericError": "Something went wrong. Please try again.",
   "rewardsUnavailable": "Rewards are unavailable",
-  "earnedLabel": "EARNED",
-  "pointsClaimed": "Challenge reward claimed: {points} points",
-  "@pointsClaimed": {
-    "placeholders": {
-      "points": {}
-    }
-  },
+  "rewardsEmpty": "No challenges available yet.",
+  "tierCompleted": "Tier completed",
   "@memberTierLabel": {
     "placeholders": {
       "tier": {}

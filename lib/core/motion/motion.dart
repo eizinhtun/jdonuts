@@ -9,6 +9,7 @@ abstract final class Motion {
   static const artworkDrift = Duration(seconds: 5);
   static const shake = Duration(milliseconds: 420);
   static const rewardAttention = Duration(milliseconds: 850);
+  static const navigationPillHeroTag = 'home-rewards-active-nav-pill';
   static const onboardingHeadlineDelay = Duration(milliseconds: 90);
   static const onboardingButtonDelay = Duration(milliseconds: 160);
   static const onboardingLinksDelay = Duration(milliseconds: 230);

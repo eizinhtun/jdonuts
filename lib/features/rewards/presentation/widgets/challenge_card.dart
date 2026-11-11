@@ -3,6 +3,7 @@ import 'package:jdonuts/l10n/localization.dart';
 
 import '../../../../core/motion/motion.dart';
 import '../../../../core/theme/tokens.dart';
+import '../../domain/rewards_progress.dart';
 import '../../../home/domain/models.dart';
 import 'challenge_artwork.dart';
 
@@ -20,11 +21,9 @@ class _ChallengeCardState extends State<ChallengeCard>
   late final AnimationController _attention;
   bool? _reduceMotion;
   bool? _wasComplete;
-  bool _claimed = false;
 
   bool get _complete =>
-      widget.challenge.target > 0 &&
-      widget.challenge.progress >= widget.challenge.target;
+      ChallengeProgress.fromChallenge(widget.challenge).isComplete;
 
   @override
   void initState() {
@@ -52,7 +51,7 @@ class _ChallengeCardState extends State<ChallengeCard>
 
   void _syncAttention() {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    final complete = _complete && !_claimed;
+    final complete = _complete;
     if (_reduceMotion == reduceMotion && _wasComplete == complete) return;
     _reduceMotion = reduceMotion;
     _wasComplete = complete;
@@ -78,9 +77,7 @@ class _ChallengeCardState extends State<ChallengeCard>
         MediaQuery.textScalerOf(context).scale(1) > 1.1;
     final artworkWidth = compactLayout ? 96.0 : 132.0;
     final complete = _complete;
-    final fraction = challenge.target <= 0
-        ? 0.0
-        : (challenge.progress / challenge.target).clamp(0.0, 1.0).toDouble();
+    final progress = ChallengeProgress.fromChallenge(challenge);
     return Container(
       margin: EdgeInsets.only(bottom: compactLayout ? 14 : 20),
       padding: EdgeInsets.symmetric(
@@ -103,7 +100,10 @@ class _ChallengeCardState extends State<ChallengeCard>
           SizedBox(
             width: artworkWidth,
             height: 116,
-            child: ChallengeArtwork(kind: challenge.kind, progress: fraction),
+            child: ChallengeArtwork(
+              kind: challenge.kind,
+              progress: progress.fraction,
+            ),
           ),
           SizedBox(width: compactLayout ? 12 : 27),
           Expanded(
@@ -126,8 +126,8 @@ class _ChallengeCardState extends State<ChallengeCard>
                 const SizedBox(height: 6),
                 Text(
                   context.l10n.challengeCount(
-                    challenge.progress,
-                    challenge.target,
+                    progress.completedCount,
+                    progress.targetCount,
                   ),
                   style: const TextStyle(fontSize: 15),
                 ),
@@ -145,9 +145,7 @@ class _ChallengeCardState extends State<ChallengeCard>
                         ),
                       ),
                       child: FilledButton(
-                        onPressed: complete && !_claimed
-                            ? () => _claim(challenge)
-                            : null,
+                        onPressed: complete ? _showEarnFeedback : null,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(0, 40),
                           padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -157,9 +155,7 @@ class _ChallengeCardState extends State<ChallengeCard>
                           disabledForegroundColor: Colors.white,
                         ),
                         child: Text(
-                          _claimed
-                              ? context.l10n.earnedLabel
-                              : context.l10n.earnLabel,
+                          context.l10n.earnLabel,
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             letterSpacing: .5,
@@ -169,7 +165,7 @@ class _ChallengeCardState extends State<ChallengeCard>
                       ),
                     ),
                     Text(
-                      context.l10n.earnPoints(challenge.points),
+                      context.l10n.earnPoints(progress.points),
                       style: const TextStyle(fontSize: 14),
                     ),
                   ],
@@ -182,11 +178,8 @@ class _ChallengeCardState extends State<ChallengeCard>
     );
   }
 
-  void _claim(Challenge challenge) {
-    setState(() => _claimed = true);
-    _syncAttention();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.pointsClaimed(challenge.points))),
-    );
+  void _showEarnFeedback() {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(context.l10n.comingSoon)));
   }
 }

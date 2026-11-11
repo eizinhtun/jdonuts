@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jdonuts/core/motion/motion.dart';
 import 'package:jdonuts/core/theme/tokens.dart';
 import 'package:jdonuts/l10n/localization.dart';
 
@@ -113,50 +114,55 @@ class _RewardsNavItem extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    selected: selected,
-    label: label,
-    child: ExcludeSemantics(
-      child: Center(
-        child: Material(
-          color: selected ? AppColors.pink : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(24),
-            child: SizedBox(
-              width: selected && showLabel ? 102 : null,
-              height: selected && showLabel ? 44 : null,
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: selected && showLabel ? 11 : 9,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(icon, size: 21, color: Colors.white),
-                      if (showLabel) ...[
-                        const SizedBox(width: 3),
-                        Text(
-                          label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+  Widget build(BuildContext context) {
+    final pill = Material(
+      color: selected ? AppColors.pink : Colors.transparent,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: SizedBox(
+          width: selected && showLabel ? 102 : null,
+          height: selected && showLabel ? 44 : null,
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 6,
+                vertical: selected && showLabel ? 11 : 9,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 21, color: Colors.white),
+                  if (showLabel) ...[
+                    const SizedBox(width: 3),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: ExcludeSemantics(
+        child: Center(
+          child: selected
+              ? Hero(tag: Motion.navigationPillHeroTag, child: pill)
+              : pill,
+        ),
+      ),
+    );
+  }
 }

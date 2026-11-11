@@ -43,7 +43,9 @@ Folder map:
 
 The first local repository read seeds bundled JSON into versioned Drift/SQLite tables in a transaction. The database is the rendered source of truth after seeding. Home, Product, and Rewards read through feature-local repository interfaces backed by the same catalog/member records. Schema v2 added the member avatar column; schema v3 migrates the bundled image paths.
 
-The Home and Rewards mock-ups disagree about membership values. The app deliberately uses one seeded Silver member with 680,000 points and 500 points to Gold, matching the Rewards values. The rewards ring counts to 680,000 from this stored member row.
+The Home and Rewards mock-ups disagree about membership values. The app deliberately uses one seeded Silver member with 680,000 points and 500 points to Gold, matching the Rewards values. The count-up target is the persisted `member.points` value (680,000). The ring and Silver-to-Gold connector use `points / (points + pointsToGold)`, or 680,000 / 680,500 for this member, so the saved 500-point remainder produces a nearly full progress arc. The current seed only stores a Silver-to-Gold remainder; it does not provide a Gold-to-Platinum threshold, so the UI does not fabricate that later-tier progress.
+
+Challenge counters, art fractions, completion states, and earnable point labels are normalized from their persisted challenge rows. Zero targets are incomplete and render zero progress; negative or over-target values are clamped. Earn only displays placeholder feedback and does not change the member balance or challenge record. Gift switches the displayed tab content without a redemption operation.
 
 The onboarding hero donut, coconut and chocolate donuts, Dalgona coffee, seasonal donut box, and shop banner are original images generated specifically for this app with OpenAI image generation; they are not stock photography. The vector donut and striped-donut Welcome tiles and member avatar are hand-authored SVG illustrations. The PDF and its screenshots are not bundled. SeedImage renders bundled SVG, PNG, and JPEG assets offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs. Drift schema v3 migrates previously seeded image paths to the bundled photos without replacing custom image paths.
 
@@ -64,15 +66,17 @@ Named motion durations and curves are centralized in lib/core/motion/motion.dart
 - dart format lib test integration_test — completed
 - flutter gen-l10n — completed
 - flutter analyze — no issues found
-- flutter test — all 63 tests passed
+- flutter test — all 78 tests passed
+- `flutter test test/features/rewards` — all 19 Rewards tests passed, including animation, malformed progress, empty/loading/error recovery, offline artwork, reduced motion, rapid tab changes, and repeated Home ↔ Rewards navigation during entrance motion
 - iOS Simulator integration: Register → Welcome → Home → Product — passed on 2026-11-11 with simulated offline status; the flow confirmed bundled images render without the failure fallback. The ten-screen offline capture flow also passed.
-- Android arm64 debug build — `flutter build apk --debug --target-platform android-arm64` passed after the Task 2 changes.
+- Android arm64 debug build — `flutter build apk --debug --target-platform android-arm64` passed after the Task 3 changes.
+- Profile command when device Developer Mode is enabled: `flutter drive --profile -d <device-id> --driver=test_driver/rewards_performance_test.dart --target=integration_test/rewards_performance_test.dart`. The connected phone rejected the current attempt before build because Developer Mode is disabled.
 - Android release build: arm64 APK built at build/app/outputs/flutter-apk/app-release.apk (32.3 MB); apksigner verified its v2 signature.
 - iOS Simulator app built with flutter build ios --simulator and zipped at build/jdonuts-ios-simulator-current.zip; archive integrity check passed. Flutter does not support release mode for iOS simulators, so this is a debug Simulator app.
 - The existing `build/jdonuts-demo-walkthrough.mov` is 211 seconds (3:31), but it predates the final visual pass. A fresh recording of the current UI was not verified, so treat this video as an older walkthrough.
 - Captured and reviewed all ten supplied design states on an iPhone 17 Pro Simulator on 2026-11-11. The review was visual; no pixel-diff tool was used.
 
-No profile-mode frame timing was recorded; no 60 fps claim is made. The integration test forces its connectivity provider offline and tests reconnection through a simulated stream. System-level airplane mode was not toggled. No Android emulator/device was connected in this pass, so Android runtime/offline behavior remains unverified; the arm64 debug APK build passed.
+Task 3 profile timing remains unverified. A profile trace test is available at `integration_test/rewards_performance_test.dart`, but `flutter drive --profile` stopped before building because the connected iPhone requires Developer Mode to be enabled in Settings. No frame timings were collected and no 60 fps claim is made. The integration test forces its connectivity provider offline and tests reconnection through a simulated stream. System-level airplane mode was not toggled. No Android emulator/device was connected in this pass, so Android runtime/offline behavior remains unverified; the arm64 debug APK build passed.
 
 ## Build artifacts and commands
 

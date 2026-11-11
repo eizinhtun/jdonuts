@@ -1,10 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/app/providers.dart';
+import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
-import 'package:jdonuts/features/rewards/presentation/rewards_screen.dart';
 import 'package:jdonuts/features/rewards/domain/rewards_repository.dart';
+import 'package:jdonuts/features/rewards/presentation/rewards_screen.dart';
+import 'package:jdonuts/features/rewards/presentation/widgets/points_ring.dart';
+import 'package:jdonuts/features/rewards/presentation/widgets/points_ring_painter.dart';
+import 'package:jdonuts/features/rewards/presentation/widgets/challenge_artwork.dart';
+import 'package:jdonuts/features/rewards/presentation/widgets/tier_ladder.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
@@ -46,19 +53,234 @@ void main() {
     expect(find.text('EARN'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('points ring and count animate to the persisted member values', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _rewardsApp(textScale: 1, disableAnimations: false),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(PointsRing), findsOneWidget);
+    expect(_displayedPoints(tester), 0);
+    expect(_pointsRingProgress(tester), 0);
+    expect(_tierProgress(tester), 0);
+
+    await tester.pump(const Duration(milliseconds: 360));
+    final middlePoints = _displayedPoints(tester);
+    final middleSweep = _pointsRingProgress(tester);
+    final middleTierProgress = _tierProgress(tester);
+    expect(middlePoints, greaterThan(0));
+    expect(middlePoints, lessThan(680000));
+    expect(middleSweep, greaterThan(0));
+    expect(middleSweep, lessThan(1));
+    expect(middleTierProgress, greaterThan(0));
+    expect(middleTierProgress, lessThan(1));
+
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(_displayedPoints(tester), 680000);
+    expect(_pointsRingProgress(tester), closeTo(680000 / 680500, .00001));
+    expect(_tierProgress(tester), closeTo(680000 / 680500, .00001));
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('challenge images are bundled and render without internet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_rewardsApp(textScale: 1));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Image), findsAtLeastNWidgets(2));
+    expect(find.byIcon(Icons.donut_large), findsNothing);
+    expect(find.byIcon(Icons.local_cafe_outlined), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('donut quarter artwork fills progressively to completion', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SizedBox(
+          width: 100,
+          height: 100,
+          child: ChallengeArtwork(kind: 'donut', progress: .25),
+        ),
+      ),
+    );
+    expect(find.byType(ClipPath), findsOneWidget);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SizedBox(
+          width: 100,
+          height: 100,
+          child: ChallengeArtwork(kind: 'donut', progress: 1),
+        ),
+      ),
+    );
+    expect(find.byType(ClipPath), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('empty challenge data has an explicit empty state', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _rewardsApp(textScale: 1, snapshot: _snapshot(challenges: const [])),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No challenges available yet.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Rewards exposes loading feedback before local data resolves', (
+    tester,
+  ) async {
+    final result = Completer<RewardsSnapshot>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [rewardsDataProvider.overrideWith((ref) => result.future)],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(disableAnimations: true),
+              child: const RewardsScreen(),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    result.complete(_snapshot(challenges: [_sampleData.challenges[1]]));
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('680,000'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the persisted current tier is highlighted in the ladder', (
+    tester,
+  ) async {
+    final member = Member(
+      id: _sampleData.member.id,
+      name: _sampleData.member.name,
+      tier: 'Gold',
+      points: _sampleData.member.points,
+      pointsToGold: _sampleData.member.pointsToGold,
+      notifications: _sampleData.member.notifications,
+    );
+    await tester.pumpWidget(
+      _rewardsApp(
+        textScale: 1,
+        snapshot: RewardsSnapshot(
+          member: member,
+          challenges: _sampleData.challenges,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tier completed'), findsOneWidget);
+    expect(find.text('You’re here now'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('rapid tab changes settle on the selected content', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _rewardsApp(textScale: 1, disableAnimations: false),
+    );
+    await tester.pump(const Duration(milliseconds: 80));
+
+    await tester.tap(find.text('Gift'));
+    await tester.pump(const Duration(milliseconds: 40));
+    await tester.tap(find.text('Eat more earn more'));
+    await tester.pump(const Duration(milliseconds: 40));
+    await tester.tap(find.text('Gift'));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('Gift a treat to a friend'), findsWidgets);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets(
+    'Earn gives feedback without claiming or changing the challenge',
+    (tester) async {
+      await tester.pumpWidget(_rewardsApp(textScale: 1));
+      await tester.pumpAndSettle();
+
+      final buttons = find.byType(FilledButton);
+      expect(tester.widget<FilledButton>(buttons.at(0)).onPressed, isNotNull);
+      expect(tester.widget<FilledButton>(buttons.at(1)).onPressed, isNull);
+      tester.widget<FilledButton>(buttons.first).onPressed!();
+      await tester.pump();
+
+      expect(find.text('This section is coming soon.'), findsOneWidget);
+      expect(find.text('EARNED'), findsNothing);
+      expect(tester.widget<FilledButton>(buttons.first).onPressed, isNotNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Rewards retry is recoverable and ignores duplicate taps', (
+    tester,
+  ) async {
+    var shouldFail = true;
+    final retrySnapshot = _snapshot(challenges: [_sampleData.challenges[1]]);
+    final repository = _FakeRewardsRepository(
+      retrySnapshot,
+      onRefresh: () {
+        shouldFail = false;
+      },
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          rewardsDataProvider.overrideWith((ref) async {
+            if (shouldFail) throw StateError('temporary read failure');
+            return retrySnapshot;
+          }),
+          rewardsRepositoryProvider.overrideWith((ref) => repository),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const RewardsScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Rewards are unavailable'), findsOneWidget);
+
+    final retry = tester.widget<TextButton>(find.byType(TextButton));
+    retry.onPressed!();
+    retry.onPressed!();
+    await tester.pumpAndSettle();
+
+    expect(repository.refreshes, 1);
+    expect(find.text('680,000'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Widget _rewardsApp({
   required double textScale,
   bool disableAnimations = true,
+  RewardsSnapshot? snapshot,
 }) => ProviderScope(
   overrides: [
-    rewardsDataProvider.overrideWith(
-      (ref) async => RewardsSnapshot(
-        member: _sampleData.member,
-        challenges: _sampleData.challenges,
-      ),
-    ),
+    rewardsDataProvider.overrideWith((ref) async => snapshot ?? _snapshot()),
   ],
   child: MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -107,3 +329,60 @@ final _sampleData = AppData(
     ),
   ],
 );
+
+int _displayedPoints(WidgetTester tester) {
+  final values = tester
+      .widgetList<Text>(
+        find.descendant(
+          of: find.byType(PointsRing),
+          matching: find.byType(Text),
+        ),
+      )
+      .toList();
+  return int.parse(values.last.data!.replaceAll(',', ''));
+}
+
+double _pointsRingProgress(WidgetTester tester) => tester
+    .widgetList<CustomPaint>(
+      find.descendant(
+        of: find.byType(PointsRing),
+        matching: find.byType(CustomPaint),
+      ),
+    )
+    .map((widget) => widget.painter)
+    .whereType<PointsRingPainter>()
+    .single
+    .progress;
+
+double _tierProgress(WidgetTester tester) => tester
+    .widgetList<FractionallySizedBox>(
+      find.descendant(
+        of: find.byType(TierLadder),
+        matching: find.byType(FractionallySizedBox),
+      ),
+    )
+    .first
+    .heightFactor!;
+
+RewardsSnapshot _snapshot({List<Challenge>? challenges}) => RewardsSnapshot(
+  member: _sampleData.member,
+  challenges: challenges ?? _sampleData.challenges,
+);
+
+class _FakeRewardsRepository implements RewardsRepository {
+  _FakeRewardsRepository(this.snapshot, {required this.onRefresh});
+
+  final RewardsSnapshot snapshot;
+  final VoidCallback onRefresh;
+  int refreshes = 0;
+
+  @override
+  Future<Result<RewardsSnapshot>> load() async => Success(snapshot);
+
+  @override
+  Future<Result<RewardsSnapshot>> refresh() async {
+    refreshes++;
+    onRefresh();
+    return Success(snapshot);
+  }
+}

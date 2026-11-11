@@ -31,6 +31,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
   late final AnimationController _entrance;
   bool _entranceStarted = false;
   bool? _reduceMotion;
+  bool _isRefreshing = false;
   int tab = 0;
 
   @override
@@ -67,14 +68,31 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
   }
 
   Future<void> _retry() async {
-    final result = await ref.read(rewardsRepositoryProvider).refresh();
-    if (!mounted) return;
-    result.fold<void>(
-      (_) => ref.invalidate(rewardsDataProvider),
-      (failure) =>
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(failure.message))),
-    );
+    if (_isRefreshing) return;
+    setState(() => _isRefreshing = true);
+    try {
+      final result = await ref.read(rewardsRepositoryProvider).refresh();
+      if (!mounted) return;
+      result.fold<void>(
+        (_) => ref.invalidate(rewardsDataProvider),
+        (failure) =>
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(failure.message))),
+      );
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'rewards refresh',
+        ),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.genericError)));
+    } finally {
+      if (mounted) setState(() => _isRefreshing = false);
+    }
   }
 
   @override
@@ -101,8 +119,18 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                 children: [
                   Text(context.l10n.rewardsUnavailable),
                   TextButton(
-                    onPressed: _retry,
-                    child: Text(context.l10n.retryLabel),
+                    onPressed: _isRefreshing ? null : _retry,
+                    child: _isRefreshing
+                        ? SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              value: MediaQuery.disableAnimationsOf(context)
+                                  ? .65
+                                  : null,
+                            ),
+                          )
+                        : Text(context.l10n.retryLabel),
                   ),
                 ],
               ),
@@ -227,42 +255,59 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                         child: child,
                       ),
                     ),
-                    child: Padding(
-                      key: ValueKey(tab),
-                      padding: EdgeInsets.fromLTRB(
-                        compactLayout ? 16 : 22,
-                        19,
-                        compactLayout ? 16 : 0,
-                        20,
-                      ),
-                      child: Column(
-                        children: List.generate(challenges.length, (index) {
-                          final challenge = tab == 0
-                              ? challenges[index]
-                              : _giftChallenge(challenges[index]);
-                          return AnimatedBuilder(
-                            animation: _entrance,
-                            builder: (context, child) {
-                              final start = (index * .13).clamp(0.0, .65);
-                              final progress = Motion.curve.transform(
-                                (_entrance.value - start).clamp(0.0, 1.0),
-                              );
-                              return Opacity(
-                                opacity: progress,
-                                child: Transform.translate(
-                                  offset: Offset(0, 35 * (1 - progress)),
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: ChallengeCard(
-                              key: ValueKey(challenge.id),
-                              challenge: challenge,
+                    child: challenges.isEmpty
+                        ? Padding(
+                            key: ValueKey('empty-$tab'),
+                            padding: const EdgeInsets.fromLTRB(20, 28, 20, 36),
+                            child: Center(
+                              child: Text(
+                                context.l10n.rewardsEmpty,
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                          );
-                        }),
-                      ),
-                    ),
+                          )
+                        : Padding(
+                            key: ValueKey(tab),
+                            padding: EdgeInsets.fromLTRB(
+                              compactLayout ? 16 : 22,
+                              19,
+                              compactLayout ? 16 : 0,
+                              20,
+                            ),
+                            child: Column(
+                              children: List.generate(challenges.length, (
+                                index,
+                              ) {
+                                final challenge = tab == 0
+                                    ? challenges[index]
+                                    : _giftChallenge(challenges[index]);
+                                return AnimatedBuilder(
+                                  animation: _entrance,
+                                  builder: (context, child) {
+                                    final start = (index * .13)
+                                        .clamp(0.0, .65)
+                                        .toDouble();
+                                    final progress = Motion.curve.transform(
+                                      (_entrance.value - start)
+                                          .clamp(0.0, 1.0)
+                                          .toDouble(),
+                                    );
+                                    return Opacity(
+                                      opacity: progress,
+                                      child: Transform.translate(
+                                        offset: Offset(0, 35 * (1 - progress)),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  child: ChallengeCard(
+                                    key: ValueKey(challenge.id),
+                                    challenge: challenge,
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -326,7 +371,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                 child: RewardTab(
                   label: context.l10n.eatMoreEarnMore,
                   selected: tab == 0,
-                  onTap: () => setState(() => tab = 0),
+                  onTap: () => _selectTab(0),
                 ),
               ),
               PositionedDirectional(
@@ -337,7 +382,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                 child: RewardTab(
                   label: context.l10n.giftLabel,
                   selected: tab == 1,
-                  onTap: () => setState(() => tab = 1),
+                  onTap: () => _selectTab(1),
                 ),
               ),
             ],
@@ -346,6 +391,11 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
       },
     ),
   );
+
+  void _selectTab(int nextTab) {
+    if (tab == nextTab) return;
+    setState(() => tab = nextTab);
+  }
 
   TextStyle? _rewardsTitleStyle(BuildContext context) =>
       Theme.of(context).textTheme.headlineMedium?.copyWith(

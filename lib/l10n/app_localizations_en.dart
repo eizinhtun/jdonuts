@@ -372,10 +372,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rewardsUnavailable => 'Rewards are unavailable';
 
   @override
-  String get earnedLabel => 'EARNED';
+  String get rewardsEmpty => 'No challenges available yet.';
 
   @override
-  String pointsClaimed(Object points) {
-    return 'Challenge reward claimed: $points points';
-  }
+  String get tierCompleted => 'Tier completed';
 }

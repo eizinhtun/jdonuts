@@ -5,10 +5,9 @@ import 'package:jdonuts/l10n/localization.dart';
 
 import '../../../../core/motion/motion.dart';
 import '../../../../core/theme/tokens.dart';
+import '../../domain/rewards_progress.dart';
 import '../../../home/domain/models.dart';
 import 'points_ring_painter.dart';
-
-const _pointsRingSweep = .78;
 
 class PointsRing extends StatelessWidget {
   const PointsRing({super.key, required this.member, required this.animation});
@@ -21,17 +20,18 @@ class PointsRing extends StatelessWidget {
         270.0,
         math.min(constraints.maxWidth, constraints.maxHeight),
       );
+      final progress = MemberRewardProgress.fromMember(member);
       return AnimatedBuilder(
         animation: animation,
         builder: (context, _) {
-          final value =
-              (member.points * Motion.curve.transform(animation.value)).round();
+          final animatedValue = Motion.curve.transform(animation.value);
+          final value = (progress.points * animatedValue).round();
           return Center(
             child: SizedBox.square(
               dimension: diameter,
               child: CustomPaint(
                 painter: PointsRingPainter(
-                  progress: animation.value * _pointsRingSweep,
+                  progress: progress.nextTierFraction * animatedValue,
                 ),
                 child: Center(
                   child: Column(

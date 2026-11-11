@@ -754,17 +754,17 @@ abstract class AppLocalizations {
   /// **'Rewards are unavailable'**
   String get rewardsUnavailable;
 
-  /// No description provided for @earnedLabel.
+  /// No description provided for @rewardsEmpty.
   ///
   /// In en, this message translates to:
-  /// **'EARNED'**
-  String get earnedLabel;
+  /// **'No challenges available yet.'**
+  String get rewardsEmpty;
 
-  /// No description provided for @pointsClaimed.
+  /// No description provided for @tierCompleted.
   ///
   /// In en, this message translates to:
-  /// **'Challenge reward claimed: {points} points'**
-  String pointsClaimed(Object points);
+  /// **'Tier completed'**
+  String get tierCompleted;
 }
 
 class _AppLocalizationsDelegate
