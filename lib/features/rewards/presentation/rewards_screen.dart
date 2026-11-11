@@ -156,7 +156,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
     final badge = RewardsBadge(animation: _entrance);
 
     return Padding(
-      padding: const EdgeInsets.only(left: 28),
+      padding: const EdgeInsets.only(left: 28,),
       child: SizedBox(
         height: _rewardsHeaderHeight,
         child: _stackRewardsHeader(context)
