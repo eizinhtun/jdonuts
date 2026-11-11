@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/app/providers.dart';
 import 'package:jdonuts/core/result/result.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
 import 'package:jdonuts/features/rewards/domain/rewards_repository.dart';
 import 'package:jdonuts/features/rewards/presentation/rewards_screen.dart';
@@ -16,6 +17,37 @@ import 'package:jdonuts/features/rewards/presentation/widgets/tier_ladder.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
+  testWidgets('pink backing extends through the bottom safe area', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.viewPadding = const FakeViewPadding(bottom: 34);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewPadding);
+
+    await tester.pumpWidget(_rewardsApp(textScale: 1));
+    await tester.pumpAndSettle();
+
+    final pinkBacking = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.color == AppColors.pink &&
+          widget.padding == const EdgeInsets.only(left: 22),
+    );
+    final cyanPanel = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.decoration is BoxDecoration &&
+          (widget.decoration! as BoxDecoration).color == AppColors.cyan,
+    );
+
+    expect(tester.getSize(pinkBacking).height, 106);
+    expect(tester.getSize(cyanPanel).height, 72);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Rewards navigation fits at the label breakpoint', (
     tester,
   ) async {
