@@ -218,6 +218,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offlineNotice => 'You’re offline — showing saved items';
 
   @override
+  String get internetStatusUnknown =>
+      'Internet availability couldn’t be checked.';
+
+  @override
   String get comingSoon => 'This section is coming soon.';
 
   @override

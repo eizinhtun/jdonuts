@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jdonuts/l10n/localization.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 import '../../../core/motion/motion.dart';
-import '../../../core/theme/tokens.dart';
 import '../../../app/providers.dart';
 
 import 'widgets/challenge_card.dart';
@@ -18,7 +18,7 @@ const _rewardOverviewHeight = 355.0;
 const _compactRewardOverviewHeight = 390.0;
 const _compactRewardWidth = 380.0;
 const _largeTextScale = 1.1;
-const _rewardsCanvasColor = Color(0xFFF1F3F3);
+const _rewardsCanvasColor = AppColors.rewardsCanvas;
 
 class RewardsScreen extends ConsumerStatefulWidget {
   const RewardsScreen({super.key});
@@ -75,9 +75,8 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
       if (!mounted) return;
       result.fold<void>(
         (_) => ref.invalidate(rewardsDataProvider),
-        (failure) =>
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(failure.message))),
+        (_) => ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.genericError))),
       );
     } catch (error, stackTrace) {
       FlutterError.reportError(
@@ -371,7 +370,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColors.cyan,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: AppColors.white, width: 2),
                     borderRadius: BorderRadius.circular(24),
                   ),
                 ),

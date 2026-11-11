@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jdonuts/app/providers.dart';
+import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/app/route_observer.dart';
 import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/features/home/domain/home_repository.dart';
@@ -85,7 +86,9 @@ void main() {
           dataRepositoryProvider.overrideWith(
             (ref) => _FakeDataRepository(data),
           ),
-          connectivityProvider.overrideWith((ref) => Stream.value(true)),
+          connectivityProvider.overrideWith(
+            (ref) => Stream.value(NetworkStatus.online),
+          ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -142,7 +145,9 @@ void main() {
         overrides: [
           appDataProvider.overrideWith((ref) async => emptySeasonalData),
           dataRepositoryProvider.overrideWith((ref) => repository),
-          connectivityProvider.overrideWith((ref) => Stream.value(true)),
+          connectivityProvider.overrideWith(
+            (ref) => Stream.value(NetworkStatus.online),
+          ),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -174,7 +179,9 @@ void main() {
           overrides: [
             appDataProvider.overrideWith((ref) async => _sampleData),
             dataRepositoryProvider.overrideWith((ref) => repository),
-            connectivityProvider.overrideWith((ref) => Stream.value(true)),
+            connectivityProvider.overrideWith(
+              (ref) => Stream.value(NetworkStatus.online),
+            ),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -204,7 +211,7 @@ void main() {
 
   testWidgets('refresh failure leaves cached Home usable', (tester) async {
     _disableMotion(tester);
-    final changes = StreamController<bool>();
+    final changes = StreamController<NetworkStatus>();
     final repository = _FakeDataRepository(_sampleData)..failNextRefresh = true;
     await tester.pumpWidget(
       ProviderScope(
@@ -224,18 +231,70 @@ void main() {
     try {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      changes.add(false);
+      changes.add(NetworkStatus.offline);
       await tester.pump();
-      changes.add(true);
+      changes.add(NetworkStatus.online);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(repository.refreshes, 1);
-      expect(find.text('Temporary refresh failure'), findsOneWidget);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
       expect(find.text('Seasonal specials'), findsOneWidget);
       expect(find.text('Coconut Donut'), findsWidgets);
       expect(tester.takeException(), isNull);
     } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      unawaited(changes.close());
+    }
+  });
+
+  testWidgets('Home coalesces reconnect and pull-to-refresh requests', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    final changes = StreamController<NetworkStatus>();
+    final repository = _FakeDataRepository(_sampleData)
+      ..refreshGate = Completer<void>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appDataProvider.overrideWith((ref) async => _sampleData),
+          dataRepositoryProvider.overrideWith((ref) => repository),
+          connectivityProvider.overrideWith((ref) => changes.stream),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+
+    try {
+      await tester.pumpAndSettle();
+      changes.add(NetworkStatus.offline);
+      await tester.pump();
+      await tester.pump();
+      changes.add(NetworkStatus.online);
+      await tester.pumpAndSettle();
+      expect(repository.refreshes, 1);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 500));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(repository.refreshes, 1);
+
+      repository.refreshGate!.complete();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    } finally {
+      if (!(repository.refreshGate?.isCompleted ?? true)) {
+        repository.refreshGate!.complete();
+      }
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
       unawaited(changes.close());
@@ -250,7 +309,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
 
-      final changes = StreamController<bool>();
+      final changes = StreamController<NetworkStatus>();
       final repository = _FakeDataRepository(_sampleData);
       final router = GoRouter(
         initialLocation: '/home',
@@ -288,14 +347,15 @@ void main() {
 
       try {
         await tester.pumpAndSettle();
-        changes.add(false);
+        changes.add(NetworkStatus.offline);
+        await tester.pump();
         await tester.pump();
         expect(
           find.text('You’re offline — showing saved items'),
           findsOneWidget,
         );
 
-        changes.add(true);
+        changes.add(NetworkStatus.online);
         await tester.pumpAndSettle();
         expect(repository.refreshes, 1);
 
@@ -337,7 +397,9 @@ Widget _homeWithBanners(AppData data, {bool reduceMotion = false}) =>
       overrides: [
         appDataProvider.overrideWith((ref) async => data),
         dataRepositoryProvider.overrideWith((ref) => _FakeDataRepository(data)),
-        connectivityProvider.overrideWith((ref) => Stream.value(true)),
+        connectivityProvider.overrideWith(
+          (ref) => Stream.value(NetworkStatus.online),
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -395,6 +457,7 @@ class _FakeDataRepository implements HomeRepository {
   final AppData data;
   int refreshes = 0;
   bool failNextRefresh = false;
+  Completer<void>? refreshGate;
   final Map<String, int> _failedSections;
   final Map<String, int> sectionLoads = {};
 
@@ -404,6 +467,7 @@ class _FakeDataRepository implements HomeRepository {
   @override
   Future<Result<AppData>> refresh() async {
     refreshes++;
+    await refreshGate?.future;
     if (failNextRefresh) {
       failNextRefresh = false;
       return const Error(StorageFailure('Temporary refresh failure'));

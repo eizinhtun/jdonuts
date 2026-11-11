@@ -66,6 +66,7 @@
   "productNotFound": "Product not found",
   "retryLabel": "Retry",
   "offlineNotice": "You’re offline — showing saved items",
+  "internetStatusUnknown": "Internet availability couldn’t be checked.",
   "comingSoon": "This section is coming soon.",
   "addToCart": "ADD TO CART",
   "addedToCart": "Added to cart",

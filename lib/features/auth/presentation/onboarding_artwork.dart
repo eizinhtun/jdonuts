@@ -26,7 +26,7 @@ class OnboardingArtwork extends StatelessWidget {
                 beginOffset: const Offset(-Motion.onboardingArtDrift, 0),
                 child: _ArtBubble(
                   size: width * .62,
-                  color: const Color(0xFF48CDE2),
+                  color: AppColors.onboardingCyan,
                   image: 'chocolate-donut.png',
                   opacity: .25,
                   rotation: -.42,
@@ -41,11 +41,11 @@ class OnboardingArtwork extends StatelessWidget {
                 beginOffset: const Offset(Motion.onboardingArtDrift, 0),
                 child: _ArtBubble(
                   size: width * .43,
-                  color: const Color(0xFFC7E0F0),
+                  color: AppColors.welcomeCircleBlue,
                   image: 'strawberry.svg',
                   opacity: .56,
                   rotation: .48,
-                  lowerColor: const Color(0xFFF8D5E2),
+                  lowerColor: AppColors.onboardingTile,
                 ),
               ),
             ),
@@ -57,7 +57,7 @@ class OnboardingArtwork extends StatelessWidget {
                 beginOffset: Offset(-Motion.onboardingArtDrift, 0),
                 child: _ArtBubble(
                   size: width * .4,
-                  color: const Color(0xFFBFD8EF),
+                  color: AppColors.welcomeCircleLavender,
                   image: 'coconut.svg',
                   opacity: .82,
                   rotation: -.35,
@@ -72,7 +72,7 @@ class OnboardingArtwork extends StatelessWidget {
                 beginOffset: Offset(Motion.onboardingArtDrift, 0),
                 child: _ArtBubble(
                   size: width * .42,
-                  color: const Color(0xFFAECFED),
+                  color: AppColors.onboardingBlue,
                   image: 'strawberry.svg',
                   opacity: .78,
                   rotation: .32,
@@ -115,7 +115,7 @@ class OnboardingArtwork extends StatelessWidget {
                 beginOffset: const Offset(0, Motion.onboardingArtDrift),
                 child: _ArtBubble(
                   size: width * .48,
-                  color: const Color(0xFFFFD58B),
+                  color: AppColors.onboardingSun,
                   image: 'coconut.svg',
                   opacity: .2,
                   rotation: -.12,
@@ -132,7 +132,10 @@ class OnboardingArtwork extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0x00FFF7FA), Color(0xFFFFF7FA)],
+                    colors: [
+                      AppColors.onboardingClear,
+                      AppColors.onboardingBottom,
+                    ],
                   ),
                 ),
               ),
@@ -164,10 +167,10 @@ class _HeroHalo extends StatelessWidget {
                 end: Alignment.bottomRight,
                 stops: [0, .54, .72, 1],
                 colors: [
-                  Color(0xFFF9DFD2),
-                  Color(0xFFF9DFD2),
-                  Color(0xFFF5B1C9),
-                  Color(0xFFF5B1C9),
+                  AppColors.donutTilePeach,
+                  AppColors.donutTilePeach,
+                  AppColors.donutTilePink,
+                  AppColors.donutTilePink,
                 ],
               ),
               boxShadow: [

@@ -490,6 +490,12 @@ abstract class AppLocalizations {
   /// **'You’re offline — showing saved items'**
   String get offlineNotice;
 
+  /// No description provided for @internetStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet availability couldn’t be checked.'**
+  String get internetStatusUnknown;
+
   /// No description provided for @comingSoon.
   ///
   /// In en, this message translates to:

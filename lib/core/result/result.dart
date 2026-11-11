@@ -1,14 +1,38 @@
 sealed class Failure {
-  const Failure(this.message);
+  const Failure(
+    this.message, {
+    this.cause,
+    this.stackTrace,
+    this.secondaryCause,
+    this.secondaryStackTrace,
+  });
+
   final String message;
+  final Object? cause;
+  final StackTrace? stackTrace;
+  final Object? secondaryCause;
+  final StackTrace? secondaryStackTrace;
 }
 
 final class ValidationFailure extends Failure {
-  const ValidationFailure(super.message);
+  const ValidationFailure(
+    super.message, {
+    super.cause,
+    super.stackTrace,
+    super.secondaryCause,
+    super.secondaryStackTrace,
+  });
 }
 
 final class AuthFailure extends Failure {
-  const AuthFailure(this.code, super.message);
+  const AuthFailure(
+    this.code,
+    super.message, {
+    super.cause,
+    super.stackTrace,
+    super.secondaryCause,
+    super.secondaryStackTrace,
+  });
 
   final AuthFailureCode code;
 }
@@ -22,7 +46,23 @@ enum AuthFailureCode {
 }
 
 final class StorageFailure extends Failure {
-  const StorageFailure(super.message);
+  const StorageFailure(
+    super.message, {
+    super.cause,
+    super.stackTrace,
+    super.secondaryCause,
+    super.secondaryStackTrace,
+  });
+}
+
+final class NetworkFailure extends Failure {
+  const NetworkFailure(
+    super.message, {
+    super.cause,
+    super.stackTrace,
+    super.secondaryCause,
+    super.secondaryStackTrace,
+  });
 }
 
 sealed class Result<T> {

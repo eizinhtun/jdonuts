@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:jdonuts/core/network/network_reachability.dart';
+import 'package:jdonuts/core/result/result.dart';
 
 void main() {
   test(
@@ -21,21 +22,27 @@ void main() {
           return internetAvailable;
         },
       );
-      final initialState = Completer<bool>();
-      final reconnectionState = Completer<bool>();
+      final initialState = Completer<NetworkStatus>();
+      final reconnectionState = Completer<NetworkStatus>();
       var eventIndex = 0;
-      final subscription = reachability.watch().listen((isOnline) {
+      final subscription = reachability.watch().listen((status) {
         if (eventIndex++ == 0) {
-          initialState.complete(isOnline);
+          initialState.complete(status);
         } else {
-          reconnectionState.complete(isOnline);
+          reconnectionState.complete(status);
         }
       });
 
       try {
         expect(
           await initialState.future.timeout(const Duration(seconds: 2)),
-          isFalse,
+          isA<NetworkStatus>()
+              .having((status) => status.networkAvailable, 'network', false)
+              .having(
+                (status) => status.internetReachability,
+                'internet',
+                InternetReachability.unreachable,
+              ),
         );
         expect(probeCount, 0);
 
@@ -43,7 +50,9 @@ void main() {
         changes.add(const [ConnectivityResult.wifi]);
         expect(
           await reconnectionState.future.timeout(const Duration(seconds: 2)),
-          isTrue,
+          isA<NetworkStatus>()
+              .having((status) => status.networkAvailable, 'network', true)
+              .having((status) => status.canReachInternet, 'internet', true),
         );
         expect(probeCount, 1);
       } finally {
@@ -64,7 +73,18 @@ void main() {
       );
       addTearDown(reachability.dispose);
 
-      await expectLater(reachability.watch(), emits(false));
+      await expectLater(
+        reachability.watch(),
+        emits(
+          isA<NetworkStatus>()
+              .having((status) => status.networkAvailable, 'network', true)
+              .having(
+                (status) => status.internetReachability,
+                'internet',
+                InternetReachability.unreachable,
+              ),
+        ),
+      );
     },
   );
 
@@ -80,8 +100,43 @@ void main() {
     );
     addTearDown(reachability.dispose);
 
-    await expectLater(reachability.watch(), emits(true));
+    await expectLater(
+      reachability.watch(),
+      emits(
+        isA<NetworkStatus>().having(
+          (status) => status.canReachInternet,
+          'internet',
+          true,
+        ),
+      ),
+    );
 
     expect(requestedUri, Uri.https('www.google.com', '/generate_204'));
+  });
+
+  test('retains connectivity failures as unknown typed status', () async {
+    final reachability = NetworkReachability(
+      checkConnectivity: () async => throw StateError('probe detail'),
+      connectivityChanges: const Stream.empty(),
+    );
+    addTearDown(reachability.dispose);
+
+    await expectLater(
+      reachability.watch(),
+      emits(
+        isA<NetworkStatus>()
+            .having((status) => status.networkAvailable, 'network', isNull)
+            .having(
+              (status) => status.internetReachability,
+              'internet',
+              InternetReachability.unknown,
+            )
+            .having(
+              (status) => status.failure,
+              'failure',
+              isA<NetworkFailure>(),
+            ),
+      ),
+    );
   });
 }

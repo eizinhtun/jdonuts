@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jdonuts/l10n/localization.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 import '../../../../core/motion/motion.dart';
-import '../../../../core/theme/tokens.dart';
 
 class RewardsBadge extends StatelessWidget {
   const RewardsBadge({super.key, required this.animation});
@@ -24,7 +24,7 @@ class RewardsBadge extends StatelessWidget {
           Text(
             context.l10n.rewardsBadge,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.white,
               fontWeight: FontWeight.w700,
               fontSize: 14,
             ),
@@ -32,7 +32,7 @@ class RewardsBadge extends StatelessWidget {
           const SizedBox(width: 6),
           const CircleAvatar(
             radius: 9,
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.white,
             child: Text(
               '3',
               style: TextStyle(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:jdonuts/app/providers.dart';
+import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/features/auth/data/auth_account_store.dart';
 import 'package:jdonuts/features/auth/data/auth_session_store.dart';
 import 'package:jdonuts/features/auth/data/local_auth_repository.dart';
@@ -96,7 +97,9 @@ void main() {
 
 Widget _testApp(SecureAuthSessionStore sessionStore) => ProviderScope(
   overrides: [
-    connectivityProvider.overrideWith((ref) => Stream.value(false)),
+    connectivityProvider.overrideWith(
+      (ref) => Stream.value(NetworkStatus.offline),
+    ),
     authRepositoryProvider.overrideWith(
       (ref) => LocalAuthRepository(
         delay: (_) async {},

@@ -236,7 +236,7 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
     borderRadius: BorderRadius.circular(
       _useReferenceAuthLayout && widget.step != 'otp' ? 10 : 8,
     ),
-    borderSide: BorderSide(color: color ?? Colors.transparent),
+    borderSide: BorderSide(color: color ?? AppColors.transparent),
   );
 
   int _stepOrder(String step) => switch (step) {

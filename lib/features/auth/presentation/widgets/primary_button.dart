@@ -59,14 +59,14 @@ class PrimaryButtonState extends State<PrimaryButton> {
                           ? .65
                           : null,
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   )
                 : Text(
                     widget.label,
                     key: ValueKey(widget.label),
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontWeight: FontWeight.w800,
                     ),
                   ),

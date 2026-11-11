@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jdonuts/app/providers.dart';
+import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/core/storage/app_database.dart';
 import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
@@ -227,7 +228,9 @@ Widget _testApp({
       ref.onDispose(database.close);
       return database;
     }),
-    connectivityProvider.overrideWith((ref) => Stream.value(true)),
+    connectivityProvider.overrideWith(
+      (ref) => Stream.value(NetworkStatus.online),
+    ),
     appDataProvider.overrideWith((ref) async => _widgetData),
     dataRepositoryProvider.overrideWith((ref) => _WidgetDataRepository()),
     authRepositoryProvider.overrideWith(

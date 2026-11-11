@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jdonuts/l10n/localization.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 import '../../../../core/motion/motion.dart';
-import '../../../../core/theme/tokens.dart';
 import '../../domain/rewards_progress.dart';
 import '../../../home/domain/models.dart';
 
@@ -44,7 +44,7 @@ class TierLadder extends StatelessWidget {
               ),
               _animatedLine(
                 _silverToGoldProgress(progress),
-                color: const Color(0xFF74777A),
+                color: AppColors.headerMuted,
                 height: compact ? 55 : 69,
               ),
               _stagger(

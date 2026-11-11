@@ -129,9 +129,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
                 '+95',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontSize: _useReferenceAuthLayout ? 18 : null,
-                  color: _useReferenceAuthLayout
-                      ? const Color(0xFF8995A1)
-                      : null,
+                  color: _useReferenceAuthLayout ? AppColors.fieldHint : null,
                 ),
               ),
             ),
@@ -322,7 +320,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           filled: true,
           fillColor: AppColors.white,
           hintStyle: _useReferenceAuthLayout
-              ? const TextStyle(color: Color(0xFF8995A1), fontSize: 18)
+              ? const TextStyle(color: AppColors.fieldHint, fontSize: 18)
               : null,
           contentPadding: _useReferenceAuthLayout
               ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
@@ -357,7 +355,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           filled: true,
           fillColor: AppColors.white,
           hintStyle: _useReferenceAuthLayout
-              ? const TextStyle(color: Color(0xFF8995A1), fontSize: 18)
+              ? const TextStyle(color: AppColors.fieldHint, fontSize: 18)
               : null,
           contentPadding: _useReferenceAuthLayout
               ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
@@ -485,7 +483,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     decoration: InputDecoration(
       hintText: hint,
       hintStyle: _useReferenceAuthLayout
-          ? const TextStyle(color: Color(0xFF8995A1), fontSize: 18)
+          ? const TextStyle(color: AppColors.fieldHint, fontSize: 18)
           : null,
       counterText: '',
       contentPadding: _useReferenceAuthLayout

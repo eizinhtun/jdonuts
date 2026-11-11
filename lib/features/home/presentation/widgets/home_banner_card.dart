@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:jdonuts/core/presentation/seed_image.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
-import '../../../../core/theme/tokens.dart';
 import '../../../home/domain/models.dart';
 
-const _bannerPurple = Color(0xFF6258A7);
-const _bannerBlue = Color(0xFF39BED7);
+const _bannerPurple = AppColors.bannerPurple;
+const _bannerBlue = AppColors.bannerCyan;
 
 class HomeBannerCard extends StatelessWidget {
   const HomeBannerCard({super.key, required this.banner});
@@ -31,7 +31,7 @@ class HomeBannerCard extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       background,
-                      Color.lerp(background, Colors.white, .1)!,
+                      Color.lerp(background, AppColors.white, .1)!,
                     ],
                   ),
                 ),
@@ -52,7 +52,7 @@ class HomeBannerCard extends StatelessWidget {
                   child: Text(
                     banner.subtitle,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                     ),
@@ -71,7 +71,7 @@ class HomeBannerCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontWeight: FontWeight.w800,
                       fontSize: 16,
                       height: 1.08,
@@ -88,7 +88,7 @@ class HomeBannerCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.white,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: AppColors.white, width: 2),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -114,7 +114,7 @@ class _BannerPattern extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: .15)
+      ..color = AppColors.white.withValues(alpha: .15)
       ..strokeWidth = size.shortestSide * .025
       ..strokeCap = StrokeCap.round;
     final marks = [

@@ -4,7 +4,7 @@ import 'package:jdonuts/core/motion/motion.dart';
 import 'package:jdonuts/core/theme/tokens.dart';
 import 'package:jdonuts/l10n/localization.dart';
 
-const _rewardsCanvasColor = Color(0xFFF1F3F3);
+const _rewardsCanvasColor = AppColors.rewardsCanvas;
 const _navigationContentHeight = 72.0;
 const _bottomInsetCoverage = .6;
 const _referenceFooterHeight = 15.0;
@@ -116,7 +116,7 @@ class _RewardsNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pill = Material(
-      color: selected ? AppColors.pink : Colors.transparent,
+      color: selected ? AppColors.pink : AppColors.transparent,
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
@@ -133,13 +133,13 @@ class _RewardsNavItem extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, size: 21, color: Colors.white),
+                  Icon(icon, size: 21, color: AppColors.white),
                   if (showLabel) ...[
                     const SizedBox(width: 3),
                     Text(
                       label,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                       ),

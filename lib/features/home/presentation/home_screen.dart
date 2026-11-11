@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jdonuts/app/route_observer.dart';
+import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/core/presentation/animated_entrance.dart';
 import 'package:jdonuts/l10n/localization.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 import '../../../core/motion/motion.dart';
-import '../../../core/theme/tokens.dart';
 import '../../../app/providers.dart';
 import 'widgets/app_bottom_nav.dart';
 import 'widgets/home_banner_card.dart';
@@ -33,6 +34,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   bool _appIsResumed = true;
   bool _autoplayCheckPending = false;
   bool _isAutoScrolling = false;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -186,27 +188,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Future<void> _refresh() async {
-    final result = await ref.read(dataRepositoryProvider).refresh();
-    if (!mounted) return;
-    result.fold<void>(
-      (_) => ref.invalidate(appDataProvider),
-      (failure) =>
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(failure.message))),
-    );
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    try {
+      final result = await ref.read(dataRepositoryProvider).refresh();
+      if (!mounted) return;
+      result.fold<void>(
+        (_) => ref.invalidate(appDataProvider),
+        (_) => ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.genericError))),
+      );
+    } on Object catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'home refresh',
+        ),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.homeLoadError)));
+      }
+    } finally {
+      _isRefreshing = false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
-      if (previous?.asData?.value == false && next.asData?.value == true) {
+    ref.listen<AsyncValue<NetworkStatus>>(connectivityProvider, (
+      previous,
+      next,
+    ) {
+      if (previous?.asData?.value.internetReachability ==
+              InternetReachability.unreachable &&
+          next.asData?.value.canReachInternet == true) {
         unawaited(_refresh());
       }
     });
-    final online = ref.watch(connectivityProvider).asData?.value ?? false;
+    final networkStatus = ref.watch(connectivityProvider).asData?.value;
     _scheduleAutoplayAfterLayout();
     return Scaffold(
-      backgroundColor: const Color(0xFFFFEEE0),
+      backgroundColor: AppColors.memberHeader,
       body: SafeArea(
         child: ColoredBox(
           color: AppColors.canvas,
@@ -227,8 +251,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           child: HomeHeader(member: data.member),
                         ),
                       ),
-                      if (!online)
-                        const SliverToBoxAdapter(child: HomeOfflineNotice()),
+                      if (networkStatus != null &&
+                          !networkStatus.canReachInternet)
+                        SliverToBoxAdapter(
+                          child: HomeOfflineNotice(status: networkStatus),
+                        ),
                       SliverToBoxAdapter(
                         child: AnimatedEntrance(
                           delay: Motion.homeBannerDelay,

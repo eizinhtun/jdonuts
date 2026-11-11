@@ -41,7 +41,11 @@ class OnboardingSocialLinks extends StatelessWidget {
         _SocialButton(
           label: labels[2],
           onPressed: () => onPlaceholder(labels[2]),
-          child: const Icon(Icons.facebook, size: 27, color: Color(0xFF1877F2)),
+          child: const Icon(
+            Icons.facebook,
+            size: 27,
+            color: AppColors.facebookBlue,
+          ),
         ),
       ],
     );
@@ -81,10 +85,10 @@ class _GooglePainter extends CustomPainter {
     final radius = size.shortestSide * .39;
     final rect = Rect.fromCircle(center: center, radius: radius);
     final colors = [
-      const Color(0xFF4285F4),
-      const Color(0xFF34A853),
-      const Color(0xFFFBBC05),
-      const Color(0xFFEA4335),
+      AppColors.googleBlue,
+      AppColors.googleGreen,
+      AppColors.googleYellow,
+      AppColors.googleRed,
     ];
     for (var index = 0; index < colors.length; index++) {
       final paint = Paint()
@@ -104,7 +108,7 @@ class _GooglePainter extends CustomPainter {
       center,
       Offset(center.dx + radius, center.dy),
       Paint()
-        ..color = const Color(0xFF4285F4)
+        ..color = AppColors.googleBlue
         ..strokeWidth = size.shortestSide * .19
         ..strokeCap = StrokeCap.butt,
     );
@@ -155,7 +159,7 @@ class _ApplePainter extends CustomPainter {
       Path.combine(PathOperation.difference, body, bite),
       leaf,
     );
-    canvas.drawPath(silhouette, Paint()..color = Colors.black);
+    canvas.drawPath(silhouette, Paint()..color = AppColors.black);
   }
 
   @override
@@ -194,7 +198,7 @@ class _OnboardingLegalNoticeState extends State<OnboardingLegalNotice> {
     return Text.rich(
       TextSpan(
         style: const TextStyle(
-          color: Color(0xFF8995A1),
+          color: AppColors.fieldHint,
           fontSize: 12,
           height: 1.45,
         ),

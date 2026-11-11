@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jdonuts/core/presentation/seed_image.dart';
 import 'package:jdonuts/l10n/localization.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 import '../../../../app/providers.dart';
-import '../../../../core/theme/tokens.dart';
 import '../../domain/models.dart';
 
 class HomeProductSection extends ConsumerWidget {
@@ -259,7 +259,7 @@ class _DiscountBadge extends StatelessWidget {
     child: Text(
       context.l10n.discountLabel(value),
       style: const TextStyle(
-        color: Colors.white,
+        color: AppColors.white,
         fontSize: 10,
         fontWeight: FontWeight.w800,
       ),

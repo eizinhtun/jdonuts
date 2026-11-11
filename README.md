@@ -4,7 +4,16 @@ Offline-first Flutter implementation of the supplied Madivizion code test. The c
 
 ## Run locally
 
-Requires Flutter 3.47.5 stable / Dart 3.13.4, Android SDK for Android, and Xcode for iOS Simulator.
+The latest stable release verified on 2026-11-11 is Flutter 3.47.9 with Dart 3.13.7, listed in the [Flutter changelog](https://github.com/flutter/flutter/blob/master/CHANGELOG.md). Android SDK is required for Android builds; Xcode is required for iOS Simulator builds.
+
+This workspace's installed SDK is Flutter 3.47.5 / Dart 3.13.4. The project was analyzed with it, but the 3.47.9 SDK was not installed here: the existing Flutter checkout has a modified SDK `pubspec.lock`, and a separate checkout could not finish installing before the filesystem ran out of space. Latest stable runtime/build compatibility therefore remains unverified in this workspace.
+
+To install the verified stable release in a clean location:
+
+    mkdir -p ~/development
+    git clone --depth 1 --branch 3.47.9 https://github.com/flutter/flutter.git ~/development/flutter-3.47.9
+    export PATH="$HOME/development/flutter-3.47.9/bin:$PATH"
+    flutter --version
 
     flutter pub get
     flutter gen-l10n
@@ -14,15 +23,15 @@ Demo OTP: 123456. Returning demo phone: +95 987654321. Any valid new Myanmar mob
 
 ## Verified toolchain
 
-- Flutter 3.47.5 stable, revision 6a19cca564
-- Dart 3.13.4
+- Installed verification Flutter 3.47.5 stable, revision 6a19cca564; Dart 3.13.4
+- Latest stable release checked: Flutter 3.47.9 / Dart 3.13.7; current project sources still use only APIs available in 3.47.5, but the newer SDK was not installed for a build check
 - Xcode 27.1, build 27A9275
 - macOS 27.0.1, arm64
 - Resolved direct packages include Riverpod 3.5.0, go_router 16.3.0, Drift 2.35.4, flutter_secure_storage 9.2.4, connectivity_plus 7.3.2, cached_network_image 3.4.1, and flutter_svg 2.3.2. pubspec.lock contains the full resolved graph.
 
 ## Architecture
 
-The code is organized by auth, home, product, and rewards features. Each feature separates presentation, domain contracts/models, and data adapters. Domain code does not import Flutter. Repositories return typed Result values with typed Failure variants; models are immutable.
+The code is organized by auth, home, product, and rewards features. Each feature separates presentation, domain contracts/models, and data adapters. Domain code does not import Flutter. Repositories return typed Result values with typed Failure variants; models are immutable. Infrastructure failures retain their cause and stack trace for diagnosis while UI surfaces use safe localized messages rather than raw exception text.
 
 Riverpod is used for dependency injection and state. Providers construct the database, repositories, reachability service, session restore, router state, and auth draft. Tests override providers to supply in-memory storage, controlled clocks, delays, and connectivity streams. go_router applies the session guard and provides the stable /product/:id route.
 
@@ -49,7 +58,7 @@ Challenge counters, art fractions, completion states, and earnable point labels 
 
 The onboarding hero donut, coconut and chocolate donuts, Dalgona coffee, seasonal donut box, and shop banner are original images generated specifically for this app with OpenAI image generation; they are not stock photography. The vector donut and striped-donut Welcome tiles and member avatar are hand-authored SVG illustrations. The PDF and its screenshots are not bundled. SeedImage renders bundled SVG, PNG, and JPEG assets offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs. Drift schema v3 migrates previously seeded image paths to the bundled photos without replacing custom image paths.
 
-connectivity_plus interface changes are combined with an HTTP reachability probe. A small offline banner appears when the probe reports no internet. Reconnection and pull-to-refresh re-read SQLite, preserving usable content. Failed refreshes show an error message without clearing the cached Home. There is no backend in this assignment slice, so refresh cannot download catalog updates; the reachability request is only an online/offline hint.
+connectivity_plus interface changes are combined with an HTTP reachability probe. `NetworkStatus` keeps interface availability separate from internet reachability and reports unknown status when a probe fails. Home shows an offline or status-check notice, refreshes on reconnection and pull-to-refresh, and coalesces overlapping refresh requests. Failed refreshes show localized generic feedback without clearing cached content. There is no backend in this assignment slice, so refresh re-reads SQLite and cannot download catalog updates; server-specific errors do not apply.
 
 ## Authentication
 
@@ -63,24 +72,25 @@ Named motion durations and curves are centralized in lib/core/motion/motion.dart
 
 ## Checks run on 2026-11-11
 
-- dart format lib test integration_test — completed
-- flutter gen-l10n — completed
-- flutter analyze — no issues found
-- flutter test — all 78 tests passed
-- `flutter test test/features/rewards` — all 19 Rewards tests passed, including animation, malformed progress, empty/loading/error recovery, offline artwork, reduced motion, rapid tab changes, and repeated Home ↔ Rewards navigation during entrance motion
-- iOS Simulator integration: Register → Welcome → Home → Product — passed on 2026-11-11 with simulated offline status; the flow confirmed bundled images render without the failure fallback. The ten-screen offline capture flow also passed.
-- Android arm64 debug build — `flutter build apk --debug --target-platform android-arm64` passed after the Task 3 changes.
+- `dart format --output=none --set-exit-if-changed lib test integration_test` — passed; no formatting changes required
+- `flutter analyze` — no issues found after this audit's source changes
+- `flutter gen-l10n` — completed after adding the localized unknown-network-status message
+- First `flutter test` run reached 88 passing tests and one failed offline-banner assertion caused by a one-frame stream update delay. The test was corrected; `flutter test test/features/home/home_layout_widget_test.dart` then passed all 8 Home tests, including refresh coalescing.
+- Full-suite rerun did not complete: the filesystem ran out of space while Flutter copied `output.dill` to the test listener. The network tests emitted four passing assertions before that setup error. This run is not counted as a passing full suite.
+- Auth repository and reachability tests also completed successfully during the first full-suite run; the updated cause/message assertions were included. A standalone rerun was blocked by the same output-copy disk-space error.
+- Integration test and Android/iOS build commands were not rerun after these source changes because available disk space fell below the required amount. Earlier revision results are not treated as current build verification.
+- An earlier Android arm64 debug build passed after the Task 3 changes; it predates this audit's source edits and is not current build verification.
 - Profile command when device Developer Mode is enabled: `flutter drive --profile -d <device-id> --driver=test_driver/rewards_performance_test.dart --target=integration_test/rewards_performance_test.dart`. The connected phone rejected the current attempt before build because Developer Mode is disabled.
 - Android release build: arm64 APK built at build/app/outputs/flutter-apk/app-release.apk (32.3 MB); apksigner verified its v2 signature.
 - iOS Simulator app built with flutter build ios --simulator and zipped at build/jdonuts-ios-simulator-current.zip; archive integrity check passed. Flutter does not support release mode for iOS simulators, so this is a debug Simulator app.
 - The existing `build/jdonuts-demo-walkthrough.mov` is 211 seconds (3:31), but it predates the final visual pass. A fresh recording of the current UI was not verified, so treat this video as an older walkthrough.
 - Captured and reviewed all ten supplied design states on an iPhone 17 Pro Simulator on 2026-11-11. The review was visual; no pixel-diff tool was used.
 
-Task 3 profile timing remains unverified. A profile trace test is available at `integration_test/rewards_performance_test.dart`, but `flutter drive --profile` stopped before building because the connected iPhone requires Developer Mode to be enabled in Settings. No frame timings were collected and no 60 fps claim is made. The integration test forces its connectivity provider offline and tests reconnection through a simulated stream. System-level airplane mode was not toggled. No Android emulator/device was connected in this pass, so Android runtime/offline behavior remains unverified; the arm64 debug APK build passed.
+Profile timing remains unverified. A profile trace test is available at `integration_test/rewards_performance_test.dart`, but the earlier `flutter drive --profile` attempt stopped before building because the connected iPhone requires Developer Mode to be enabled in Settings. No frame timings were collected and no 60 fps claim is made. System-level airplane mode was not toggled. A booted iPhone 17 Pro Simulator is available, but the current Register → Product integration test was not rerun because of disk space. Android runtime/offline behavior also remains unverified in this pass.
 
 ## Build artifacts and commands
 
-Android release APK (arm64 only, signed with the project’s demo debug signing config):
+Previously generated Android release APK (arm64 only, signed with the project's demo debug signing config; predates this audit's source edits):
 
     flutter build apk --release --target-platform android-arm64
 
@@ -91,14 +101,15 @@ iOS Simulator app:
     flutter build ios --simulator
     ditto -c -k --sequesterRsrc --keepParent build/ios/iphonesimulator/Runner.app build/jdonuts-ios-simulator-current.zip
 
-The .app and zip are local workspace artifacts. They were not published or submitted. Flutter rejects --release for Simulator builds. A signed iPhone device/App Store archive requires a configured Apple team and provisioning profile.
+The earlier `.app` and zip are local workspace artifacts and were not published or submitted. They predate this audit's source edits. Flutter rejects `--release` for Simulator builds. A signed iPhone device/App Store archive requires a configured Apple team and provisioning profile.
 
 ## Known gaps and scope
 
 - There is no server, live catalog sync, SMS provider, social auth provider, or legal document content.
 - Add-to-cart and challenge Earn feedback are transient; they do not persist or change the member balance.
 - Burmese localization and CI are optional PDF bonuses and are not implemented.
-- Offline repository behavior and the forced-offline iOS integration path are verified; a full fresh-install airplane-mode/relaunch device check remains unverified.
+- Offline repository behavior and a forced-offline iOS integration path passed on an earlier revision; they were not rerun after this audit's provider changes. A full fresh-install airplane-mode/relaunch device check remains unverified.
+- The latest stable SDK was verified from upstream release information but could not be installed for local verification. The first full test run found one test timing issue, which was fixed and covered by the passing Home suite; the full suite rerun was blocked by the host's full filesystem.
 - Layouts are tested at a compact 320×667 logical-pixel viewport with text scale 1.3, not every physical 4.7–6.9 inch device size.
 - The bundled original food photos approximate the reference imagery; they are not photos of the client’s actual products or shops. Two Welcome tiles use those generated donut photos; the other two use vector illustrations.
 - Android release APK signing is for the demo, and only arm64 is packaged.

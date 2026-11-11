@@ -114,7 +114,7 @@ class _HomeNavigationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pill = Material(
-      color: selected ? AppColors.pink : Colors.transparent,
+      color: selected ? AppColors.pink : AppColors.transparent,
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
@@ -127,13 +127,13 @@ class _HomeNavigationItem extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 21, color: Colors.white),
+              Icon(icon, size: 21, color: AppColors.white),
               if (showLabel) ...[
                 const SizedBox(width: 4),
                 Text(
                   label,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                   ),

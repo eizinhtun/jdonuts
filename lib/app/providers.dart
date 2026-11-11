@@ -21,7 +21,7 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
   ref.onDispose(database.close);
   return database;
 });
-final connectivityProvider = StreamProvider<bool>((ref) {
+final connectivityProvider = StreamProvider<NetworkStatus>((ref) {
   final reachability = NetworkReachability();
   ref.onDispose(reachability.dispose);
   return reachability.watch();

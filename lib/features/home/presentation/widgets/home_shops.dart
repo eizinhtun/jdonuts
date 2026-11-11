@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/l10n/localization.dart';
-
-import '../../../../core/theme/tokens.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 class HomeShops extends StatelessWidget {
   const HomeShops({super.key, required this.shops});
@@ -19,7 +19,7 @@ class HomeShops extends StatelessWidget {
         Text(
           context.l10n.shopsNear(shops.length),
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.white,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -29,7 +29,7 @@ class HomeShops extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -47,12 +47,17 @@ class HomeShops extends StatelessWidget {
 }
 
 class HomeOfflineNotice extends StatelessWidget {
-  const HomeOfflineNotice({super.key});
+  const HomeOfflineNotice({super.key, required this.status});
+
+  final NetworkStatus status;
+
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(8),
     child: Text(
-      context.l10n.offlineNotice,
+      status.internetReachability == InternetReachability.unknown
+          ? context.l10n.internetStatusUnknown
+          : context.l10n.offlineNotice,
       textAlign: TextAlign.center,
       style: TextStyle(color: AppColors.muted, fontSize: 12),
     ),

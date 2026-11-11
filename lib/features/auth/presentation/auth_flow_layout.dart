@@ -21,9 +21,9 @@ mixin _AuthFlowLayout on _AuthFlowHost, _AuthFlowActions, _AuthFlowForms {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFFFFEFF5),
-                    Color(0xFFFFFAFC),
-                    Color(0xFFFFFFFF),
+                    AppColors.authGradientStart,
+                    AppColors.onboardingSoft,
+                    AppColors.white,
                   ],
                   stops: [0, .58, 1],
                 )

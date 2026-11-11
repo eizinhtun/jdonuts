@@ -8,8 +8,7 @@ import 'package:jdonuts/core/motion/motion.dart';
 import 'package:jdonuts/features/auth/presentation/auth_draft.dart';
 import 'package:jdonuts/features/auth/presentation/widgets/primary_button.dart';
 import 'package:jdonuts/l10n/localization.dart';
-
-import '../../../core/theme/tokens.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -95,7 +94,11 @@ class _WelcomeBackground extends StatelessWidget {
       gradient: LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFFFFFBFD), Color(0xFFFFF1F6), Color(0xFFFFF7FA)],
+        colors: [
+          AppColors.onboardingBlush,
+          AppColors.palePink,
+          AppColors.onboardingBottom,
+        ],
         stops: [0, .72, 1],
       ),
     ),
@@ -288,7 +291,10 @@ class _WelcomeTile extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0x00FFF4F8), Color(0xFFFFF4F8)],
+                    colors: [
+                      AppColors.welcomeClear,
+                      AppColors.welcomeBackground,
+                    ],
                   ),
                 ),
               ),
@@ -305,7 +311,7 @@ class _WelcomeTilePattern extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: .24)
+      ..color = AppColors.white.withValues(alpha: .24)
       ..strokeWidth = size.shortestSide * .035
       ..strokeCap = StrokeCap.round;
     final marks = [

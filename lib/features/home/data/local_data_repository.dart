@@ -23,8 +23,14 @@ class DriftDataRepository implements HomeRepository {
       return data == null
           ? const Error(StorageFailure('The local catalog is empty.'))
           : Success(data);
-    } on Object catch (error) {
-      return Error(StorageFailure('Could not read local data: $error'));
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not read local data.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -48,8 +54,14 @@ class DriftDataRepository implements HomeRepository {
       )..where((row) => row.id.isIn(ids))).get();
       final byId = {for (final row in rows) row.id: _productFromRow(row)};
       return Success(ids.map((id) => byId[id]).whereType<Product>().toList());
-    } on Object catch (error) {
-      return Error(StorageFailure('Could not read this section: $error'));
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not read this section.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 

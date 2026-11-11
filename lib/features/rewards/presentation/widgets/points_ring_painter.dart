@@ -18,7 +18,7 @@ class PointsRingPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..color = const Color(0xFFF0F1F2)
+        ..color = AppColors.ringTrack
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth,
     );
@@ -50,7 +50,7 @@ class PointsRingPainter extends CustomPainter {
   ) {
     if (sweep <= 0) return;
     final edge = Paint()
-      ..color = const Color(0xFFFFB4CC).withValues(alpha: .9)
+      ..color = AppColors.pointsHighlightSoft.withValues(alpha: .9)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     const edgeInset = 20.0;
@@ -77,10 +77,10 @@ class PointsRingPainter extends CustomPainter {
     double sweep,
   ) {
     const colors = [
-      Colors.white,
-      Color(0xFFFFC5D8),
-      Color(0xFFFFD4E1),
-      Colors.white,
+      AppColors.white,
+      AppColors.pointsHighlight,
+      AppColors.pointsGlow,
+      AppColors.white,
     ];
     const count = 22;
     for (var index = 0; index < count; index++) {

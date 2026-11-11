@@ -102,7 +102,7 @@ class OnboardingScreen extends StatelessWidget {
                                   TextSpan(
                                     text: context.l10n.accountPrompt,
                                     style: const TextStyle(
-                                      color: Color(0xFF53565C),
+                                      color: AppColors.labelSlate,
                                       fontSize: 14,
                                     ),
                                   ),
@@ -165,7 +165,11 @@ class _Background extends StatelessWidget {
       gradient: LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFFFFFCFD), Color(0xFFFFF7FA), Color(0xFFFCEBF2)],
+        colors: [
+          AppColors.onboardingMist,
+          AppColors.onboardingBottom,
+          AppColors.authBackgroundMid,
+        ],
         stops: [0, .55, 1],
       ),
     ),

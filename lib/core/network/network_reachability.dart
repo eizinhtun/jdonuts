@@ -1,6 +1,42 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 
+import '../result/result.dart';
+
+enum InternetReachability { reachable, unreachable, unknown }
+
+/// Reports interface availability separately from internet reachability.
+class NetworkStatus {
+  static const offline = NetworkStatus(
+    networkAvailable: false,
+    internetReachability: InternetReachability.unreachable,
+  );
+  static const online = NetworkStatus(
+    networkAvailable: true,
+    internetReachability: InternetReachability.reachable,
+  );
+
+  const NetworkStatus({
+    required this.networkAvailable,
+    required this.internetReachability,
+    this.failure,
+  });
+
+  const NetworkStatus.unknown({Failure? failure})
+    : this(
+        networkAvailable: null,
+        internetReachability: InternetReachability.unknown,
+        failure: failure,
+      );
+
+  final bool? networkAvailable;
+  final InternetReachability internetReachability;
+  final Failure? failure;
+
+  bool get canReachInternet =>
+      internetReachability == InternetReachability.reachable;
+}
+
 /// Combines the device's network interface state with a real reachability probe.
 /// A Wi-Fi/mobile connection alone does not guarantee internet access.
 class NetworkReachability {
@@ -35,31 +71,61 @@ class NetworkReachability {
   final Stream<List<ConnectivityResult>>? _connectivityChanges;
   final Future<bool> Function()? _probe;
 
-  Stream<bool> watch() async* {
-    yield await _readReachability(await _currentConnectivity());
+  Stream<NetworkStatus> watch() async* {
+    yield await _readCurrentStatus();
     await for (final state
         in _connectivityChanges ?? _connectivity.onConnectivityChanged) {
       yield await _readReachability(state);
     }
   }
 
-  Future<List<ConnectivityResult>> _currentConnectivity() async {
+  Future<NetworkStatus> _readCurrentStatus() async {
     try {
-      return await (_checkConnectivity?.call() ??
-          _connectivity.checkConnectivity());
-    } on Object {
-      return const [ConnectivityResult.none];
+      final state =
+          await (_checkConnectivity?.call() ??
+              _connectivity.checkConnectivity());
+      return await _readReachability(state);
+    } on Object catch (error, stackTrace) {
+      return NetworkStatus.unknown(
+        failure: NetworkFailure(
+          'Could not determine network availability.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
-  Future<bool> _readReachability(List<ConnectivityResult> state) async {
-    if (state.isEmpty || state.contains(ConnectivityResult.none)) return false;
+  Future<NetworkStatus> _readReachability(
+    List<ConnectivityResult> state,
+  ) async {
+    if (state.isEmpty || state.contains(ConnectivityResult.none)) {
+      return const NetworkStatus(
+        networkAvailable: false,
+        internetReachability: InternetReachability.unreachable,
+      );
+    }
     try {
-      if (_probe != null) return await _probe();
-      final response = await _client.get(_probeUri).timeout(_probeTimeout);
-      return response.statusCode == 204;
-    } on Object {
-      return false;
+      final reachable = _probe != null
+          ? await _probe()
+          : (await _client.get(_probeUri).timeout(_probeTimeout)).statusCode ==
+                204;
+      return NetworkStatus(
+        networkAvailable: true,
+        internetReachability: reachable
+            ? InternetReachability.reachable
+            : InternetReachability.unreachable,
+      );
+    } on Object catch (error, stackTrace) {
+      return NetworkStatus(
+        networkAvailable: true,
+        internetReachability: InternetReachability.unknown,
+        failure: NetworkFailure(
+          'Could not determine internet reachability.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 

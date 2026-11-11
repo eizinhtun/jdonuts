@@ -30,8 +30,14 @@ class LocalAuthRepository implements AuthRepository {
     try {
       _session ??= await _sessionStore.read();
       return Success(_session != null);
-    } on Object catch (error) {
-      return Error(StorageFailure('Could not restore the session: $error'));
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not restore the session.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -41,8 +47,14 @@ class LocalAuthRepository implements AuthRepository {
       return Success(
         _registered.contains(phone) || await _accountStore.contains(phone),
       );
-    } on Object catch (error) {
-      return Error(StorageFailure('Could not check the saved account: $error'));
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not check the saved account.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -51,11 +63,13 @@ class LocalAuthRepository implements AuthRepository {
     try {
       await _delay(_requestLatency);
       return const Success(true);
-    } on Object catch (error) {
+    } on Object catch (error, stackTrace) {
       return Error(
         AuthFailure(
           AuthFailureCode.serviceUnavailable,
-          'Could not request a verification code: $error',
+          'Could not request a verification code.',
+          cause: error,
+          stackTrace: stackTrace,
         ),
       );
     }
@@ -65,11 +79,13 @@ class LocalAuthRepository implements AuthRepository {
   Future<Result<bool>> verifyOtp(String phone, String code) async {
     try {
       await _delay(_requestLatency);
-    } on Object catch (error) {
+    } on Object catch (error, stackTrace) {
       return Error(
         AuthFailure(
           AuthFailureCode.serviceUnavailable,
-          'Could not verify the code: $error',
+          'Could not verify the code.',
+          cause: error,
+          stackTrace: stackTrace,
         ),
       );
     }
@@ -89,11 +105,13 @@ class LocalAuthRepository implements AuthRepository {
   Future<Result<bool>> saveRegistrationProfile(AuthUser user) async {
     try {
       await _delay(_requestLatency);
-    } on Object catch (error) {
+    } on Object catch (error, stackTrace) {
       return Error(
         AuthFailure(
           AuthFailureCode.serviceUnavailable,
-          'Could not save the profile: $error',
+          'Could not save the profile.',
+          cause: error,
+          stackTrace: stackTrace,
         ),
       );
     }
@@ -113,11 +131,13 @@ class LocalAuthRepository implements AuthRepository {
   Future<Result<AuthUser>> login(String phone, String code) async {
     try {
       await _delay(_requestLatency);
-    } on Object catch (error) {
+    } on Object catch (error, stackTrace) {
       return Error(
         AuthFailure(
           AuthFailureCode.serviceUnavailable,
-          'Could not sign in: $error',
+          'Could not sign in.',
+          cause: error,
+          stackTrace: stackTrace,
         ),
       );
     }
@@ -132,8 +152,14 @@ class LocalAuthRepository implements AuthRepository {
     AuthUser? storedUser;
     try {
       storedUser = await _accountStore.find(phone);
-    } on Object catch (error) {
-      return Error(StorageFailure('Could not load the saved account: $error'));
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not load the saved account.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
     if (!_registered.contains(phone) && storedUser == null) {
       return const Error(
@@ -143,8 +169,14 @@ class LocalAuthRepository implements AuthRepository {
     final user = storedUser ?? _sampleMember(phone);
     try {
       await _sessionStore.write(user);
-    } on Object catch (error) {
-      return Error(StorageFailure('Could not save the session: $error'));
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not save the session.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
     _session = user;
     return Success(user);
@@ -154,11 +186,13 @@ class LocalAuthRepository implements AuthRepository {
   Future<Result<AuthUser>> register(AuthUser user) async {
     try {
       await _delay(_requestLatency);
-    } on Object catch (error) {
+    } on Object catch (error, stackTrace) {
       return Error(
         AuthFailure(
           AuthFailureCode.serviceUnavailable,
-          'Could not complete registration: $error',
+          'Could not complete registration.',
+          cause: error,
+          stackTrace: stackTrace,
         ),
       );
     }
@@ -174,22 +208,38 @@ class LocalAuthRepository implements AuthRepository {
     }
     try {
       await _accountStore.save(user);
-    } on Object catch (error) {
-      return Error(StorageFailure('Could not save the account: $error'));
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not save the account.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
     try {
       await _sessionStore.write(user);
-    } on Object catch (error) {
+    } on Object catch (error, stackTrace) {
       try {
         await _accountStore.delete(user.phone);
-      } on Object catch (rollbackError) {
+      } on Object catch (rollbackError, rollbackStackTrace) {
         return Error(
           StorageFailure(
-            'Could not save the session or undo the account write: $rollbackError',
+            'Could not save the session or undo the account write.',
+            cause: error,
+            stackTrace: stackTrace,
+            secondaryCause: rollbackError,
+            secondaryStackTrace: rollbackStackTrace,
           ),
         );
       }
-      return Error(StorageFailure('Could not save the session: $error'));
+      return Error(
+        StorageFailure(
+          'Could not save the session.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
     _registered.add(user.phone);
     _verifiedNumbers.remove(user.phone);
@@ -204,8 +254,14 @@ class LocalAuthRepository implements AuthRepository {
       await _sessionStore.clear();
       _session = null;
       return const Success(true);
-    } on Object catch (error) {
-      return Error(StorageFailure('Could not clear the session: $error'));
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not clear the session.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 

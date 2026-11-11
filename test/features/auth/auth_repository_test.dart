@@ -77,14 +77,18 @@ void main() {
 
       final result = await repo.requestOtp('95987654321');
       expect(result, isA<Error<bool>>());
+      final failure = (result as Error<bool>).failure;
       expect(
-        (result as Error<bool>).failure,
+        failure,
         isA<AuthFailure>().having(
           (failure) => failure.code,
           'code',
           AuthFailureCode.serviceUnavailable,
         ),
       );
+      expect(failure.message, isNot(contains('offline')));
+      expect(failure.cause, isA<StateError>());
+      expect(failure.stackTrace, isNotNull);
     });
 
     test(
@@ -98,7 +102,11 @@ void main() {
 
         final result = await repo.login('95987654321', fakeOtpCode);
         expect(result, isA<Error<AuthUser>>());
-        expect((result as Error<AuthUser>).failure, isA<StorageFailure>());
+        final failure = (result as Error<AuthUser>).failure;
+        expect(failure, isA<StorageFailure>());
+        expect(failure.message, isNot(contains('session storage unavailable')));
+        expect(failure.cause, isA<StateError>());
+        expect(failure.stackTrace, isNotNull);
         expect(await _value(repo.hasSession()), isFalse);
       },
     );

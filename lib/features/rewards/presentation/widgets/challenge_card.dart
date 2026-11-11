@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jdonuts/l10n/localization.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 import '../../../../core/motion/motion.dart';
-import '../../../../core/theme/tokens.dart';
 import '../../domain/rewards_progress.dart';
 import '../../../home/domain/models.dart';
 import 'challenge_artwork.dart';
@@ -102,11 +102,11 @@ class _ChallengeCardState extends State<ChallengeCard>
         vertical: compactLayout ? 20 : 30,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x08000000),
+            color: AppColors.softShadow,
             blurRadius: 8,
             offset: Offset(0, 3),
           ),
@@ -163,8 +163,8 @@ class _ChallengeCardState extends State<ChallengeCard>
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           backgroundColor: AppColors.cyan,
                           disabledBackgroundColor: AppColors.challengeDisabled,
-                          foregroundColor: Colors.white,
-                          disabledForegroundColor: Colors.white,
+                          foregroundColor: AppColors.white,
+                          disabledForegroundColor: AppColors.white,
                         ),
                         child: Text(
                           context.l10n.earnLabel,

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/app/providers.dart';
+import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/core/storage/app_database.dart';
 import 'package:jdonuts/features/auth/data/auth_session_store.dart';
@@ -536,7 +537,9 @@ Widget _testApp(AuthRepository repository, {DateTime Function()? clock}) =>
           ref.onDispose(database.close);
           return database;
         }),
-        connectivityProvider.overrideWith((ref) => Stream.value(true)),
+        connectivityProvider.overrideWith(
+          (ref) => Stream.value(NetworkStatus.online),
+        ),
         authRepositoryProvider.overrideWith((ref) => repository),
         if (clock != null) clockProvider.overrideWith((ref) => clock),
       ],

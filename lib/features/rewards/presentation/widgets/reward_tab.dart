@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 import '../../../../core/motion/motion.dart';
-import '../../../../core/theme/tokens.dart';
 
 class RewardTab extends StatelessWidget {
   const RewardTab({
@@ -29,14 +29,14 @@ class RewardTab extends StatelessWidget {
               ? null
               : BoxDecoration(
                   color: AppColors.canvas,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: AppColors.white, width: 2),
                   borderRadius: BorderRadius.circular(24),
                 ),
           child: Center(
             child: AnimatedDefaultTextStyle(
               duration: Motion.duration(context, Motion.quick),
               style: TextStyle(
-                color: selected ? Colors.white : AppColors.muted,
+                color: selected ? AppColors.white : AppColors.muted,
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
                 fontFamily: Theme.of(context).platform == TargetPlatform.iOS

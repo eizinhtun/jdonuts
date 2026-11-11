@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jdonuts/core/presentation/seed_image.dart';
 import 'package:jdonuts/l10n/localization.dart';
+import 'package:jdonuts/core/theme/tokens.dart';
 
 import '../../../app/providers.dart';
 import '../../../core/formatters/currency.dart';
 import '../../../core/motion/motion.dart';
-import '../../../core/theme/tokens.dart';
 import '../../home/domain/models.dart';
 
-const _helpGreen = Color(0xFF83BF49);
+const _helpGreen = AppColors.helpGreen;
 
 class ProductScreen extends ConsumerStatefulWidget {
   const ProductScreen({
@@ -177,7 +177,7 @@ class _ProductHeroCard extends StatelessWidget {
           children: [
             Text(
               product.code,
-              style: const TextStyle(color: Color(0xFF8996A3), fontSize: 13),
+              style: const TextStyle(color: AppColors.inputSlate, fontSize: 13),
             ),
             if (product.isNew) _NewBadge(label: context.l10n.newBadge),
           ],
@@ -270,7 +270,7 @@ class _QuantityStepper extends StatelessWidget {
               key: ValueKey(quantity),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Color(0xFF303A43),
+                color: AppColors.productInk,
                 fontWeight: FontWeight.w800,
                 fontSize: 26,
               ),
@@ -320,13 +320,13 @@ class _ProductDescription extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        const VerticalDivider(width: 1, thickness: 1, color: Colors.white),
+        const VerticalDivider(width: 1, thickness: 1, color: AppColors.white),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             product.description,
             style: const TextStyle(
-              color: Color(0xFF7D8286),
+              color: AppColors.bodyMuted,
               fontSize: 15,
               height: 1.45,
             ),
@@ -352,7 +352,7 @@ class _NewBadge extends StatelessWidget {
     child: Text(
       label,
       style: const TextStyle(
-        color: Colors.white,
+        color: AppColors.white,
         fontSize: 13,
         fontWeight: FontWeight.w800,
       ),
@@ -399,7 +399,7 @@ class _AddToCartButton extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: fontSize,
                   fontWeight: FontWeight.w800,
                   letterSpacing: compact ? .1 : .4,
@@ -410,7 +410,7 @@ class _AddToCartButton extends StatelessWidget {
               width: 1,
               height: compact ? 22 : 25,
               margin: EdgeInsets.symmetric(horizontal: compact ? 5 : 10),
-              color: Colors.white.withValues(alpha: .65),
+              color: AppColors.white.withValues(alpha: .65),
             ),
             Expanded(
               child: Text(
@@ -418,7 +418,7 @@ class _AddToCartButton extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: fontSize,
                   fontWeight: FontWeight.w800,
                   letterSpacing: compact ? .1 : .4,
