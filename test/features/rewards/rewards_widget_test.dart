@@ -18,17 +18,18 @@ void main() {
 
     await tester.pumpWidget(_rewardsApp(textScale: 1.3));
     await tester.pumpAndSettle();
-
     expect(find.text('680,000'), findsOneWidget);
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -180));
     await tester.pumpAndSettle();
     expect(find.text('Eat more earn more'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    final compactError = tester.takeException();
+    expect(compactError, isNull, reason: '$compactError');
 
     await tester.tap(find.text('Gift'));
     await tester.pumpAndSettle();
     expect(find.text('Gift a treat to a friend'), findsWidgets);
-    expect(tester.takeException(), isNull);
+    final reducedMotionError = tester.takeException();
+    expect(reducedMotionError, isNull, reason: '$reducedMotionError');
   });
 
   testWidgets('Reduce Motion renders completed rewards without looping', (

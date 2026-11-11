@@ -72,43 +72,50 @@ mixin _AuthFlowLayout on _AuthFlowHost, _AuthFlowActions, _AuthFlowForms {
               ),
               Expanded(
                 child: LayoutBuilder(
-                  builder: (context, constraints) => SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(
-                      referenceLayout ? contentLeft : 24,
-                      referenceLayout ? 30 : 20,
-                      referenceLayout ? contentRight : 24,
-                      referenceLayout ? 57 : 14,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight:
-                            (constraints.maxHeight -
-                                    (referenceLayout ? 87 : 34))
-                                .clamp(0.0, double.infinity),
-                      ),
-                      child: IntrinsicHeight(
-                        child: AnimatedSwitcher(
-                          duration: Motion.duration(context, Motion.standard),
-                          switchInCurve: Motion.curve,
-                          transitionBuilder: (child, animation) =>
-                              FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(.05, 0),
-                                    end: Offset.zero,
-                                  ).animate(animation),
-                                  child: child,
-                                ),
-                              ),
-                          child: KeyedSubtree(
-                            key: ValueKey(widget.step),
-                            child: _buildStep(phoneError),
-                          ),
+                  builder: (context, constraints) {
+                    final availableHeight =
+                        MediaQuery.sizeOf(context).height -
+                        MediaQuery.viewInsetsOf(context).bottom;
+                    final step = AnimatedSwitcher(
+                      duration: Motion.duration(context, Motion.standard),
+                      switchInCurve: Motion.curve,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(.05, 0),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
                         ),
                       ),
-                    ),
-                  ),
+                      child: KeyedSubtree(
+                        key: ValueKey(widget.step),
+                        child: _buildStep(phoneError),
+                      ),
+                    );
+                    final scrollableStep =
+                        widget.step == 'dob' && availableHeight < 760
+                        ? step
+                        : IntrinsicHeight(child: step);
+                    return SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(
+                        referenceLayout ? contentLeft : 24,
+                        referenceLayout ? 30 : 20,
+                        referenceLayout ? contentRight : 24,
+                        referenceLayout ? 57 : 14,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight:
+                              (constraints.maxHeight -
+                                      (referenceLayout ? 87 : 34))
+                                  .clamp(0.0, double.infinity),
+                        ),
+                        child: scrollableStep,
+                      ),
+                    );
+                  },
                 ),
               ),
               _legalFooter(context),

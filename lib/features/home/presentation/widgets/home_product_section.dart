@@ -10,34 +10,78 @@ import '../../domain/models.dart';
 
 class HomeProductSection extends ConsumerWidget {
   const HomeProductSection({super.key, required this.section});
+
   final HomeSection section;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final products = ref.watch(sectionProductsProvider(section.id));
+    final width = MediaQuery.sizeOf(context).width;
+    final seasonal = section.id == 'seasonal';
+    final popular = section.id == 'popular';
+    final cardWidth = width * (seasonal ? .61 : .42);
+    final artworkHeight = seasonal
+        ? cardWidth * .64
+        : popular
+        ? cardWidth * 1.24
+        : cardWidth;
+    final cardHeight = artworkHeight + 52;
+
     return Padding(
-      padding: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.only(top: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    section.title,
-                    style: Theme.of(context).textTheme.titleMedium,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          section.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.ink,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      if (popular) ...[
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.local_fire_department,
+                          size: 18,
+                          color: AppColors.orange,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                const Icon(Icons.chevron_right),
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: const BoxDecoration(
+                    color: AppColors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.chevron_right, size: 20),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 9),
           SizedBox(
-            height: 158,
+            height: cardHeight,
             child: products.when(
-              loading: () => const _SectionSkeleton(),
+              loading: () => _SectionSkeleton(
+                cardWidth: cardWidth,
+                artworkHeight: artworkHeight,
+              ),
               error: (_, _) => _SectionState(
                 label: context.l10n.sectionUnavailable,
                 actionLabel: context.l10n.retryLabel,
@@ -54,6 +98,9 @@ class HomeProductSection extends ConsumerWidget {
                       itemBuilder: (context, index) => _ProductCard(
                         product: items[index],
                         heroTag: 'product-${items[index].id}-${section.id}',
+                        width: cardWidth,
+                        artworkHeight: artworkHeight,
+                        seasonal: seasonal,
                       ),
                     ),
             ),
@@ -65,7 +112,13 @@ class HomeProductSection extends ConsumerWidget {
 }
 
 class _SectionSkeleton extends StatelessWidget {
-  const _SectionSkeleton();
+  const _SectionSkeleton({
+    required this.cardWidth,
+    required this.artworkHeight,
+  });
+
+  final double cardWidth;
+  final double artworkHeight;
 
   @override
   Widget build(BuildContext context) => ListView.separated(
@@ -73,13 +126,14 @@ class _SectionSkeleton extends StatelessWidget {
     scrollDirection: Axis.horizontal,
     itemCount: 2,
     separatorBuilder: (_, _) => const SizedBox(width: 10),
-    itemBuilder: (context, index) => const SizedBox(
-      width: 128,
+    itemBuilder: (context, index) => SizedBox(
+      width: cardWidth,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.skeletonBase,
-          borderRadius: BorderRadius.all(Radius.circular(16)),
+          borderRadius: BorderRadius.circular(16),
         ),
+        child: SizedBox(height: artworkHeight),
       ),
     ),
   );
@@ -109,33 +163,61 @@ class _SectionState extends StatelessWidget {
 }
 
 class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product, required this.heroTag});
+  const _ProductCard({
+    required this.product,
+    required this.heroTag,
+    required this.width,
+    required this.artworkHeight,
+    required this.seasonal,
+  });
+
   final Product product;
   final String heroTag;
+  final double width;
+  final double artworkHeight;
+  final bool seasonal;
+
   @override
   Widget build(BuildContext context) => InkWell(
     onTap: () => context.push('/product/${product.id}', extra: heroTag),
-    borderRadius: BorderRadius.circular(16),
+    borderRadius: BorderRadius.circular(14),
     child: SizedBox(
-      width: 128,
+      width: width,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
+          SizedBox(
+            height: artworkHeight,
             child: Stack(
+              fit: StackFit.expand,
               children: [
-                Hero(
-                  tag: heroTag,
-                  child: Container(
-                    width: 128,
-                    decoration: BoxDecoration(
-                      color: AppColors.canvas,
-                      borderRadius: BorderRadius.circular(16),
+                if (seasonal)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Hero(
+                      tag: heroTag,
+                      child: SeedImage(
+                        assetName: product.image,
+                        fit: BoxFit.cover,
+                        semanticsLabel: product.name,
+                      ),
                     ),
-                    padding: const EdgeInsets.all(15),
-                    child: SeedImage(assetName: product.image),
+                  )
+                else
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    child: Hero(
+                      tag: heroTag,
+                      child: SeedImage(
+                        assetName: product.image,
+                        semanticsLabel: product.name,
+                      ),
+                    ),
                   ),
-                ),
                 if (product.discountPercent != null)
                   Positioned(
                     right: 5,
@@ -150,7 +232,12 @@ class _ProductCard extends StatelessWidget {
             product.name,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+              color: AppColors.ink,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              height: 1.18,
+            ),
           ),
         ],
       ),
@@ -160,20 +247,22 @@ class _ProductCard extends StatelessWidget {
 
 class _DiscountBadge extends StatelessWidget {
   const _DiscountBadge({required this.value});
+
   final int value;
+
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
     decoration: BoxDecoration(
       color: AppColors.orange,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(13),
     ),
     child: Text(
       context.l10n.discountLabel(value),
       style: const TextStyle(
         color: Colors.white,
-        fontSize: 9,
-        fontWeight: FontWeight.bold,
+        fontSize: 10,
+        fontWeight: FontWeight.w800,
       ),
     ),
   );

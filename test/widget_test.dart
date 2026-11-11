@@ -152,6 +152,10 @@ void main() {
     await tester.enterText(birthFields.at(1), '1');
     await tester.enterText(birthFields.at(2), '1980');
     await tester.pump();
+    tester.binding.focusManager.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('CONTINUE'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('CONTINUE'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -170,7 +174,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Coconut Donut'), findsWidgets);
-    expect(find.text('3,200 MMK'), findsOneWidget);
+    expect(find.text('3,200 MMK'), findsNWidgets(2));
   });
 }
 

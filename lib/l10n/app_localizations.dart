@@ -118,6 +118,12 @@ abstract class AppLocalizations {
   /// **'Rewards'**
   String get rewardsLabel;
 
+  /// No description provided for @rewardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward'**
+  String get rewardLabel;
+
   /// No description provided for @homeLabel.
   ///
   /// In en, this message translates to:
@@ -507,6 +513,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ADDED'**
   String get addedLabel;
+
+  /// No description provided for @decreaseQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease quantity'**
+  String get decreaseQuantity;
+
+  /// No description provided for @increaseQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase quantity'**
+  String get increaseQuantity;
 
   /// No description provided for @whatsThis.
   ///

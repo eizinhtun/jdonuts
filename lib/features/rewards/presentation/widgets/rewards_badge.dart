@@ -13,7 +13,7 @@ class RewardsBadge extends StatelessWidget {
   Widget build(BuildContext context) => ScaleTransition(
     scale: CurvedAnimation(parent: animation, curve: Motion.badgePopCurve),
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: const BoxDecoration(
         color: AppColors.orange,
         borderRadius: BorderRadius.horizontal(left: Radius.circular(28)),
@@ -25,16 +25,21 @@ class RewardsBadge extends StatelessWidget {
             context.l10n.rewardsBadge,
             style: const TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           const CircleAvatar(
-            radius: 11,
+            radius: 9,
             backgroundColor: Colors.white,
             child: Text(
               '3',
-              style: TextStyle(color: AppColors.ink, fontSize: 12),
+              style: TextStyle(
+                color: AppColors.ink,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],

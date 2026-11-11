@@ -13,6 +13,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     final width = switch (widget.step) {
       'phone' => 320.0,
       'name' => 250.0,
+      'dob' => 280.0,
       _ => double.infinity,
     };
     final referenceStyle = _useReferenceAuthLayout;
@@ -379,71 +380,88 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     ],
   );
 
-  Widget _birthDateStep() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _stepHeadline(context.l10n.birthTitle),
-      const SizedBox(height: AppSpace.sm),
-      Text(context.l10n.ageRequirement),
-      const SizedBox(height: AppSpace.lg),
-      _birthDateField(
-        controller: _birthMonth,
-        hint: context.l10n.birthMonthHint,
-        onChanged: (value) => _onBirthPartChanged('month', value),
-        capitalization: TextCapitalization.words,
-      ),
-      const SizedBox(height: AppSpace.sm),
-      _birthDateField(
-        controller: _birthDay,
-        hint: context.l10n.birthDayHint,
-        onChanged: (value) => _onBirthPartChanged('day', value),
-        keyboardType: TextInputType.number,
-        formatter: FilteringTextInputFormatter.digitsOnly,
-        maxLength: 2,
-      ),
-      const SizedBox(height: AppSpace.sm),
-      _birthDateField(
-        controller: _birthYear,
-        hint: context.l10n.birthYearHint,
-        onChanged: (value) => _onBirthPartChanged('year', value),
-        keyboardType: TextInputType.number,
-        formatter: FilteringTextInputFormatter.digitsOnly,
-        maxLength: 4,
-      ),
-      if (_dateSubmitted)
-        Padding(
-          padding: const EdgeInsets.only(top: AppSpace.sm),
-          child: Text(
-            _validationMessage(
-                  validateBirthInputs(
-                    _birthMonth.text,
-                    _birthDay.text,
-                    _birthYear.text,
-                    today: ref.read(clockProvider)(),
-                  ),
-                ) ??
-                '',
-            style: const TextStyle(color: AppColors.error),
+  Widget _birthDateStep() {
+    final availableHeight =
+        MediaQuery.sizeOf(context).height -
+        MediaQuery.viewInsetsOf(context).bottom;
+    final anchorButtonAtBottom = availableHeight >= 760;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _stepHeadline(context.l10n.birthTitle),
+        if (!_useReferenceAuthLayout) ...[
+          const SizedBox(height: AppSpace.sm),
+          Text(context.l10n.ageRequirement),
+        ],
+        SizedBox(height: _useReferenceAuthLayout ? 40 : AppSpace.lg),
+        _birthDateField(
+          controller: _birthMonth,
+          hint: context.l10n.birthMonthHint,
+          onChanged: (value) => _onBirthPartChanged('month', value),
+          capitalization: TextCapitalization.words,
+        ),
+        SizedBox(height: _useReferenceAuthLayout ? 20 : AppSpace.sm),
+        _birthDateField(
+          controller: _birthDay,
+          hint: context.l10n.birthDayHint,
+          onChanged: (value) => _onBirthPartChanged('day', value),
+          keyboardType: TextInputType.number,
+          formatter: FilteringTextInputFormatter.digitsOnly,
+          maxLength: 2,
+        ),
+        SizedBox(height: _useReferenceAuthLayout ? 20 : AppSpace.sm),
+        _birthDateField(
+          controller: _birthYear,
+          hint: context.l10n.birthYearHint,
+          onChanged: (value) => _onBirthPartChanged('year', value),
+          keyboardType: TextInputType.number,
+          formatter: FilteringTextInputFormatter.digitsOnly,
+          maxLength: 4,
+        ),
+        if (_dateSubmitted)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpace.sm),
+            child: Text(
+              _validationMessage(
+                    validateBirthInputs(
+                      _birthMonth.text,
+                      _birthDay.text,
+                      _birthYear.text,
+                      today: ref.read(clockProvider)(),
+                    ),
+                  ) ??
+                  '',
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        if (_error != null)
+          Text(_error!, style: const TextStyle(color: AppColors.error)),
+        if (anchorButtonAtBottom)
+          const Spacer()
+        else
+          const SizedBox(height: AppSpace.lg),
+        DefaultTextStyle.merge(
+          style: _useReferenceAuthLayout
+              ? const TextStyle(fontSize: 16, letterSpacing: .5)
+              : const TextStyle(),
+          child: PrimaryButton(
+            label: context.l10n.continueButton,
+            height: _useReferenceAuthLayout ? 56 : 52,
+            enabled:
+                validateBirthInputs(
+                  _birthMonth.text,
+                  _birthDay.text,
+                  _birthYear.text,
+                  today: ref.read(clockProvider)(),
+                ) ==
+                null,
+            loading: _loading,
+            onPressed: _continueFromBirthDate,
           ),
         ),
-      if (_error != null)
-        Text(_error!, style: const TextStyle(color: AppColors.error)),
-      const Spacer(),
-      PrimaryButton(
-        label: context.l10n.continueButton,
-        enabled:
-            validateBirthInputs(
-              _birthMonth.text,
-              _birthDay.text,
-              _birthYear.text,
-              today: ref.read(clockProvider)(),
-            ) ==
-            null,
-        loading: _loading,
-        onPressed: _continueFromBirthDate,
-      ),
-    ],
-  );
+      ],
+    );
+  }
 
   Widget _birthDateField({
     required TextEditingController controller,
@@ -462,10 +480,18 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     inputFormatters: formatter == null ? null : [formatter],
     onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
     onChanged: onChanged,
+    style: _useReferenceAuthLayout
+        ? const TextStyle(fontSize: 18, color: AppColors.ink)
+        : null,
     decoration: InputDecoration(
       hintText: hint,
+      hintStyle: _useReferenceAuthLayout
+          ? const TextStyle(color: Color(0xFF8995A1), fontSize: 18)
+          : null,
       counterText: '',
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      contentPadding: _useReferenceAuthLayout
+          ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
+          : const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       filled: true,
       fillColor: AppColors.white,
       border: _inputBorder(),

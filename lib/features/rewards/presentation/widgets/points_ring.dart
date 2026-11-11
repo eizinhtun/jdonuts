@@ -8,6 +8,8 @@ import '../../../../core/theme/tokens.dart';
 import '../../../home/domain/models.dart';
 import 'points_ring_painter.dart';
 
+const _pointsRingSweep = .78;
+
 class PointsRing extends StatelessWidget {
   const PointsRing({super.key, required this.member, required this.animation});
   final Member member;
@@ -16,7 +18,7 @@ class PointsRing extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final diameter = math.min(
-        255.0,
+        270.0,
         math.min(constraints.maxWidth, constraints.maxHeight),
       );
       return AnimatedBuilder(
@@ -28,7 +30,9 @@ class PointsRing extends StatelessWidget {
             child: SizedBox.square(
               dimension: diameter,
               child: CustomPaint(
-                painter: PointsRingPainter(progress: animation.value),
+                painter: PointsRingPainter(
+                  progress: animation.value * _pointsRingSweep,
+                ),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -39,7 +43,7 @@ class PointsRing extends StatelessWidget {
                         style: TextStyle(
                           color: AppColors.pink,
                           fontWeight: FontWeight.w700,
-                          fontSize: diameter < 205 ? 12 : 14,
+                          fontSize: 12,
                         ),
                       ),
                       FittedBox(
@@ -51,7 +55,7 @@ class PointsRing extends StatelessWidget {
                           ),
                           style: TextStyle(
                             color: AppColors.pink,
-                            fontSize: diameter < 205 ? 21 : 27,
+                            fontSize: 20,
                             fontWeight: FontWeight.w900,
                           ),
                         ),

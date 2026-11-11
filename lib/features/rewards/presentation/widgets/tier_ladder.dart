@@ -11,52 +11,70 @@ class TierLadder extends StatelessWidget {
   final Animation<double> animation;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(24, 20, 0, 20),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _stagger(
-          0,
-          _tier(
-            'S',
-            context.l10n.silverTier,
-            context.l10n.currentTier,
-            AppColors.silver,
-            current: true,
-            progress: null,
-            context: context,
-          ),
-        ),
-        _line(_goldProgress),
-        _stagger(
-          .16,
-          _tier(
-            'G',
-            context.l10n.goldTier,
-            context.l10n.pointsRemaining(member.pointsToGold),
-            AppColors.gold,
-            current: false,
-            progress: _goldProgress,
-            context: context,
-          ),
-        ),
-        _line(.08),
-        _stagger(
-          .32,
-          _tier(
-            'P',
-            context.l10n.platinumTier,
-            context.l10n.futureTier,
-            AppColors.platinum,
-            current: false,
-            progress: null,
-            context: context,
-          ),
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final narrow =
+        MediaQuery.sizeOf(context).width < 380 ||
+        MediaQuery.textScalerOf(context).scale(1) > 1.1;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(narrow ? 24 : 35, 20, 0, 20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact =
+              constraints.maxWidth < 145 ||
+              MediaQuery.textScalerOf(context).scale(1) > 1.1;
+          final iconLabelGap = compact ? 8.0 : 14.0;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _stagger(
+                0,
+                _tier(
+                  'S',
+                  context.l10n.silverTier,
+                  context.l10n.currentTier,
+                  AppColors.silver,
+                  stars: 1,
+                  context: context,
+                  gap: iconLabelGap,
+                ),
+              ),
+              _line(
+                _goldProgress,
+                color: const Color(0xFF74777A),
+                height: compact ? 55 : 69,
+              ),
+              _stagger(
+                .16,
+                _tier(
+                  'G',
+                  context.l10n.goldTier,
+                  context.l10n.pointsRemaining(member.pointsToGold),
+                  AppColors.gold,
+                  stars: 2,
+                  context: context,
+                  gap: iconLabelGap,
+                ),
+              ),
+              _line(0, height: compact ? 35 : 49),
+              _stagger(
+                .32,
+                _tier(
+                  'P',
+                  context.l10n.platinumTier,
+                  context.l10n.futureTier,
+                  AppColors.platinum,
+                  stars: 3,
+                  context: context,
+                  gap: iconLabelGap,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   double get _goldProgress {
     final targetPoints = member.points + member.pointsToGold;
@@ -80,19 +98,26 @@ class TierLadder extends StatelessWidget {
     },
   );
 
-  Widget _line(double progress) => Padding(
+  Widget _line(
+    double progress, {
+    Color color = AppColors.pink,
+    double height = 52,
+  }) => Padding(
     padding: const EdgeInsets.only(left: 17),
     child: SizedBox(
-      height: 22,
+      height: height,
       child: SizedBox(
         width: 2,
         child: Stack(
-          alignment: Alignment.bottomCenter,
+          alignment: Alignment.topCenter,
           children: [
-            const ColoredBox(color: AppColors.tierConnector),
+            const Positioned.fill(
+              child: ColoredBox(color: AppColors.tierConnector),
+            ),
             FractionallySizedBox(
+              widthFactor: 1,
               heightFactor: progress.clamp(0.0, 1.0),
-              child: const ColoredBox(color: AppColors.pink),
+              child: ColoredBox(color: color),
             ),
           ],
         ),
@@ -105,18 +130,11 @@ class TierLadder extends StatelessWidget {
     String title,
     String subtitle,
     Color color, {
-    required bool current,
-    required double? progress,
+    required int stars,
     required BuildContext context,
+    required double gap,
   }) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-    decoration: current
-        ? BoxDecoration(
-            color: AppColors.palePink,
-            border: Border.all(color: AppColors.pink.withValues(alpha: .45)),
-            borderRadius: BorderRadius.circular(16),
-          )
-        : null,
+    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
     child: Row(
       children: [
         SizedBox(
@@ -125,25 +143,42 @@ class TierLadder extends StatelessWidget {
           child: CustomPaint(
             painter: _TierMarkPainter(
               fill: color.withValues(alpha: .35),
-              stroke: current ? AppColors.pink : color,
-              strokeWidth: current ? 2.5 : 2,
+              stroke: color,
+              strokeWidth: 2,
             ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 3),
-                child: Text(
-                  mark,
-                  style: TextStyle(
-                    color: AppColors.ink.withValues(alpha: .65),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                  top: 3,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(
+                      stars,
+                      (_) => Icon(
+                        Icons.star,
+                        size: 6,
+                        color: AppColors.ink.withValues(alpha: .42),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 7),
+                  child: Text(
+                    mark,
+                    style: TextStyle(
+                      color: AppColors.ink.withValues(alpha: .65),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: gap),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,29 +187,20 @@ class TierLadder extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: current ? AppColors.pink : AppColors.ink,
+                  color: AppColors.ink,
+                  fontFamily: Theme.of(context).platform == TargetPlatform.iOS
+                      ? 'SF Pro Rounded'
+                      : null,
                 ),
               ),
               Text(
                 subtitle,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, height: 1.2),
+                style: const TextStyle(fontSize: 10, height: 1.2),
               ),
-              if (progress != null) ...[
-                const SizedBox(height: 3),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 4,
-                    backgroundColor: AppColors.canvas,
-                    color: AppColors.pink,
-                  ),
-                ),
-              ],
             ],
           ),
         ),

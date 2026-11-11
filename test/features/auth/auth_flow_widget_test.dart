@@ -70,6 +70,8 @@ void main() {
     await tester.enterText(birthFields.at(2), '1980');
     await tester.pump();
     requestGate = Completer<void>();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
     await tester.tap(find.byType(PrimaryButton));
     await tester.pump();
     await tester.tap(find.byType(PrimaryButton));
@@ -167,6 +169,12 @@ void main() {
       tester.widget<TextField>(find.byType(TextField).first).controller?.text,
       'May',
     );
+    await tester.enterText(find.byType(TextField).at(1), 'Aung');
+    await tester.pump();
+    await tester.ensureVisible(find.byType(PrimaryButton));
+    await tester.tap(find.byType(PrimaryButton));
+    await tester.pumpAndSettle();
+    expect(find.text('What’s your date of birth?'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

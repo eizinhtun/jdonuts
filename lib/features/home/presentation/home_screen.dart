@@ -6,6 +6,7 @@ import 'package:jdonuts/core/presentation/animated_entrance.dart';
 import 'package:jdonuts/l10n/localization.dart';
 
 import '../../../core/motion/motion.dart';
+import '../../../core/theme/tokens.dart';
 import '../../../app/providers.dart';
 import 'widgets/app_bottom_nav.dart';
 import 'widgets/home_banner_card.dart';
@@ -21,7 +22,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final _pager = PageController(viewportFraction: .88);
+  final _pager = PageController(viewportFraction: .92);
   Timer? _carousel;
   bool? _reduceMotion;
 
@@ -75,62 +76,69 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
     final online = ref.watch(connectivityProvider).asData?.value ?? false;
     return Scaffold(
+      backgroundColor: const Color(0xFFFFEEE0),
       body: SafeArea(
-        child: ref
-            .watch(appDataProvider)
-            .when(
-              loading: () => const HomeSkeleton(),
-              error: (e, _) => HomeStateMessage(
-                title: context.l10n.homeLoadError,
-                onRetry: _refresh,
-              ),
-              data: (data) => RefreshIndicator(
-                onRefresh: _refresh,
-                child: CustomScrollView(
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: AnimatedEntrance(
-                        child: HomeHeader(member: data.member),
-                      ),
-                    ),
-                    if (!online)
-                      const SliverToBoxAdapter(child: HomeOfflineNotice()),
-                    SliverToBoxAdapter(
-                      child: AnimatedEntrance(
-                        delay: Motion.homeBannerDelay,
-                        child: SizedBox(
-                          height: 132,
-                          child: PageView(
-                            controller: _pager,
-                            children: data.banners
-                                .map((banner) => HomeBannerCard(banner: banner))
-                                .toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    for (var index = 0; index < data.sections.length; index++)
+        child: ColoredBox(
+          color: AppColors.canvas,
+          child: ref
+              .watch(appDataProvider)
+              .when(
+                loading: () => const HomeSkeleton(),
+                error: (e, _) => HomeStateMessage(
+                  title: context.l10n.homeLoadError,
+                  onRetry: _refresh,
+                ),
+                data: (data) => RefreshIndicator(
+                  onRefresh: _refresh,
+                  child: CustomScrollView(
+                    slivers: [
                       SliverToBoxAdapter(
                         child: AnimatedEntrance(
-                          delay: Motion.homeSectionDelay(index),
-                          child: HomeProductSection(
-                            section: data.sections[index],
+                          child: HomeHeader(member: data.member),
+                        ),
+                      ),
+                      if (!online)
+                        const SliverToBoxAdapter(child: HomeOfflineNotice()),
+                      SliverToBoxAdapter(
+                        child: AnimatedEntrance(
+                          delay: Motion.homeBannerDelay,
+                          child: SizedBox(
+                            height: (MediaQuery.sizeOf(context).width * .44)
+                                .clamp(142.0, 178.0),
+                            child: PageView(
+                              controller: _pager,
+                              children: data.banners
+                                  .map(
+                                    (banner) => HomeBannerCard(banner: banner),
+                                  )
+                                  .toList(),
+                            ),
                           ),
                         ),
                       ),
-                    SliverToBoxAdapter(
-                      child: AnimatedEntrance(
-                        delay: Motion.homeShopsDelay,
-                        child: HomeShops(shops: data.shops),
+                      for (var index = 0; index < data.sections.length; index++)
+                        SliverToBoxAdapter(
+                          child: AnimatedEntrance(
+                            delay: Motion.homeSectionDelay(index),
+                            child: HomeProductSection(
+                              section: data.sections[index],
+                            ),
+                          ),
+                        ),
+                      SliverToBoxAdapter(
+                        child: AnimatedEntrance(
+                          delay: Motion.homeShopsDelay,
+                          child: HomeShops(shops: data.shops),
+                        ),
                       ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 18)),
-                  ],
+                      const SliverToBoxAdapter(child: SizedBox(height: 18)),
+                    ],
+                  ),
                 ),
               ),
-            ),
+        ),
       ),
-      bottomNavigationBar: const AppBottomNav(selected: 0),
+      bottomNavigationBar: const AppBottomNav(selected: 0, homeStyle: true),
     );
   }
 }

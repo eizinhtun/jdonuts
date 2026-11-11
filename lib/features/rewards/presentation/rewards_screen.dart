@@ -12,12 +12,13 @@ import 'widgets/reward_tab.dart';
 import 'widgets/tier_ladder.dart';
 import 'widgets/rewards_badge.dart';
 import '../../home/domain/models.dart';
-import '../../home/presentation/widgets/app_bottom_nav.dart';
+import 'widgets/rewards_bottom_nav.dart';
 
-const _rewardOverviewHeight = 300.0;
-const _compactRewardOverviewHeight = 370.0;
+const _rewardOverviewHeight = 355.0;
+const _compactRewardOverviewHeight = 390.0;
 const _compactRewardWidth = 380.0;
 const _largeTextScale = 1.1;
+const _rewardsCanvasColor = Color(0xFFF1F3F3);
 
 class RewardsScreen extends ConsumerStatefulWidget {
   const RewardsScreen({super.key});
@@ -109,7 +110,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
             data: (data) => _content(context, data.member, data.challenges),
           ),
     ),
-    bottomNavigationBar: const AppBottomNav(selected: 2),
+    bottomNavigationBar: const RewardsBottomNav(),
   );
   Widget _content(
     BuildContext context,
@@ -123,10 +124,12 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
     final overviewHeight = compactLayout
         ? _compactRewardOverviewHeight
         : _rewardOverviewHeight;
+    final compactWidth = MediaQuery.sizeOf(context).width < _compactRewardWidth;
+    final ringDiameter = compactWidth ? 220.0 : 256.0;
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 16, 8),
+          padding: const EdgeInsets.fromLTRB(28, 4, 0, 4),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final badge = RewardsBadge(animation: _entrance);
@@ -141,98 +144,129 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontSize: 20),
+                      style: _rewardsTitleStyle(context),
                     ),
                     Align(alignment: Alignment.centerRight, child: badge),
                   ],
                 );
               }
-              return Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      context.l10n.rewardsTitle,
-                      maxLines: 1,
-                      softWrap: false,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontSize: 20),
+              return Transform.translate(
+                offset: const Offset(0, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        context.l10n.rewardsTitle,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: _rewardsTitleStyle(context),
+                      ),
                     ),
-                  ),
-                  badge,
-                ],
+                    badge,
+                  ],
+                ),
               );
             },
           ),
         ),
         Expanded(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: overviewHeight,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TierLadder(member: member, animation: _entrance),
-                      ),
-                      Expanded(
-                        child: PointsRing(member: member, animation: _entrance),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(child: _tabs()),
-              SliverToBoxAdapter(
-                child: AnimatedSwitcher(
-                  duration: Motion.duration(context, Motion.standard),
-                  switchInCurve: Motion.curve,
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: Offset(tab == 0 ? -.06 : .06, 0),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  ),
-                  child: Padding(
-                    key: ValueKey(tab),
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
-                    child: Column(
-                      children: List.generate(challenges.length, (index) {
-                        final challenge = tab == 0
-                            ? challenges[index]
-                            : _giftChallenge(challenges[index]);
-                        return AnimatedBuilder(
-                          animation: _entrance,
-                          builder: (context, child) {
-                            final start = (index * .13).clamp(0.0, .65);
-                            final progress = Motion.curve.transform(
-                              (_entrance.value - start).clamp(0.0, 1.0),
-                            );
-                            return Opacity(
-                              opacity: progress,
-                              child: Transform.translate(
-                                offset: Offset(0, 35 * (1 - progress)),
-                                child: child,
+          child: ColoredBox(
+            color: _rewardsCanvasColor,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: ColoredBox(
+                    color: AppColors.white,
+                    child: SizedBox(
+                      height: overviewHeight,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Transform.translate(
+                              offset: const Offset(0, 9),
+                              child: TierLadder(
+                                member: member,
+                                animation: _entrance,
                               ),
-                            );
-                          },
-                          child: ChallengeCard(
-                            key: ValueKey(challenge.id),
-                            challenge: challenge,
+                            ),
                           ),
-                        );
-                      }),
+                          Expanded(
+                            child: OverflowBox(
+                              alignment: Alignment.center,
+                              minWidth: ringDiameter,
+                              maxWidth: ringDiameter,
+                              minHeight: ringDiameter,
+                              maxHeight: ringDiameter,
+                              child: Transform.translate(
+                                offset: Offset(compactWidth ? 28 : 44, 9),
+                                child: PointsRing(
+                                  member: member,
+                                  animation: _entrance,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+                SliverToBoxAdapter(child: _tabs()),
+                SliverToBoxAdapter(
+                  child: AnimatedSwitcher(
+                    duration: Motion.duration(context, Motion.standard),
+                    switchInCurve: Motion.curve,
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: Offset(tab == 0 ? -.06 : .06, 0),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    ),
+                    child: Padding(
+                      key: ValueKey(tab),
+                      padding: EdgeInsets.fromLTRB(
+                        compactLayout ? 16 : 22,
+                        19,
+                        compactLayout ? 16 : 0,
+                        20,
+                      ),
+                      child: Column(
+                        children: List.generate(challenges.length, (index) {
+                          final challenge = tab == 0
+                              ? challenges[index]
+                              : _giftChallenge(challenges[index]);
+                          return AnimatedBuilder(
+                            animation: _entrance,
+                            builder: (context, child) {
+                              final start = (index * .13).clamp(0.0, .65);
+                              final progress = Motion.curve.transform(
+                                (_entrance.value - start).clamp(0.0, 1.0),
+                              );
+                              return Opacity(
+                                opacity: progress,
+                                child: Transform.translate(
+                                  offset: Offset(0, 35 * (1 - progress)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: ChallengeCard(
+                              key: ValueKey(challenge.id),
+                              challenge: challenge,
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -240,43 +274,71 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
   }
 
   Widget _tabs() => Container(
-    color: AppColors.canvas,
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        stops: [0, .52, .53, 1],
+        colors: [
+          AppColors.white,
+          AppColors.white,
+          _rewardsCanvasColor,
+          _rewardsCanvasColor,
+        ],
+      ),
+    ),
     padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
     child: LayoutBuilder(
       builder: (context, constraints) {
-        final tabWidth = (constraints.maxWidth - 8) / 2;
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final groupWidth = (260 * textScale)
+            .clamp(248.0, constraints.maxWidth - 8)
+            .toDouble();
+        final eatWidth = groupWidth * .69;
+        final giftWidth = groupWidth - eatWidth - 8;
+        final left = ((constraints.maxWidth - groupWidth) / 2 + 24)
+            .clamp(0.0, constraints.maxWidth - groupWidth)
+            .toDouble();
         return SizedBox(
-          height: 44,
+          height: 36,
           child: Stack(
             children: [
               AnimatedPositionedDirectional(
-                start: tab == 0 ? 0 : tabWidth + 8,
+                start: left + (tab == 0 ? 0 : eatWidth + 8),
                 top: 0,
                 bottom: 0,
-                width: tabWidth,
+                width: tab == 0 ? eatWidth : giftWidth,
                 duration: Motion.duration(context, Motion.standard),
                 curve: Motion.curve,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColors.cyan,
+                    border: Border.all(color: Colors.white, width: 2),
                     borderRadius: BorderRadius.circular(24),
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  RewardTab(
-                    label: context.l10n.eatMoreEarnMore,
-                    selected: tab == 0,
-                    onTap: () => setState(() => tab = 0),
-                  ),
-                  const SizedBox(width: 8),
-                  RewardTab(
-                    label: context.l10n.giftLabel,
-                    selected: tab == 1,
-                    onTap: () => setState(() => tab = 1),
-                  ),
-                ],
+              PositionedDirectional(
+                start: left,
+                top: 0,
+                bottom: 0,
+                width: eatWidth,
+                child: RewardTab(
+                  label: context.l10n.eatMoreEarnMore,
+                  selected: tab == 0,
+                  onTap: () => setState(() => tab = 0),
+                ),
+              ),
+              PositionedDirectional(
+                start: left + eatWidth + 8,
+                top: 0,
+                bottom: 0,
+                width: giftWidth,
+                child: RewardTab(
+                  label: context.l10n.giftLabel,
+                  selected: tab == 1,
+                  onTap: () => setState(() => tab = 1),
+                ),
               ),
             ],
           ),
@@ -284,6 +346,17 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
       },
     ),
   );
+
+  TextStyle? _rewardsTitleStyle(BuildContext context) =>
+      Theme.of(context).textTheme.headlineMedium?.copyWith(
+        fontFamily: Theme.of(context).platform == TargetPlatform.iOS
+            ? 'SF Pro Rounded'
+            : null,
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -.3,
+      );
+
   Challenge _giftChallenge(Challenge source) => Challenge(
     id: 'gift-${source.id}',
     title: context.l10n.giftChallenge,

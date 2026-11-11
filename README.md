@@ -45,7 +45,7 @@ The first local repository read seeds bundled JSON into versioned Drift/SQLite t
 
 The Home and Rewards mock-ups disagree about membership values. The app deliberately uses one seeded Silver member with 680,000 points and 500 points to Gold, matching the Rewards values. The rewards ring counts to 680,000 from this stored member row.
 
-The onboarding hero donut, coconut and chocolate donuts, Dalgona coffee, seasonal donut box, and shop banner are original images generated specifically for this app with OpenAI image generation; they are not stock photography. The remaining welcome tiles and member avatar are hand-authored SVG illustrations. The PDF and its screenshots are not bundled. SeedImage renders bundled SVG, PNG, and JPEG assets offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs. Drift schema v3 migrates previously seeded image paths to the bundled photos without replacing custom image paths.
+The onboarding hero donut, coconut and chocolate donuts, Dalgona coffee, seasonal donut box, and shop banner are original images generated specifically for this app with OpenAI image generation; they are not stock photography. The vector donut and striped-donut Welcome tiles and member avatar are hand-authored SVG illustrations. The PDF and its screenshots are not bundled. SeedImage renders bundled SVG, PNG, and JPEG assets offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs. Drift schema v3 migrates previously seeded image paths to the bundled photos without replacing custom image paths.
 
 connectivity_plus interface changes are combined with an HTTP reachability probe. A small offline banner appears when the probe reports no internet. Reconnection and pull-to-refresh re-read SQLite, preserving usable content. There is no backend in this assignment slice, so refresh cannot download catalog updates; the reachability request is only an online/offline hint.
 
@@ -95,7 +95,7 @@ The .app and zip are local workspace artifacts. They were not published or submi
 - Burmese localization and CI are optional PDF bonuses and are not implemented.
 - Offline repository behavior and the forced-offline iOS integration path are verified; a full fresh-install airplane-mode/relaunch device check remains unverified.
 - Layouts are tested at a compact 320×667 logical-pixel viewport with text scale 1.3, not every physical 4.7–6.9 inch device size.
-- The bundled original food photos approximate the reference imagery; they are not photos of the client’s actual products or shops. The member avatar and Welcome tile art remain vector illustrations.
+- The bundled original food photos approximate the reference imagery; they are not photos of the client’s actual products or shops. Two Welcome tiles use those generated donut photos; the other two use vector illustrations.
 - Android release APK signing is for the demo, and only arm64 is packaged.
 - Time spent was not tracked, so no duration is claimed.
 - No repository was published, and no email or external submission was made.

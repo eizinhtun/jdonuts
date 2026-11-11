@@ -22,6 +22,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rewardsLabel => 'Rewards';
 
   @override
+  String get rewardLabel => 'Reward';
+
+  @override
   String get homeLabel => 'Home';
 
   @override
@@ -225,6 +228,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addedLabel => 'ADDED';
+
+  @override
+  String get decreaseQuantity => 'Decrease quantity';
+
+  @override
+  String get increaseQuantity => 'Increase quantity';
 
   @override
   String get whatsThis => 'What’s this?';

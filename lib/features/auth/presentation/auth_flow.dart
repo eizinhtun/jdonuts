@@ -60,7 +60,10 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
   bool get _isRegistration => widget.mode == 'register';
   bool get _useReferenceAuthLayout =>
       _isRegistration &&
-      (widget.step == 'phone' || widget.step == 'otp' || widget.step == 'name');
+      (widget.step == 'phone' ||
+          widget.step == 'otp' ||
+          widget.step == 'name' ||
+          widget.step == 'dob');
   String get _phoneValue => normalizePhone(_phone.text);
   String get _otpValue => _otpFields.map((field) => field.text).join();
 
@@ -231,31 +234,42 @@ class _ProgressIndicator extends StatelessWidget {
     tween: Tween<double>(end: progress),
     duration: Motion.duration(context, Motion.standard),
     curve: Motion.curve,
-    builder: (context, animatedProgress, _) => SizedBox(
-      width: compact ? 36 : 44,
-      height: compact ? 36 : 44,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CircularProgressIndicator(
-            value: animatedProgress,
-            strokeWidth: compact ? 6 : 3,
-            strokeCap: compact ? StrokeCap.round : StrokeCap.butt,
-            backgroundColor: compact ? AppColors.cyan : AppColors.canvas,
-            color: AppColors.pink,
-          ),
-          if (!compact || done)
-            AnimatedSwitcher(
-              duration: Motion.duration(context, Motion.quick),
-              child: Icon(
-                done ? Icons.check : Icons.circle,
-                key: ValueKey(done),
-                size: done ? 18 : 6,
-                color: AppColors.pink,
-              ),
+    builder: (context, animatedProgress, _) => compact && done
+        ? Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+              color: AppColors.pink,
+              shape: BoxShape.circle,
             ),
-        ],
-      ),
-    ),
+            alignment: Alignment.center,
+            child: const Icon(Icons.check, size: 18, color: AppColors.white),
+          )
+        : SizedBox(
+            width: compact ? 36 : 44,
+            height: compact ? 36 : 44,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: animatedProgress,
+                  strokeWidth: compact ? 6 : 3,
+                  strokeCap: compact ? StrokeCap.round : StrokeCap.butt,
+                  backgroundColor: compact ? AppColors.cyan : AppColors.canvas,
+                  color: AppColors.pink,
+                ),
+                if (!compact)
+                  AnimatedSwitcher(
+                    duration: Motion.duration(context, Motion.quick),
+                    child: Icon(
+                      done ? Icons.check : Icons.circle,
+                      key: ValueKey(done),
+                      size: done ? 18 : 6,
+                      color: AppColors.pink,
+                    ),
+                  ),
+              ],
+            ),
+          ),
   );
 }

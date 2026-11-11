@@ -14,18 +14,44 @@ class RewardTab extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Expanded(
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: selected,
+    label: label,
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Center(
-        child: AnimatedDefaultTextStyle(
-          duration: Motion.duration(context, Motion.quick),
-          style: TextStyle(
-            color: selected ? Colors.white : AppColors.muted,
-            fontWeight: FontWeight.w700,
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: selected
+              ? null
+              : BoxDecoration(
+                  color: AppColors.canvas,
+                  border: Border.all(color: Colors.white, width: 2),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+          child: Center(
+            child: AnimatedDefaultTextStyle(
+              duration: Motion.duration(context, Motion.quick),
+              style: TextStyle(
+                color: selected ? Colors.white : AppColors.muted,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                fontFamily: Theme.of(context).platform == TargetPlatform.iOS
+                    ? 'SF Pro Rounded'
+                    : null,
+              ),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ),
-          child: Text(label, textAlign: TextAlign.center),
         ),
       ),
     ),

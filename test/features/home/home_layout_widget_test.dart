@@ -44,6 +44,8 @@ void main() {
       expect(find.text('Popular'), findsOneWidget);
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 1000));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(TextButton, 'Retry'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(TextButton, 'Retry'));
       await tester.pumpAndSettle();
 
@@ -118,7 +120,7 @@ void main() {
         await tester.tap(find.text('Coconut Donut').first);
         await tester.pumpAndSettle();
         expect(find.text('JD022123'), findsOneWidget);
-        expect(find.text('3,200 MMK'), findsOneWidget);
+        expect(find.text('3,200 MMK'), findsNWidgets(2));
         expect(find.text('New'), findsOneWidget);
         await tester.tap(find.byIcon(Icons.add_circle));
         await tester.pumpAndSettle();
