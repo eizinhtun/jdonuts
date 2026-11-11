@@ -21,10 +21,11 @@ mixin _AuthFlowInputs on _AuthFlowHost, _AuthFlowActions {
     });
   }
 
-  Widget _otpBox(int index, {required bool disabled}) {
+  Widget _otpBox(int index, {required double width, required bool disabled}) {
     final field = _otpFields[index];
     return SizedBox(
-      width: 42,
+      width: width,
+      height: _useReferenceAuthLayout ? 64 : null,
       child: Focus(
         onKeyEvent: (_, event) {
           final isBackspace =
@@ -42,6 +43,12 @@ mixin _AuthFlowInputs on _AuthFlowHost, _AuthFlowActions {
           enabled: !disabled,
           keyboardType: TextInputType.number,
           textAlign: TextAlign.center,
+          textAlignVertical: _useReferenceAuthLayout
+              ? TextAlignVertical.center
+              : null,
+          expands: _useReferenceAuthLayout,
+          minLines: _useReferenceAuthLayout ? null : 1,
+          maxLines: _useReferenceAuthLayout ? null : 1,
           maxLength: _otpDigits,
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           autofillHints: index == 0 ? const [AutofillHints.oneTimeCode] : null,
@@ -51,6 +58,11 @@ mixin _AuthFlowInputs on _AuthFlowHost, _AuthFlowActions {
             counterText: '',
             filled: true,
             fillColor: AppColors.white,
+            isDense: _useReferenceAuthLayout,
+            contentPadding: _useReferenceAuthLayout ? EdgeInsets.zero : null,
+            constraints: _useReferenceAuthLayout
+                ? const BoxConstraints(minHeight: 64)
+                : null,
             border: _inputBorder(),
             enabledBorder: _inputBorder(),
             focusedBorder: _inputBorder(color: AppColors.pink),

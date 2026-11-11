@@ -10,6 +10,7 @@ import 'package:jdonuts/core/motion/motion.dart';
 import 'package:jdonuts/core/theme/tokens.dart';
 import 'package:jdonuts/features/auth/domain/auth_repository.dart';
 import 'package:jdonuts/features/auth/presentation/auth_draft.dart';
+import 'package:jdonuts/features/auth/presentation/onboarding_links.dart';
 import 'package:jdonuts/features/auth/presentation/widgets/primary_button.dart';
 import 'package:jdonuts/l10n/localization.dart';
 
@@ -57,6 +58,9 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
   DateTime? _birthDate;
 
   bool get _isRegistration => widget.mode == 'register';
+  bool get _useReferenceAuthLayout =>
+      _isRegistration &&
+      (widget.step == 'phone' || widget.step == 'otp' || widget.step == 'name');
   String get _phoneValue => normalizePhone(_phone.text);
   String get _otpValue => _otpFields.map((field) => field.text).join();
 
@@ -198,7 +202,9 @@ abstract class _AuthFlowHost extends ConsumerState<AuthFlow>
   }
 
   OutlineInputBorder _inputBorder({Color? color}) => OutlineInputBorder(
-    borderRadius: BorderRadius.circular(8),
+    borderRadius: BorderRadius.circular(
+      _useReferenceAuthLayout && widget.step != 'otp' ? 10 : 8,
+    ),
     borderSide: BorderSide(color: color ?? Colors.transparent),
   );
 }
@@ -210,10 +216,15 @@ class _AuthFlowState extends _AuthFlowHost
 }
 
 class _ProgressIndicator extends StatelessWidget {
-  const _ProgressIndicator({required this.progress, required this.done});
+  const _ProgressIndicator({
+    required this.progress,
+    required this.done,
+    this.compact = false,
+  });
 
   final double progress;
   final bool done;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
@@ -221,26 +232,28 @@ class _ProgressIndicator extends StatelessWidget {
     duration: Motion.duration(context, Motion.standard),
     curve: Motion.curve,
     builder: (context, animatedProgress, _) => SizedBox(
-      width: 44,
-      height: 44,
+      width: compact ? 36 : 44,
+      height: compact ? 36 : 44,
       child: Stack(
         alignment: Alignment.center,
         children: [
           CircularProgressIndicator(
             value: animatedProgress,
-            strokeWidth: 3,
-            backgroundColor: AppColors.canvas,
+            strokeWidth: compact ? 6 : 3,
+            strokeCap: compact ? StrokeCap.round : StrokeCap.butt,
+            backgroundColor: compact ? AppColors.cyan : AppColors.canvas,
             color: AppColors.pink,
           ),
-          AnimatedSwitcher(
-            duration: Motion.duration(context, Motion.quick),
-            child: Icon(
-              done ? Icons.check : Icons.circle,
-              key: ValueKey(done),
-              size: done ? 18 : 6,
-              color: AppColors.pink,
+          if (!compact || done)
+            AnimatedSwitcher(
+              duration: Motion.duration(context, Motion.quick),
+              child: Icon(
+                done ? Icons.check : Icons.circle,
+                key: ValueKey(done),
+                size: done ? 18 : 6,
+                color: AppColors.pink,
+              ),
             ),
-          ),
         ],
       ),
     ),

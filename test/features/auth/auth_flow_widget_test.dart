@@ -102,6 +102,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final fields = find.byType(TextField);
+    expect(tester.getSize(fields.first), const Size(48, 64));
     await tester.enterText(fields.first, '123456');
     await tester.pump();
     final boxes = tester.widgetList<TextField>(fields).toList();
@@ -190,9 +191,9 @@ void main() {
 
     requestGate.complete();
     await tester.pumpAndSettle();
-    expect(find.text('VERIFY'), findsOneWidget);
+    expect(find.text('VERIFY'), findsNothing);
     expect(
-      find.text('Enter the 6-digit code sent to +95 9254135592'),
+      find.text('We’ve sent 6 digit OTP to +959254135592'),
       findsOneWidget,
     );
   });
@@ -215,7 +216,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byType(PrimaryButton));
     await tester.pumpAndSettle();
-    expect(find.text('VERIFY'), findsOneWidget);
+    expect(find.text('VERIFY'), findsNothing);
 
     for (var attempt = 0; attempt < 3; attempt++) {
       await tester.enterText(find.byType(TextField).first, '000000');
@@ -233,16 +234,12 @@ void main() {
           .every((field) => field.enabled == false),
       isTrue,
     );
-    expect(
-      tester
-          .widget<TextButton>(find.widgetWithText(TextButton, 'Resend code'))
-          .onPressed,
-      isNull,
-    );
+    expect(find.text('Resend code'), findsNothing);
 
     now = now.add(const Duration(minutes: 5));
     await tester.pump(const Duration(minutes: 5));
     await tester.pump();
+    expect(find.text('Resend code'), findsOneWidget);
     expect(
       tester
           .widget<TextButton>(find.widgetWithText(TextButton, 'Resend code'))

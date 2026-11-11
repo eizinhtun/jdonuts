@@ -103,6 +103,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String registerOtpDescription(Object phone) {
+    return 'We’ve sent 6 digit OTP to +95$phone';
+  }
+
+  @override
   String get otpInvalid => 'Enter all 6 digits.';
 
   @override
@@ -127,6 +132,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resendPrompt => 'Didn’t receive a code?';
 
   @override
+  String get registerResendPrompt => 'Didn’t receive the code?';
+
+  @override
+  String get resendCountdownPrefix => 'resend in ';
+
+  @override
+  String get resendCountdownSuffix => ' min';
+
+  @override
   String get resendButton => 'Resend code';
 
   @override
@@ -136,10 +150,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nameTitle => 'What’s your name?';
 
   @override
-  String get firstNameLabel => 'First name';
+  String get firstNameLabel => 'First Name';
 
   @override
-  String get lastNameLabel => 'Last name (optional)';
+  String get lastNameLabel => 'Last Name';
 
   @override
   String get firstNameRequired => 'First name is required.';

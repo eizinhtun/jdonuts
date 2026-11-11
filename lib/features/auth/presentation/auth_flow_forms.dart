@@ -9,30 +9,70 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     _ => _phoneStep(phoneError),
   };
 
-  Widget _stepHeadline(String text) => SizedBox(
-    width: 260,
-    child: Text(text, style: Theme.of(context).textTheme.headlineMedium),
-  );
+  Widget _stepHeadline(String text) {
+    final width = switch (widget.step) {
+      'phone' => 320.0,
+      'name' => 250.0,
+      _ => double.infinity,
+    };
+    final referenceStyle = _useReferenceAuthLayout;
+    return SizedBox(
+      width: width,
+      child: Text(
+        text,
+        style: referenceStyle
+            ? Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontFamily: Theme.of(context).platform == TargetPlatform.iOS
+                    ? 'SF Pro Rounded'
+                    : null,
+                fontSize: widget.step == 'otp' ? 30 : 34,
+                fontWeight: FontWeight.w700,
+                height: 1.12,
+                letterSpacing: -.25,
+              )
+            : Theme.of(context).textTheme.headlineMedium,
+      ),
+    );
+  }
 
-  Widget _legalFooter(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
-    child: Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        Text(
-          context.l10n.legalAcknowledgement,
-          style: const TextStyle(color: AppColors.muted, fontSize: 10),
+  Widget _legalFooter(BuildContext context) {
+    if (_useReferenceAuthLayout) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(28, 0, 28, 8),
+        child: OnboardingLegalNotice(
+          onTerms: () =>
+              _showLegalPlaceholder(context, context.l10n.termsLabel),
+          onPrivacy: () =>
+              _showLegalPlaceholder(context, context.l10n.privacyLabel),
         ),
-        _legalLink(context, context.l10n.termsLabel),
-        Text(
-          context.l10n.andLabel,
-          style: const TextStyle(color: AppColors.muted, fontSize: 10),
-        ),
-        _legalLink(context, context.l10n.privacyLabel),
-      ],
-    ),
-  );
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            context.l10n.legalAcknowledgement,
+            style: const TextStyle(color: AppColors.muted, fontSize: 10),
+          ),
+          _legalLink(context, context.l10n.termsLabel),
+          Text(
+            context.l10n.andLabel,
+            style: const TextStyle(color: AppColors.muted, fontSize: 10),
+          ),
+          _legalLink(context, context.l10n.privacyLabel),
+        ],
+      ),
+    );
+  }
+
+  void _showLegalPlaceholder(BuildContext context, String label) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.socialPlaceholder(label))),
+    );
+  }
 
   Widget _legalLink(BuildContext context, String label) => TextButton(
     style: TextButton.styleFrom(
@@ -55,9 +95,13 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
             ? context.l10n.phoneRegisterTitle
             : context.l10n.phoneLoginTitle,
       ),
-      const SizedBox(height: AppSpace.sm),
-      Text(context.l10n.phoneDescription),
-      const SizedBox(height: 36),
+      if (_useReferenceAuthLayout)
+        const SizedBox(height: 40)
+      else ...[
+        const SizedBox(height: AppSpace.sm),
+        Text(context.l10n.phoneDescription),
+        const SizedBox(height: 36),
+      ],
       TextField(
         controller: _phone,
         focusNode: _phoneFocus,
@@ -68,16 +112,35 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
         ],
         onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         onChanged: _onPhoneChanged,
+        style: _useReferenceAuthLayout
+            ? const TextStyle(fontSize: 18, color: AppColors.ink)
+            : null,
         decoration: InputDecoration(
           hintText: context.l10n.phoneHint,
           prefixIcon: Padding(
-            padding: const EdgeInsets.only(left: 14, right: 10),
+            padding: EdgeInsets.only(
+              left: _useReferenceAuthLayout ? 22 : 14,
+              right: 10,
+            ),
             child: Center(
               widthFactor: 1,
-              child: Text('+95', style: Theme.of(context).textTheme.bodyMedium),
+              child: Text(
+                '+95',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: _useReferenceAuthLayout ? 18 : null,
+                  color: _useReferenceAuthLayout
+                      ? const Color(0xFF8995A1)
+                      : null,
+                ),
+              ),
             ),
           ),
-          prefixIconConstraints: const BoxConstraints(minWidth: 56),
+          prefixIconConstraints: BoxConstraints(
+            minWidth: _useReferenceAuthLayout ? 82 : 56,
+          ),
+          contentPadding: _useReferenceAuthLayout
+              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 26)
+              : null,
           errorText: phoneError,
           filled: true,
           fillColor: AppColors.white,
@@ -96,11 +159,17 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           ),
       ],
       const Spacer(),
-      PrimaryButton(
-        label: context.l10n.continueButton,
-        enabled: validatePhone(_phone.text) == null,
-        loading: _loading,
-        onPressed: _continueFromPhone,
+      DefaultTextStyle.merge(
+        style: _useReferenceAuthLayout
+            ? const TextStyle(fontSize: 16, letterSpacing: .5)
+            : const TextStyle(),
+        child: PrimaryButton(
+          label: context.l10n.continueButton,
+          height: _useReferenceAuthLayout ? 56 : 52,
+          enabled: validatePhone(_phone.text) == null,
+          loading: _loading,
+          onPressed: _continueFromPhone,
+        ),
       ),
     ],
   );
@@ -109,13 +178,26 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     final draft = ref.watch(authDraftProvider);
     final minutes = _remainingSeconds ~/ 60;
     final seconds = (_remainingSeconds % 60).toString().padLeft(2, '0');
+    final otpRowWidth =
+        MediaQuery.sizeOf(context).width - (_useReferenceAuthLayout ? 72 : 48);
+    final otpGap = otpRowWidth < 300 ? 6.0 : 8.0;
+    final otpBoxWidth = _useReferenceAuthLayout
+        ? ((otpRowWidth - otpGap * (_otpDigits - 1)) / _otpDigits).clamp(
+            36.0,
+            48.0,
+          )
+        : 42.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _stepHeadline(context.l10n.otpTitle),
-        const SizedBox(height: AppSpace.sm),
-        Text(context.l10n.otpDescription(_phoneValue)),
-        const SizedBox(height: AppSpace.xl),
+        SizedBox(height: _useReferenceAuthLayout ? 20 : AppSpace.sm),
+        Text(
+          _useReferenceAuthLayout
+              ? context.l10n.registerOtpDescription(_phoneValue)
+              : context.l10n.otpDescription(_phoneValue),
+        ),
+        SizedBox(height: _useReferenceAuthLayout ? 37 : AppSpace.xl),
         AnimatedBuilder(
           animation: _shakeOffset,
           builder: (context, child) => Transform.translate(
@@ -126,42 +208,86 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(
               _otpDigits,
-              (index) =>
-                  _otpBox(index, disabled: draft.isOtpLocked || _loading),
+              (index) => _otpBox(
+                index,
+                width: otpBoxWidth,
+                disabled: draft.isOtpLocked || _loading,
+              ),
             ),
           ),
         ),
-        const SizedBox(height: AppSpace.sm),
+        SizedBox(height: _useReferenceAuthLayout ? 21 : AppSpace.sm),
         if (_error != null)
           Text(_error!, style: const TextStyle(color: AppColors.error)),
-        const SizedBox(height: AppSpace.md),
-        Center(
-          child: Text(
-            _remainingSeconds > 0
-                ? context.l10n.resendCountdown(minutes, seconds)
-                : context.l10n.resendPrompt,
+        if (_useReferenceAuthLayout) ...[
+          Text(
+            context.l10n.registerResendPrompt,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
           ),
-        ),
-        Center(
-          child: TextButton(
-            onPressed: _remainingSeconds == 0 && !_loading ? _resendCode : null,
-            child: Text(context.l10n.resendButton),
+          if (_remainingSeconds > 0)
+            Text.rich(
+              TextSpan(
+                style: const TextStyle(fontSize: 16, color: AppColors.ink),
+                children: [
+                  TextSpan(text: context.l10n.resendCountdownPrefix),
+                  TextSpan(
+                    text: '$minutes:$seconds',
+                    style: const TextStyle(color: AppColors.pink),
+                  ),
+                  TextSpan(text: context.l10n.resendCountdownSuffix),
+                ],
+              ),
+            )
+          else
+            TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                alignment: Alignment.centerLeft,
+              ),
+              onPressed: !_loading ? _resendCode : null,
+              child: Text(context.l10n.resendButton),
+            ),
+        ] else ...[
+          const SizedBox(height: AppSpace.md),
+          Center(
+            child: Text(
+              _remainingSeconds > 0
+                  ? context.l10n.resendCountdown(minutes, seconds)
+                  : context.l10n.resendPrompt,
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpace.sm),
-        Center(
-          child: Text(
-            context.l10n.demoCode,
-            style: const TextStyle(color: AppColors.muted, fontSize: 12),
+          Center(
+            child: TextButton(
+              onPressed: _remainingSeconds == 0 && !_loading
+                  ? _resendCode
+                  : null,
+              child: Text(context.l10n.resendButton),
+            ),
           ),
-        ),
+          const SizedBox(height: AppSpace.sm),
+          Center(
+            child: Text(
+              context.l10n.demoCode,
+              style: const TextStyle(color: AppColors.muted, fontSize: 12),
+            ),
+          ),
+        ],
         const Spacer(),
-        PrimaryButton(
-          label: context.l10n.verifyButton,
-          enabled: draft.otp.length == _otpDigits && !draft.isOtpLocked,
-          loading: _loading,
-          onPressed: _verifyCode,
-        ),
+        if (!_useReferenceAuthLayout || draft.otp.isNotEmpty || _loading)
+          DefaultTextStyle.merge(
+            style: _useReferenceAuthLayout
+                ? const TextStyle(fontSize: 16, letterSpacing: .5)
+                : const TextStyle(),
+            child: PrimaryButton(
+              label: context.l10n.verifyButton,
+              height: _useReferenceAuthLayout ? 56 : 52,
+              enabled: draft.otp.length == _otpDigits && !draft.isOtpLocked,
+              loading: _loading,
+              onPressed: _verifyCode,
+            ),
+          ),
       ],
     );
   }
@@ -170,7 +296,7 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       _stepHeadline(context.l10n.nameTitle),
-      const SizedBox(height: AppSpace.lg),
+      SizedBox(height: _useReferenceAuthLayout ? 40 : AppSpace.lg),
       TextField(
         controller: _firstName,
         enabled: !_loading,
@@ -181,6 +307,9 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           _saveDraft(ref.read(authDraftProvider).copyWith(firstName: value));
           setState(() {});
         },
+        style: _useReferenceAuthLayout
+            ? const TextStyle(fontSize: 18, color: AppColors.ink)
+            : null,
         decoration: InputDecoration(
           hintText: context.l10n.firstNameLabel,
           counterText: '',
@@ -189,12 +318,18 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
               : null,
           filled: true,
           fillColor: AppColors.white,
+          hintStyle: _useReferenceAuthLayout
+              ? const TextStyle(color: Color(0xFF8995A1), fontSize: 18)
+              : null,
+          contentPadding: _useReferenceAuthLayout
+              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
+              : null,
           border: _inputBorder(),
           enabledBorder: _inputBorder(),
           focusedBorder: _inputBorder(),
         ),
       ),
-      const SizedBox(height: AppSpace.md),
+      SizedBox(height: _useReferenceAuthLayout ? 20 : AppSpace.md),
       TextField(
         controller: _lastName,
         enabled: !_loading,
@@ -205,6 +340,9 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
           _saveDraft(ref.read(authDraftProvider).copyWith(lastName: value));
           setState(() {});
         },
+        style: _useReferenceAuthLayout
+            ? const TextStyle(fontSize: 18, color: AppColors.ink)
+            : null,
         decoration: InputDecoration(
           hintText: context.l10n.lastNameLabel,
           counterText: '',
@@ -213,6 +351,12 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
               : null,
           filled: true,
           fillColor: AppColors.white,
+          hintStyle: _useReferenceAuthLayout
+              ? const TextStyle(color: Color(0xFF8995A1), fontSize: 18)
+              : null,
+          contentPadding: _useReferenceAuthLayout
+              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
+              : null,
           border: _inputBorder(),
           enabledBorder: _inputBorder(),
           focusedBorder: _inputBorder(),
@@ -221,10 +365,16 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
       if (_error != null)
         Text(_error!, style: const TextStyle(color: AppColors.error)),
       const Spacer(),
-      PrimaryButton(
-        label: context.l10n.continueButton,
-        loading: _loading,
-        onPressed: _continueFromName,
+      DefaultTextStyle.merge(
+        style: _useReferenceAuthLayout
+            ? const TextStyle(fontSize: 16, letterSpacing: .5)
+            : const TextStyle(),
+        child: PrimaryButton(
+          label: context.l10n.continueButton,
+          height: _useReferenceAuthLayout ? 56 : 52,
+          loading: _loading,
+          onPressed: _continueFromName,
+        ),
       ),
     ],
   );

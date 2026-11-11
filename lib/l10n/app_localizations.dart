@@ -274,6 +274,12 @@ abstract class AppLocalizations {
   /// **'Enter the 6-digit code sent to +95 {phone}'**
   String otpDescription(Object phone);
 
+  /// No description provided for @registerOtpDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'We’ve sent 6 digit OTP to +95{phone}'**
+  String registerOtpDescription(Object phone);
+
   /// No description provided for @otpInvalid.
   ///
   /// In en, this message translates to:
@@ -316,6 +322,24 @@ abstract class AppLocalizations {
   /// **'Didn’t receive a code?'**
   String get resendPrompt;
 
+  /// No description provided for @registerResendPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn’t receive the code?'**
+  String get registerResendPrompt;
+
+  /// No description provided for @resendCountdownPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'resend in '**
+  String get resendCountdownPrefix;
+
+  /// No description provided for @resendCountdownSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' min'**
+  String get resendCountdownSuffix;
+
   /// No description provided for @resendButton.
   ///
   /// In en, this message translates to:
@@ -337,13 +361,13 @@ abstract class AppLocalizations {
   /// No description provided for @firstNameLabel.
   ///
   /// In en, this message translates to:
-  /// **'First name'**
+  /// **'First Name'**
   String get firstNameLabel;
 
   /// No description provided for @lastNameLabel.
   ///
   /// In en, this message translates to:
-  /// **'Last name (optional)'**
+  /// **'Last Name'**
   String get lastNameLabel;
 
   /// No description provided for @firstNameRequired.

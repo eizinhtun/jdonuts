@@ -57,7 +57,7 @@ This does not provide real SMS delivery, social sign-in, legal-document destinat
 
 ## Motion and accessibility
 
-Named motion durations and curves are centralized in lib/core/motion/motion.dart. The app includes onboarding and welcome entrances, registration transitions and progress feedback, auth error/OTP feedback, Home shimmer/stagger and carousel, Product Hero/quantity transitions, Rewards points/tier/challenge animations, tab transitions, badge pop, and the active navigation pill. Repeating motion is stopped and animated values settle when MediaQuery.disableAnimations is enabled. Controllers and timers are disposed with their owners. The PDF supplies no font file or family name. On iOS, the onboarding headline requests the system SF Pro Rounded face as a local rounded fallback; the exact reference typeface remains unverified. Other text and Android use platform system sans.
+Named motion durations and curves are centralized in lib/core/motion/motion.dart. The app includes onboarding and welcome entrances, registration transitions and progress feedback, auth error/OTP feedback, Home shimmer/stagger and carousel, Product Hero/quantity transitions, Rewards points/tier/challenge animations, tab transitions, badge pop, and the active navigation pill. Repeating motion is stopped and animated values settle when MediaQuery.disableAnimations is enabled. Controllers and timers are disposed with their owners. The PDF supplies no font file or family name. On iOS, the onboarding and registration headlines request the system SF Pro Rounded face as a local rounded fallback; the exact reference typeface remains unverified. Other text and Android use platform system sans.
 
 ## Checks run on 2026-11-11
 
