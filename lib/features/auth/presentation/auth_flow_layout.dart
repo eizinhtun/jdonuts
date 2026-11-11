@@ -114,7 +114,8 @@ mixin _AuthFlowLayout on _AuthFlowHost, _AuthFlowActions, _AuthFlowForms {
                       ),
                     );
                     final scrollableStep =
-                        widget.step == 'dob' && availableHeight < 760
+                        (widget.step == 'dob' || widget.step == 'name') &&
+                            availableHeight < 760
                         ? step
                         : IntrinsicHeight(child: step);
                     return SingleChildScrollView(

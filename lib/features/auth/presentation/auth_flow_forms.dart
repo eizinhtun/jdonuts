@@ -293,96 +293,105 @@ mixin _AuthFlowForms on _AuthFlowHost, _AuthFlowActions, _AuthFlowInputs {
     );
   }
 
-  Widget _nameStep() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _stepHeadline(context.l10n.nameTitle),
-      SizedBox(height: _useReferenceAuthLayout ? 40 : AppSpace.lg),
-      TextField(
-        controller: _firstName,
-        enabled: !_loading,
-        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-        textCapitalization: TextCapitalization.words,
-        maxLength: 50,
-        onChanged: (value) {
-          _saveDraft(ref.read(authDraftProvider).copyWith(firstName: value));
-          setState(() {});
-        },
-        style: _useReferenceAuthLayout
-            ? const TextStyle(fontSize: 18, color: AppColors.ink)
-            : null,
-        decoration: InputDecoration(
-          hintText: context.l10n.firstNameLabel,
-          counterText: '',
-          errorText: _nameSubmitted
-              ? _validationMessage(validateFirstName(_firstName.text))
+  Widget _nameStep() {
+    final availableHeight =
+        MediaQuery.sizeOf(context).height -
+        MediaQuery.viewInsetsOf(context).bottom;
+    final anchorButtonAtBottom = availableHeight >= 760;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _stepHeadline(context.l10n.nameTitle),
+        SizedBox(height: _useReferenceAuthLayout ? 40 : AppSpace.lg),
+        TextField(
+          controller: _firstName,
+          enabled: !_loading,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          textCapitalization: TextCapitalization.words,
+          maxLength: 50,
+          onChanged: (value) {
+            _saveDraft(ref.read(authDraftProvider).copyWith(firstName: value));
+            setState(() {});
+          },
+          style: _useReferenceAuthLayout
+              ? const TextStyle(fontSize: 18, color: AppColors.ink)
               : null,
-          filled: true,
-          fillColor: AppColors.white,
-          hintStyle: _useReferenceAuthLayout
-              ? const TextStyle(color: AppColors.fieldHint, fontSize: 18)
-              : null,
-          contentPadding: _useReferenceAuthLayout
-              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
-              : null,
-          border: _inputBorder(),
-          enabledBorder: _inputBorder(),
-          focusedBorder: _inputBorder(color: AppColors.pink),
-          errorBorder: _inputBorder(color: AppColors.error),
-          focusedErrorBorder: _inputBorder(color: AppColors.error),
+          decoration: InputDecoration(
+            hintText: context.l10n.firstNameLabel,
+            counterText: '',
+            errorText: _nameSubmitted
+                ? _validationMessage(validateFirstName(_firstName.text))
+                : null,
+            filled: true,
+            fillColor: AppColors.white,
+            hintStyle: _useReferenceAuthLayout
+                ? const TextStyle(color: AppColors.fieldHint, fontSize: 18)
+                : null,
+            contentPadding: _useReferenceAuthLayout
+                ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
+                : null,
+            border: _inputBorder(),
+            enabledBorder: _inputBorder(),
+            focusedBorder: _inputBorder(color: AppColors.pink),
+            errorBorder: _inputBorder(color: AppColors.error),
+            focusedErrorBorder: _inputBorder(color: AppColors.error),
+          ),
         ),
-      ),
-      SizedBox(height: _useReferenceAuthLayout ? 20 : AppSpace.md),
-      TextField(
-        controller: _lastName,
-        enabled: !_loading,
-        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-        textCapitalization: TextCapitalization.words,
-        maxLength: 50,
-        onChanged: (value) {
-          _saveDraft(ref.read(authDraftProvider).copyWith(lastName: value));
-          setState(() {});
-        },
-        style: _useReferenceAuthLayout
-            ? const TextStyle(fontSize: 18, color: AppColors.ink)
-            : null,
-        decoration: InputDecoration(
-          hintText: context.l10n.lastNameLabel,
-          counterText: '',
-          errorText: _nameSubmitted
-              ? _validationMessage(validateLastName(_lastName.text))
+        SizedBox(height: _useReferenceAuthLayout ? 20 : AppSpace.md),
+        TextField(
+          controller: _lastName,
+          enabled: !_loading,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          textCapitalization: TextCapitalization.words,
+          maxLength: 50,
+          onChanged: (value) {
+            _saveDraft(ref.read(authDraftProvider).copyWith(lastName: value));
+            setState(() {});
+          },
+          style: _useReferenceAuthLayout
+              ? const TextStyle(fontSize: 18, color: AppColors.ink)
               : null,
-          filled: true,
-          fillColor: AppColors.white,
-          hintStyle: _useReferenceAuthLayout
-              ? const TextStyle(color: AppColors.fieldHint, fontSize: 18)
-              : null,
-          contentPadding: _useReferenceAuthLayout
-              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
-              : null,
-          border: _inputBorder(),
-          enabledBorder: _inputBorder(),
-          focusedBorder: _inputBorder(color: AppColors.pink),
-          errorBorder: _inputBorder(color: AppColors.error),
-          focusedErrorBorder: _inputBorder(color: AppColors.error),
+          decoration: InputDecoration(
+            hintText: context.l10n.lastNameLabel,
+            counterText: '',
+            errorText: _nameSubmitted
+                ? _validationMessage(validateLastName(_lastName.text))
+                : null,
+            filled: true,
+            fillColor: AppColors.white,
+            hintStyle: _useReferenceAuthLayout
+                ? const TextStyle(color: AppColors.fieldHint, fontSize: 18)
+                : null,
+            contentPadding: _useReferenceAuthLayout
+                ? const EdgeInsets.symmetric(horizontal: 20, vertical: 24)
+                : null,
+            border: _inputBorder(),
+            enabledBorder: _inputBorder(),
+            focusedBorder: _inputBorder(color: AppColors.pink),
+            errorBorder: _inputBorder(color: AppColors.error),
+            focusedErrorBorder: _inputBorder(color: AppColors.error),
+          ),
         ),
-      ),
-      if (_error != null)
-        Text(_error!, style: const TextStyle(color: AppColors.error)),
-      const Spacer(),
-      DefaultTextStyle.merge(
-        style: _useReferenceAuthLayout
-            ? const TextStyle(fontSize: 16, letterSpacing: .5)
-            : const TextStyle(),
-        child: PrimaryButton(
-          label: context.l10n.continueButton,
-          height: _useReferenceAuthLayout ? 56 : 52,
-          loading: _loading,
-          onPressed: _continueFromName,
+        if (_error != null)
+          Text(_error!, style: const TextStyle(color: AppColors.error)),
+        if (anchorButtonAtBottom)
+          const Spacer()
+        else
+          const SizedBox(height: AppSpace.lg),
+        DefaultTextStyle.merge(
+          style: _useReferenceAuthLayout
+              ? const TextStyle(fontSize: 16, letterSpacing: .5)
+              : const TextStyle(),
+          child: PrimaryButton(
+            label: context.l10n.continueButton,
+            height: _useReferenceAuthLayout ? 56 : 52,
+            loading: _loading,
+            onPressed: _continueFromName,
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 
   Widget _birthDateStep() {
     final availableHeight =
