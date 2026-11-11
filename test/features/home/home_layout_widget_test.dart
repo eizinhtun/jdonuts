@@ -276,7 +276,7 @@ void main() {
 
     try {
       await tester.pumpAndSettle();
-      changes.add(NetworkStatus.offline);
+      changes.add(const NetworkStatus.unknown());
       await tester.pump();
       await tester.pump();
       changes.add(NetworkStatus.online);

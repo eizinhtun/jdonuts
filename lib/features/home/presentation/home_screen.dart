@@ -221,8 +221,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       previous,
       next,
     ) {
-      if (previous?.asData?.value.internetReachability ==
-              InternetReachability.unreachable &&
+      if (previous?.asData?.value.canReachInternet == false &&
           next.asData?.value.canReachInternet == true) {
         unawaited(_refresh());
       }
