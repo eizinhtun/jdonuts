@@ -37,6 +37,8 @@ Theme colors, common spacing values, and shared text roles live in `lib/core/the
 
 Riverpod is used for dependency injection and state. Providers construct the database, repositories, reachability service, session restore, router state, and auth draft. Tests override providers to supply in-memory storage, controlled clocks, delays, and connectivity streams. go_router applies the session guard and provides the stable /product/:id route.
 
+Riverpod was chosen because provider overrides make the offline repositories and auth flows testable, while FutureProvider and StreamProvider expose loading, error, and data states to the UI. Shared application state lives in providers; widget-local interaction state and animation controllers stay with their widgets.
+
 Folder map:
 
 - lib/app: provider graph and router
@@ -114,5 +116,8 @@ The `.app` and zip are local workspace artifacts and were not published or submi
 - Layouts are tested at a compact 320×667 logical-pixel viewport with text scale 1.3, not every physical 4.7–6.9 inch device size.
 - The bundled original food photos approximate the reference imagery; they are not photos of the client’s actual products or shops. Two Welcome tiles use those generated donut photos; the other two use vector illustrations.
 - Android release APK signing is for the demo, and only arm64 is packaged.
-- Time spent was not tracked, so no duration is claimed.
 - No repository was published, and no email or external submission was made.
+
+## Time spent
+
+Time spent was not tracked, so no reliable duration is available. An actual total or a clearly labeled estimate from the author is still needed to fully satisfy the time-spent requirement.
