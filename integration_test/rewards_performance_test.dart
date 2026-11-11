@@ -69,7 +69,7 @@ final _snapshot = RewardsSnapshot(
     id: 'member-1',
     name: 'Hania',
     tier: 'Silver',
-    points: 680000,
+    points: 1000000,
     pointsToGold: 500,
     notifications: 2,
   ),

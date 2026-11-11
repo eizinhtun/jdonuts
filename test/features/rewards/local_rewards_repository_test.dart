@@ -14,7 +14,7 @@ void main() {
 
     expect(result, isA<Success<RewardsSnapshot>>());
     final snapshot = (result as Success<RewardsSnapshot>).value;
-    expect(snapshot.member.points, 680000);
+    expect(snapshot.member.points, 1000000);
     expect(snapshot.member.pointsToGold, 500);
     expect(snapshot.challenges.single.id, 'coffee');
     expect(homeRepository.loads, 1);
@@ -57,7 +57,7 @@ final _appData = AppData(
     id: 'member-1',
     name: 'Hania',
     tier: 'Silver',
-    points: 680000,
+    points: 1000000,
     pointsToGold: 500,
     notifications: 2,
   ),

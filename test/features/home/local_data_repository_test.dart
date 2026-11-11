@@ -18,7 +18,7 @@ void main() {
     final result = await repository.load();
     expect(result, isA<Success<AppData>>());
     final data = (result as Success<AppData>).value;
-    expect(data.member.points, 680000);
+    expect(data.member.points, 1000000);
     expect(data.products, hasLength(5));
     expect(data.banners, hasLength(2));
     expect(data.sections, hasLength(3));
@@ -46,7 +46,7 @@ void main() {
     final version = await database
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data['user_version'], 3);
+    expect(version.data['user_version'], 4);
   });
 
   test('schema v1 upgrades member records with the bundled avatar default', () async {
@@ -80,7 +80,8 @@ void main() {
         .getSingle();
 
     expect(member.image, 'member.svg');
-    expect(version.data['user_version'], 3);
+    expect(member.points, 1000000);
+    expect(version.data['user_version'], 4);
   });
 
   test(
@@ -89,6 +90,10 @@ void main() {
       final database = AppDatabase.forTesting(
         NativeDatabase.memory(
           setup: (connection) {
+            connection.execute(
+              'CREATE TABLE member_rows ('
+              'id TEXT NOT NULL PRIMARY KEY, points INTEGER NOT NULL)',
+            );
             connection.execute(
               'CREATE TABLE product_rows ('
               'id TEXT NOT NULL PRIMARY KEY, code TEXT NOT NULL, '
@@ -131,12 +136,45 @@ void main() {
           'romance-box': 'custom-box.png',
         },
       );
+
       expect(
         banners.map((banner) => banner.image),
         everyElement('shop-banner.jpg'),
       );
     },
   );
+
+  test('schema v3 updates only the untouched demo member total', () async {
+    final database = AppDatabase.forTesting(
+      NativeDatabase.memory(
+        setup: (connection) {
+          connection.execute(
+            'CREATE TABLE member_rows ('
+            'id TEXT NOT NULL PRIMARY KEY, points INTEGER NOT NULL)',
+          );
+          connection.execute(
+            "INSERT INTO member_rows VALUES "
+            "('member-1', 680000), ('member-2', 680000), ('member-3', 750000)",
+          );
+          connection.execute('PRAGMA user_version = 3');
+        },
+      ),
+    );
+    addTearDown(database.close);
+
+    final members = await database
+        .customSelect('SELECT id, points FROM member_rows ORDER BY id')
+        .get();
+    final version = await database
+        .customSelect('PRAGMA user_version')
+        .getSingle();
+
+    expect(
+      {for (final row in members) row.data['id']: row.data['points']},
+      {'member-1': 1000000, 'member-2': 680000, 'member-3': 750000},
+    );
+    expect(version.data['user_version'], 4);
+  });
 
   test('overlapping first reads only seed each row once', () async {
     final database = AppDatabase.forTesting(NativeDatabase.memory());

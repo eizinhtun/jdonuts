@@ -37,7 +37,7 @@ void main() {
                   id: 'member',
                   name: 'Hania',
                   tier: 'Silver',
-                  points: 680000,
+                  points: 1000000,
                   pointsToGold: 500,
                   notifications: 2,
                 ),
@@ -58,7 +58,7 @@ void main() {
       );
 
       await tester.pump();
-      await tester.tap(find.byIcon(Icons.monetization_on_outlined).first);
+      await tester.tap(find.byIcon(Icons.workspace_premium_outlined).first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.text('J’ Donuts Rewards'), findsOneWidget);
@@ -69,7 +69,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 600));
         expect(find.text('Home destination'), findsOneWidget);
 
-        await tester.tap(find.byIcon(Icons.monetization_on_outlined).first);
+        await tester.tap(find.byIcon(Icons.workspace_premium_outlined).first);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 600));
         expect(find.text('J’ Donuts Rewards'), findsOneWidget);

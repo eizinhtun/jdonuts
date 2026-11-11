@@ -14,7 +14,7 @@ The display language and demo content are English. The backend, live SMS, social
 ## Design and architecture choices
 
 - **Database is the local source of truth:** bundled JSON seeds Drift/SQLite on first read in a transaction. Catalog photos are bundled raster assets and the remaining illustrations are SVG. Home, Product and Rewards resolve from the shared local data repository. With no backend, pull-to-refresh or reconnect only reloads SQLite; neither pretends to fetch updates.
-- **One member record:** the PDF mock-ups disagree. Home refers to Silver and 500 points to Gold, while Rewards shows the 680,000 points display. The seed uses Silver / 680,000 / 500 remaining and both views consume that record.
+- **One member record:** the mock-up displays 680,000, while the requested actual total is 1,000,000. The shared seed uses Silver / 1,000,000 / 500 points remaining to Gold, and both Home and Rewards read that row. A version 4 migration updates the untouched old seed balance while preserving edited balances.
 - **Riverpod:** providers construct and dispose database, repository, session, reachability, router and draft dependencies. Tests override providers with deterministic delays, clocks/stores/streams. Widgets own only temporary interaction state.
 - **Domain boundary:** pure Dart validation, OTP policy and repository contracts do not depend on Flutter. Data adapters own Drift and secure storage. Presentation maps state/errors into localized UI.
 - **Session/security:** account profile is stored in local SQLite; secure storage contains the active phone identifier. The sample app has no real secret/token or server authorization.

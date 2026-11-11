@@ -4,13 +4,13 @@ import 'package:jdonuts/features/rewards/domain/rewards_progress.dart';
 
 void main() {
   group('MemberRewardProgress', () {
-    test('maps the shared 680,000 points and Silver tier record', () {
+    test('maps the shared 1,000,000 points and Silver tier record', () {
       final progress = MemberRewardProgress.fromMember(_member());
 
-      expect(progress.points, 680000);
+      expect(progress.points, 1000000);
       expect(progress.currentTier, MembershipTier.silver);
       expect(progress.pointsToNextTier, 500);
-      expect(progress.nextTierFraction, closeTo(680000 / 680500, 0.000001));
+      expect(progress.nextTierFraction, closeTo(1000000 / 1000500, 0.000001));
       expect(progress.isCurrentTier(MembershipTier.silver), isTrue);
     });
 
@@ -75,7 +75,7 @@ void main() {
 }
 
 Member _member({
-  int points = 680000,
+  int points = 1000000,
   int pointsToGold = 500,
   String tier = 'Silver',
 }) => Member(
