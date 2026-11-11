@@ -75,11 +75,83 @@ abstract final class AppColors {
 }
 
 abstract final class AppSpace {
+  static const xxs = 2.0;
   static const xs = 4.0;
+  static const tight = 5.0;
+  static const compact = 6.0;
   static const sm = 8.0;
+  static const cardGap = 10.0;
+  static const smPlus = 12.0;
   static const md = 16.0;
+  static const sectionHeadingGap = 9.0;
+  static const sectionGap = 18.0;
+  static const mdPlus = 20.0;
   static const lg = 24.0;
   static const xl = 32.0;
+  static const xxl = 40.0;
+}
+
+abstract final class AppTypography {
+  static const pageHeading = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.w800,
+    color: AppColors.ink,
+  );
+  static const brandHeading = TextStyle(
+    fontSize: 21,
+    fontWeight: FontWeight.w800,
+    color: AppColors.ink,
+  );
+  static const sectionHeading = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w800,
+    color: AppColors.ink,
+  );
+  static const cardHeading = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.ink,
+  );
+  static const body = TextStyle(fontSize: 14, color: AppColors.ink);
+  static const bodyLarge = TextStyle(fontSize: 15, color: AppColors.ink);
+  static const caption = TextStyle(fontSize: 12, color: AppColors.muted);
+  static const memberName = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w800,
+    height: 1.1,
+    color: AppColors.ink,
+  );
+  static const memberTier = TextStyle(
+    fontSize: 11,
+    height: 1.1,
+    color: AppColors.memberLabel,
+  );
+  static const badgeLabel = TextStyle(
+    color: AppColors.white,
+    fontSize: 10,
+    fontWeight: FontWeight.w700,
+  );
+  static const productLabel = TextStyle(
+    color: AppColors.ink,
+    fontSize: 12,
+    fontWeight: FontWeight.w700,
+    height: 1.18,
+  );
+  static const challengeHeading = TextStyle(
+    fontSize: 15,
+    height: 1.12,
+    fontWeight: FontWeight.w800,
+  );
+  static const earnButtonLabel = TextStyle(
+    fontWeight: FontWeight.w800,
+    letterSpacing: .5,
+    fontSize: 14,
+  );
+  static const navigationLabel = TextStyle(
+    color: AppColors.white,
+    fontSize: 10,
+    fontWeight: FontWeight.w700,
+  );
 }
 
 ThemeData buildAppTheme() => ThemeData(
@@ -87,21 +159,9 @@ ThemeData buildAppTheme() => ThemeData(
   scaffoldBackgroundColor: AppColors.white,
   colorScheme: ColorScheme.fromSeed(seedColor: AppColors.pink),
   textTheme: const TextTheme(
-    headlineMedium: TextStyle(
-      fontSize: 28,
-      fontWeight: FontWeight.w800,
-      color: AppColors.ink,
-    ),
-    titleLarge: TextStyle(
-      fontSize: 21,
-      fontWeight: FontWeight.w800,
-      color: AppColors.ink,
-    ),
-    titleMedium: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w700,
-      color: AppColors.ink,
-    ),
-    bodyMedium: TextStyle(fontSize: 14, color: AppColors.ink),
+    headlineMedium: AppTypography.pageHeading,
+    titleLarge: AppTypography.brandHeading,
+    titleMedium: AppTypography.cardHeading,
+    bodyMedium: AppTypography.body,
   ),
 );

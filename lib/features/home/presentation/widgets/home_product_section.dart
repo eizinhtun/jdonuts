@@ -28,12 +28,12 @@ class HomeProductSection extends ConsumerWidget {
     final cardHeight = artworkHeight + 52;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 18),
+      padding: const EdgeInsets.only(top: AppSpace.sectionGap),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.md),
             child: Row(
               children: [
                 Expanded(
@@ -44,11 +44,7 @@ class HomeProductSection extends ConsumerWidget {
                           section.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.ink,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: AppTypography.sectionHeading,
                         ),
                       ),
                       if (popular) ...[
@@ -74,7 +70,7 @@ class HomeProductSection extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 9),
+          const SizedBox(height: AppSpace.sectionHeadingGap),
           SizedBox(
             height: cardHeight,
             child: products.when(
@@ -91,10 +87,13 @@ class HomeProductSection extends ConsumerWidget {
               data: (items) => items.isEmpty
                   ? Center(child: Text(context.l10n.emptyProducts))
                   : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpace.md,
+                      ),
                       scrollDirection: Axis.horizontal,
                       itemCount: items.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 10),
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(width: AppSpace.cardGap),
                       itemBuilder: (context, index) => _ProductCard(
                         product: items[index],
                         heroTag: 'product-${items[index].id}-${section.id}',
@@ -122,10 +121,10 @@ class _SectionSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView.separated(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.symmetric(horizontal: AppSpace.md),
     scrollDirection: Axis.horizontal,
     itemCount: 2,
-    separatorBuilder: (_, _) => const SizedBox(width: 10),
+    separatorBuilder: (_, _) => const SizedBox(width: AppSpace.cardGap),
     itemBuilder: (context, index) => SizedBox(
       width: cardWidth,
       child: DecoratedBox(
@@ -219,12 +218,7 @@ class _ProductCard extends StatelessWidget {
             product.name,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.ink,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              height: 1.18,
-            ),
+            style: AppTypography.productLabel,
           ),
         ],
       ),

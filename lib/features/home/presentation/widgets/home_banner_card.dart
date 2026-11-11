@@ -47,14 +47,7 @@ class HomeBannerCard extends StatelessWidget {
                   color: AppColors.orange,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Text(
-                  banner.subtitle,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: Text(banner.subtitle, style: AppTypography.badgeLabel),
               ),
             ),
             Positioned(

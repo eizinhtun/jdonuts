@@ -10,8 +10,8 @@ class HomeShops extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(top: 18),
-    padding: const EdgeInsets.all(18),
+    margin: const EdgeInsets.only(top: AppSpace.sectionGap),
+    padding: const EdgeInsets.all(AppSpace.sectionGap),
     color: AppColors.cyan,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,11 +23,11 @@ class HomeShops extends StatelessWidget {
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpace.cardGap),
         for (final shop in shops)
           Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: AppSpace.sm),
+            padding: const EdgeInsets.all(AppSpace.smPlus),
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(12),
@@ -35,7 +35,7 @@ class HomeShops extends StatelessWidget {
             child: Row(
               children: [
                 const Icon(Icons.storefront_outlined),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpace.cardGap),
                 Expanded(child: Text(shop)),
                 const Icon(Icons.chevron_right),
               ],
@@ -53,13 +53,13 @@ class HomeOfflineNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(8),
+    padding: const EdgeInsets.all(AppSpace.sm),
     child: Text(
       status.internetReachability == InternetReachability.unknown
           ? context.l10n.internetStatusUnknown
           : context.l10n.offlineNotice,
       textAlign: TextAlign.center,
-      style: TextStyle(color: AppColors.muted, fontSize: 12),
+      style: AppTypography.caption,
     ),
   );
 }

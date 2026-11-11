@@ -98,8 +98,8 @@ class _ChallengeCardState extends State<ChallengeCard>
     return Container(
       margin: EdgeInsets.only(bottom: compactLayout ? 14 : 20),
       padding: EdgeInsets.symmetric(
-        horizontal: compactLayout ? 16 : 31,
-        vertical: compactLayout ? 20 : 30,
+        horizontal: compactLayout ? AppSpace.md : 31,
+        vertical: compactLayout ? AppSpace.mdPlus : 30,
       ),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -122,7 +122,7 @@ class _ChallengeCardState extends State<ChallengeCard>
               progress: progress.fraction,
             ),
           ),
-          SizedBox(width: compactLayout ? 12 : 27),
+          SizedBox(width: compactLayout ? AppSpace.smPlus : 27),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,27 +131,24 @@ class _ChallengeCardState extends State<ChallengeCard>
                   challenge.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    height: 1.12,
-                    fontWeight: FontWeight.w800,
+                  style: AppTypography.challengeHeading.copyWith(
                     fontFamily: Theme.of(context).platform == TargetPlatform.iOS
                         ? 'SF Pro Rounded'
                         : null,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpace.compact),
                 Text(
                   context.l10n.challengeCount(
                     progress.completedCount,
                     progress.targetCount,
                   ),
-                  style: const TextStyle(fontSize: 15),
+                  style: AppTypography.bodyLarge,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpace.cardGap),
                 Wrap(
-                  spacing: 12,
-                  runSpacing: 4,
+                  spacing: AppSpace.smPlus,
+                  runSpacing: AppSpace.xs,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     ScaleTransition(
@@ -168,17 +165,13 @@ class _ChallengeCardState extends State<ChallengeCard>
                         ),
                         child: Text(
                           context.l10n.earnLabel,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: .5,
-                            fontSize: 14,
-                          ),
+                          style: AppTypography.earnButtonLabel,
                         ),
                       ),
                     ),
                     Text(
                       context.l10n.earnPoints(progress.points),
-                      style: const TextStyle(fontSize: 14),
+                      style: AppTypography.body,
                     ),
                   ],
                 ),

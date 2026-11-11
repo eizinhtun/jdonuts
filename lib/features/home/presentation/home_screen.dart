@@ -291,7 +291,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           child: HomeShops(shops: data.shops),
                         ),
                       ),
-                      const SliverToBoxAdapter(child: SizedBox(height: 18)),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: AppSpace.sectionGap),
+                      ),
                     ],
                   ),
                 ),

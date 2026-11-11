@@ -48,7 +48,12 @@ class HomeHeader extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpace.md,
+              AppSpace.cardGap,
+              AppSpace.md,
+              AppSpace.sm,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -67,7 +72,7 @@ class HomeHeader extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: AppSpace.cardGap),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,37 +82,28 @@ class HomeHeader extends StatelessWidget {
                             member.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.ink,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              height: 1.1,
-                            ),
+                            style: AppTypography.memberName,
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: AppSpace.xxs),
                           Text(
                             context.l10n.memberTierLabel(member.tier),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.memberLabel,
-                              fontSize: 11,
-                              height: 1.1,
-                            ),
+                            style: AppTypography.memberTier,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpace.sm),
                     _NotificationPill(count: member.notifications),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpace.sm),
                 Container(
                   constraints: const BoxConstraints(maxWidth: 260),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 5,
+                    horizontal: AppSpace.smPlus,
+                    vertical: AppSpace.tight,
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.white,
@@ -143,7 +139,10 @@ class _NotificationPill extends StatelessWidget {
     button: true,
     label: context.l10n.notificationCount(count),
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpace.sm,
+        vertical: AppSpace.compact,
+      ),
       decoration: BoxDecoration(
         color: AppColors.orange,
         borderRadius: BorderRadius.circular(18),
