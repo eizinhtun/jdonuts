@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:jdonuts/core/network/network_reachability.dart';
 
 void main() {
@@ -65,4 +67,21 @@ void main() {
       await expectLater(reachability.watch(), emits(false));
     },
   );
+
+  test('checks the HTTP reachability endpoint for its 204 response', () async {
+    Uri? requestedUri;
+    final reachability = NetworkReachability(
+      client: MockClient((request) async {
+        requestedUri = request.url;
+        return http.Response('', 204);
+      }),
+      checkConnectivity: () async => const [ConnectivityResult.wifi],
+      connectivityChanges: const Stream.empty(),
+    );
+    addTearDown(reachability.dispose);
+
+    await expectLater(reachability.watch(), emits(true));
+
+    expect(requestedUri, Uri.https('www.google.com', '/generate_204'));
+  });
 }

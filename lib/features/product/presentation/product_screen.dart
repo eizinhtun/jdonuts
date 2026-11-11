@@ -42,26 +42,37 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                 value: MediaQuery.disableAnimationsOf(context) ? .65 : null,
               ),
             ),
-            error: (_, _) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(context.l10n.productUnavailable),
-                  TextButton(
-                    onPressed: () =>
-                        ref.invalidate(productProvider(widget.productId)),
-                    child: Text(context.l10n.retryLabel),
-                  ),
-                ],
-              ),
+            error: (_, _) => _productIssue(
+              context,
+              context.l10n.productUnavailable,
+              onRetry: () => ref.invalidate(productProvider(widget.productId)),
             ),
             data: (product) {
               if (product == null) {
-                return Center(child: Text(context.l10n.productNotFound));
+                return _productIssue(context, context.l10n.productNotFound);
               }
               return _product(context, product);
             },
           ),
+    ),
+  );
+
+  Widget _productIssue(
+    BuildContext context,
+    String message, {
+    VoidCallback? onRetry,
+  }) => Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(message),
+        if (onRetry != null)
+          TextButton(onPressed: onRetry, child: Text(context.l10n.retryLabel)),
+        TextButton(
+          onPressed: () => context.go('/home'),
+          child: Text(context.l10n.homeLabel),
+        ),
+      ],
     ),
   );
 

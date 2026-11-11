@@ -26,46 +26,49 @@ void main() {
 
     await tester.tap(find.text('LET’S GET STARTED'));
     await tester.pumpAndSettle();
+    _expectNoException(tester, 'Phone screen');
     await tester.enterText(find.byType(TextField).first, '9254135592');
-    await tester.pump();
+    await _hideKeyboardAndEnsureVisible(tester, find.text('CONTINUE'));
+    _expectNoException(tester, 'Phone entry');
     await tester.tap(find.text('CONTINUE'));
     await tester.pumpAndSettle();
+    _expectNoException(tester, 'OTP screen');
 
     await tester.enterText(find.byType(TextField).first, '123456');
-    await tester.pump();
+    await _hideKeyboardAndEnsureVisible(tester, find.text('VERIFY'));
+    _expectNoException(tester, 'OTP entry');
     await tester.tap(find.text('VERIFY'));
     await tester.pumpAndSettle();
+    _expectNoException(tester, 'Name screen');
     expect(find.text('What’s your name?'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).at(0), 'May');
     await tester.enterText(find.byType(TextField).at(1), 'Aung');
-    await tester.pump();
+    await _hideKeyboardAndEnsureVisible(tester, find.text('CONTINUE'));
+    _expectNoException(tester, 'Name entry');
     await tester.tap(find.text('CONTINUE'));
     await tester.pumpAndSettle();
+    _expectNoException(tester, 'Date of birth screen');
 
     await tester.enterText(find.byType(TextField).at(0), 'May');
     await tester.enterText(find.byType(TextField).at(1), '1');
     await tester.enterText(find.byType(TextField).at(2), '1980');
-    await tester.pump();
+    await _hideKeyboardAndEnsureVisible(tester, find.text('CONTINUE'));
+    _expectNoException(tester, 'Date of birth entry');
     await tester.tap(find.text('CONTINUE'));
     await _pumpUntilFound(
       tester,
       find.text('Welcome to the world of J’Donuts'),
     );
-    if (find.text('Welcome to the world of J’Donuts').evaluate().isEmpty) {
-      debugPrint(
-        tester
-            .widgetList<Text>(find.byType(Text))
-            .map((text) => text.data ?? text.textSpan?.toPlainText())
-            .join(' | '),
-      );
-    }
     expect(find.text('Welcome to the world of J’Donuts'), findsOneWidget);
+    _expectNoException(tester, 'Welcome screen');
 
     await tester.tap(find.text('LET’S EXPLORE'));
     await _pumpUntilFound(tester, find.text('Seasonal specials'));
     expect(find.text('Seasonal specials'), findsOneWidget);
     expect(find.text('You’re offline — showing saved items'), findsOneWidget);
+    expect(find.byType(Image), findsWidgets);
+    expect(find.byIcon(Icons.broken_image_outlined), findsNothing);
 
     await _pumpUntilFound(tester, find.text('Coconut Donut'));
     await tester.ensureVisible(find.text('Coconut Donut').first);
@@ -74,6 +77,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('JD022123'), findsOneWidget);
     expect(find.text('3,200 MMK'), findsNWidgets(2));
+    expect(find.byType(Image), findsWidgets);
+    expect(find.byIcon(Icons.broken_image_outlined), findsNothing);
     expect(tester.takeException(), isNull);
     expect((await sessionStore.read())?.phone, '959254135592');
 
@@ -108,4 +113,18 @@ Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
   for (var frame = 0; frame < 30 && finder.evaluate().isEmpty; frame++) {
     await tester.pump(const Duration(milliseconds: 100));
   }
+}
+
+void _expectNoException(WidgetTester tester, String screen) {
+  expect(tester.takeException(), isNull, reason: screen);
+}
+
+Future<void> _hideKeyboardAndEnsureVisible(
+  WidgetTester tester,
+  Finder target,
+) async {
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pumpAndSettle();
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
 }

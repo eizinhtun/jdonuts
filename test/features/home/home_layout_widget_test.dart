@@ -13,6 +13,54 @@ import 'package:jdonuts/features/product/presentation/product_screen.dart';
 import 'package:jdonuts/l10n/app_localizations.dart';
 
 void main() {
+  testWidgets('an empty section does not hide populated Home sections', (
+    tester,
+  ) async {
+    _disableMotion(tester);
+    final emptySeasonalData = AppData(
+      member: _sampleData.member,
+      products: _sampleData.products,
+      sections: _sampleData.sections
+          .map(
+            (section) => section.id == 'seasonal'
+                ? HomeSection(
+                    id: section.id,
+                    title: section.title,
+                    productIds: const [],
+                  )
+                : section,
+          )
+          .toList(),
+      banners: _sampleData.banners,
+      shops: _sampleData.shops,
+      challenges: _sampleData.challenges,
+    );
+    final repository = _FakeDataRepository(emptySeasonalData);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appDataProvider.overrideWith((ref) async => emptySeasonalData),
+          dataRepositoryProvider.overrideWith((ref) => repository),
+          connectivityProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No items yet'), findsOneWidget);
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(find.text('Popular'), findsOneWidget);
+    expect(find.text('Coconut Donut'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'a failed Home section retries without replacing other sections',
     (tester) async {
@@ -53,6 +101,46 @@ void main() {
       expect(find.text('Coconut Donut'), findsWidgets);
     },
   );
+
+  testWidgets('refresh failure leaves cached Home usable', (tester) async {
+    _disableMotion(tester);
+    final changes = StreamController<bool>();
+    final repository = _FakeDataRepository(_sampleData)..failNextRefresh = true;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appDataProvider.overrideWith((ref) async => _sampleData),
+          dataRepositoryProvider.overrideWith((ref) => repository),
+          connectivityProvider.overrideWith((ref) => changes.stream),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+
+    try {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      changes.add(false);
+      await tester.pump();
+      changes.add(true);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(repository.refreshes, 1);
+      expect(find.text('Temporary refresh failure'), findsOneWidget);
+      expect(find.text('Seasonal specials'), findsOneWidget);
+      expect(find.text('Coconut Donut'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      unawaited(changes.close());
+    }
+  });
 
   testWidgets(
     'offline Home reconnects and product fits a small portrait view',
@@ -167,6 +255,7 @@ class _FakeDataRepository implements HomeRepository {
     : _failedSections = failedSections ?? {};
   final AppData data;
   int refreshes = 0;
+  bool failNextRefresh = false;
   final Map<String, int> _failedSections;
   final Map<String, int> sectionLoads = {};
 
@@ -176,6 +265,10 @@ class _FakeDataRepository implements HomeRepository {
   @override
   Future<Result<AppData>> refresh() async {
     refreshes++;
+    if (failNextRefresh) {
+      failNextRefresh = false;
+      return const Error(StorageFailure('Temporary refresh failure'));
+    }
     return Success(data);
   }
 

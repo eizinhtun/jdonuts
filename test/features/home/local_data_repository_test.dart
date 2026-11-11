@@ -159,14 +159,27 @@ void main() {
       expect(initial, isA<Success<AppData>>());
       await (database.update(database.memberRows))
           .write(const MemberRowsCompanion(points: Value(681234)));
+      await (database.update(
+        database.productRows,
+      )..where((row) => row.id.equals('coconut'))).write(
+        const ProductRowsCompanion(name: Value('Locally edited coconut donut')),
+      );
 
       final offlineRepository = DriftDataRepository(
         database,
         bundle: _UnavailableAssetBundle(),
       );
       final offline = await offlineRepository.load();
+      final repeated = await offlineRepository.load();
       expect(offline, isA<Success<AppData>>());
-      expect((offline as Success<AppData>).value.member.points, 681234);
+      final cachedData = (offline as Success<AppData>).value;
+      expect(cachedData.member.points, 681234);
+      expect(
+        cachedData.product('coconut')?.name,
+        'Locally edited coconut donut',
+      );
+      expect(repeated, isA<Success<AppData>>());
+      expect((repeated as Success<AppData>).value.products, hasLength(5));
       expect(await database.select(database.shopRows).get(), hasLength(4));
     },
   );

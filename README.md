@@ -47,7 +47,7 @@ The Home and Rewards mock-ups disagree about membership values. The app delibera
 
 The onboarding hero donut, coconut and chocolate donuts, Dalgona coffee, seasonal donut box, and shop banner are original images generated specifically for this app with OpenAI image generation; they are not stock photography. The vector donut and striped-donut Welcome tiles and member avatar are hand-authored SVG illustrations. The PDF and its screenshots are not bundled. SeedImage renders bundled SVG, PNG, and JPEG assets offline and supports cached remote raster images, placeholders, and an error view if a future data source supplies URLs. Drift schema v3 migrates previously seeded image paths to the bundled photos without replacing custom image paths.
 
-connectivity_plus interface changes are combined with an HTTP reachability probe. A small offline banner appears when the probe reports no internet. Reconnection and pull-to-refresh re-read SQLite, preserving usable content. There is no backend in this assignment slice, so refresh cannot download catalog updates; the reachability request is only an online/offline hint.
+connectivity_plus interface changes are combined with an HTTP reachability probe. A small offline banner appears when the probe reports no internet. Reconnection and pull-to-refresh re-read SQLite, preserving usable content. Failed refreshes show an error message without clearing the cached Home. There is no backend in this assignment slice, so refresh cannot download catalog updates; the reachability request is only an online/offline hint.
 
 ## Authentication
 
@@ -64,14 +64,15 @@ Named motion durations and curves are centralized in lib/core/motion/motion.dart
 - dart format lib test integration_test — completed
 - flutter gen-l10n — completed
 - flutter analyze — no issues found
-- flutter test --reporter expanded — all 46 tests passed
-- iOS Simulator integration: Register → Welcome → Home → Product — passed on 2026-11-11; the ten-screen offline capture flow also passed.
+- flutter test — all 63 tests passed
+- iOS Simulator integration: Register → Welcome → Home → Product — passed on 2026-11-11 with simulated offline status; the flow confirmed bundled images render without the failure fallback. The ten-screen offline capture flow also passed.
+- Android arm64 debug build — `flutter build apk --debug --target-platform android-arm64` passed after the Task 2 changes.
 - Android release build: arm64 APK built at build/app/outputs/flutter-apk/app-release.apk (32.3 MB); apksigner verified its v2 signature.
 - iOS Simulator app built with flutter build ios --simulator and zipped at build/jdonuts-ios-simulator-current.zip; archive integrity check passed. Flutter does not support release mode for iOS simulators, so this is a debug Simulator app.
 - The existing `build/jdonuts-demo-walkthrough.mov` is 211 seconds (3:31), but it predates the final visual pass. A fresh recording of the current UI was not verified, so treat this video as an older walkthrough.
 - Captured and reviewed all ten supplied design states on an iPhone 17 Pro Simulator on 2026-11-11. The review was visual; no pixel-diff tool was used.
 
-No profile-mode frame timing was recorded; no 60 fps claim is made. The integration test forces its connectivity provider offline and tests reconnection through a simulated stream. System-level airplane mode was not toggled. The Android integration test could not be rerun in this pass because the Pixel 10 Pro emulator exited with code 1 during startup; the APK build itself completed.
+No profile-mode frame timing was recorded; no 60 fps claim is made. The integration test forces its connectivity provider offline and tests reconnection through a simulated stream. System-level airplane mode was not toggled. No Android emulator/device was connected in this pass, so Android runtime/offline behavior remains unverified; the arm64 debug APK build passed.
 
 ## Build artifacts and commands
 
