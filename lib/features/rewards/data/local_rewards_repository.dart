@@ -13,8 +13,17 @@ class LocalRewardsRepository implements RewardsRepository {
       _snapshot(await _homeRepository.load());
 
   @override
+  Future<Result<RewardsSnapshot>> loadForAccount(String accountPhone) async =>
+      _snapshot(await _homeRepository.loadForAccount(accountPhone));
+
+  @override
   Future<Result<RewardsSnapshot>> refresh() async =>
       _snapshot(await _homeRepository.refresh());
+
+  @override
+  Future<Result<RewardsSnapshot>> refreshForAccount(
+    String accountPhone,
+  ) async => _snapshot(await _homeRepository.refreshForAccount(accountPhone));
 
   Result<RewardsSnapshot> _snapshot(Result<AppData> result) =>
       result.fold<Result<RewardsSnapshot>>(

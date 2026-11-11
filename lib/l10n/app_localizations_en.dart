@@ -124,6 +124,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownNumber => 'This number is new. Register to continue.';
 
   @override
+  String get alreadyRegistered =>
+      'This number is already registered. Log in instead.';
+
+  @override
   String get registerInstead => 'Register with this number';
 
   @override

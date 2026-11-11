@@ -11,20 +11,20 @@ mixin _AuthFlowActions on _AuthFlowHost {
     });
 
     final repository = ref.read(authRepositoryProvider);
-    if (!_isRegistration) {
-      final registeredResult = await repository.isRegistered(canonical);
-      if (!mounted) return;
-      final registrationFailure = registeredResult.fold<String?>(
-        (registered) => registered ? null : context.l10n.unknownNumber,
-        _failureMessage,
-      );
-      if (registrationFailure != null) {
-        setState(() {
-          _loading = false;
-          _error = registrationFailure;
-        });
-        return;
-      }
+    final registeredResult = await repository.isRegistered(canonical);
+    if (!mounted) return;
+    final accountFailure = registeredResult.fold<String?>(
+      (registered) => _isRegistration
+          ? (registered ? context.l10n.alreadyRegistered : null)
+          : (registered ? null : context.l10n.unknownNumber),
+      _failureMessage,
+    );
+    if (accountFailure != null) {
+      setState(() {
+        _loading = false;
+        _error = accountFailure;
+      });
+      return;
     }
     if (!mounted) return;
     final hasActiveCode =
@@ -129,6 +129,7 @@ mixin _AuthFlowActions on _AuthFlowHost {
           _saveDraft(draft.copyWith(otpVerified: true));
           context.go('/auth/register/name');
         } else {
+          _invalidateAccountData();
           ref.read(authStateProvider.notifier).state = true;
           context.go('/home');
         }
@@ -251,6 +252,7 @@ mixin _AuthFlowActions on _AuthFlowHost {
     if (!mounted) return;
     result.fold<void>(
       (_) {
+        _invalidateAccountData();
         _saveDraft(
           ref
               .read(authDraftProvider)
@@ -269,11 +271,18 @@ mixin _AuthFlowActions on _AuthFlowHost {
   String? _failureFrom(Result<bool> result) =>
       result.fold<String?>((_) => null, _failureMessage);
 
+  void _invalidateAccountData() {
+    ref.invalidate(activeAccountProvider);
+    ref.invalidate(appDataProvider);
+    ref.invalidate(rewardsDataProvider);
+  }
+
   String _failureMessage(Failure failure) {
     if (failure is AuthFailure) {
       return switch (failure.code) {
         AuthFailureCode.incorrectCode => context.l10n.otpIncorrect,
         AuthFailureCode.unknownNumber => context.l10n.unknownNumber,
+        AuthFailureCode.alreadyRegistered => context.l10n.alreadyRegistered,
         AuthFailureCode.unverifiedNumber => context.l10n.otpInvalid,
         AuthFailureCode.registrationIncomplete => context.l10n.invalidName,
         AuthFailureCode.serviceUnavailable => context.l10n.genericError,

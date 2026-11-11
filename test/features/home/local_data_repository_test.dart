@@ -1,9 +1,11 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/core/storage/app_database.dart';
+import 'package:jdonuts/features/auth/data/auth_account_store.dart';
+import 'package:jdonuts/features/auth/domain/auth_repository.dart';
 import 'package:jdonuts/features/home/data/local_data_repository.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
 
@@ -37,7 +39,13 @@ void main() {
     );
     expect(data.challenges, hasLength(3));
 
-    expect(await database.select(database.memberRows).get(), hasLength(1));
+    final profiles = await database.select(database.memberRows).get();
+    expect(profiles, hasLength(1));
+    expect(profiles.single.accountPhone, '95987654321');
+    final demoAccount = await database
+        .select(database.authAccountRows)
+        .getSingle();
+    expect(demoAccount.phone, '95987654321');
     expect(await database.select(database.productRows).get(), hasLength(5));
     expect(await database.select(database.bannerRows).get(), hasLength(2));
     expect(await database.select(database.sectionRows).get(), hasLength(3));
@@ -46,7 +54,7 @@ void main() {
     final version = await database
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data['user_version'], 5);
+    expect(version.data['user_version'], 7);
   });
 
   test('schema v1 upgrades member records with the bundled avatar default', () async {
@@ -81,7 +89,7 @@ void main() {
 
     expect(member.image, 'member.svg');
     expect(member.points, 680000);
-    expect(version.data['user_version'], 5);
+    expect(version.data['user_version'], 7);
   });
 
   test(
@@ -173,7 +181,7 @@ void main() {
       {for (final row in members) row.data['id']: row.data['points']},
       {'member-1': 680000, 'member-2': 680000, 'member-3': 750000},
     );
-    expect(version.data['user_version'], 5);
+    expect(version.data['user_version'], 7);
   });
 
   test('schema v4 changes only the untouched demo member total', () async {
@@ -206,7 +214,7 @@ void main() {
       {for (final row in members) row.data['id']: row.data['points']},
       {'member-1': 680000, 'member-2': 1000000, 'member-3': 750000},
     );
-    expect(version.data['user_version'], 5);
+    expect(version.data['user_version'], 7);
   });
 
   test('overlapping first reads only seed each row once', () async {
@@ -218,8 +226,118 @@ void main() {
 
     expect(results, everyElement(isA<Success<AppData>>()));
     expect(await database.select(database.memberRows).get(), hasLength(1));
+    expect(await database.select(database.authAccountRows).get(), hasLength(1));
     expect(await database.select(database.shopRows).get(), hasLength(4));
+    expect(
+      await database.select(database.memberChallengeRows).get(),
+      hasLength(3),
+    );
   });
+
+  test(
+    'account switching reads each persisted member profile by phone',
+    () async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      final accounts = DriftAuthAccountStore(database);
+      final repository = DriftDataRepository(database);
+      const first = AuthUser(
+        phone: '95911111111',
+        firstName: 'May',
+        lastName: 'Aung',
+        birthDate: null,
+      );
+      const second = AuthUser(
+        phone: '95922222222',
+        firstName: 'May',
+        lastName: 'Aung',
+        birthDate: null,
+      );
+      await accounts.create(first);
+      await accounts.create(second);
+      final initialFirstResult = await repository.loadForAccount(first.phone);
+      expect(initialFirstResult, isA<Success<AppData>>());
+      expect(
+        await database.select(database.memberChallengeRows).get(),
+        hasLength(9),
+      );
+      await (database.update(database.memberRows)
+            ..where((member) => member.accountPhone.equals(first.phone)))
+          .write(const MemberRowsCompanion(points: Value(600000)));
+      await (database.update(database.memberRows)
+            ..where((member) => member.accountPhone.equals(second.phone)))
+          .write(const MemberRowsCompanion(points: Value(750000)));
+      await (database.update(database.memberChallengeRows)..where(
+            (row) =>
+                row.accountPhone.equals(first.phone) &
+                row.challengeId.equals('donut-4'),
+          ))
+          .write(const MemberChallengeRowsCompanion(progress: Value(2)));
+      await (database.update(database.memberChallengeRows)..where(
+            (row) =>
+                row.accountPhone.equals(second.phone) &
+                row.challengeId.equals('donut-4'),
+          ))
+          .write(const MemberChallengeRowsCompanion(progress: Value(1)));
+
+      final firstResult = await repository.loadForAccount(first.phone);
+      final secondResult = await repository.loadForAccount(second.phone);
+      final repeatedFirstResult = await repository.loadForAccount(first.phone);
+
+      expect(firstResult, isA<Success<AppData>>());
+      expect(secondResult, isA<Success<AppData>>());
+      expect(repeatedFirstResult, isA<Success<AppData>>());
+      final firstData = (firstResult as Success<AppData>).value;
+      final secondData = (secondResult as Success<AppData>).value;
+      final repeatedData = (repeatedFirstResult as Success<AppData>).value;
+      expect(firstData.member.name, 'May Aung');
+      expect(secondData.member.name, 'May Aung');
+      expect(firstData.member.id, isNot(secondData.member.id));
+      expect(firstData.member.points, 600000);
+      expect(secondData.member.points, 750000);
+      expect(firstData.challenges.first.progress, 2);
+      expect(secondData.challenges.first.progress, 1);
+      expect(repeatedData.member.points, 600000);
+      expect(
+        await database.select(database.authAccountRows).get(),
+        hasLength(3),
+      );
+      expect(await database.select(database.memberRows).get(), hasLength(3));
+      expect(repeatedData.challenges.first.progress, 2);
+    },
+  );
+
+  test(
+    'a registered account with a missing profile returns a recoverable error',
+    () async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      const user = AuthUser(
+        phone: '95933333333',
+        firstName: 'May',
+        lastName: 'Aung',
+        birthDate: null,
+      );
+      final accounts = DriftAuthAccountStore(database);
+      await accounts.create(user);
+      await (database.delete(
+        database.memberRows,
+      )..where((member) => member.accountPhone.equals(user.phone))).go();
+
+      final result = await DriftDataRepository(database)
+          .loadForAccount(user.phone);
+
+      expect(result, isA<Error<AppData>>());
+      expect((result as Error<AppData>).failure, isA<StorageFailure>());
+      expect(await accounts.find(user.phone), isNotNull);
+      expect(
+        await (database.select(
+          database.memberRows,
+        )..where((member) => member.accountPhone.equals(user.phone))).get(),
+        isEmpty,
+      );
+    },
+  );
 
   test(
     'subsequent reads use SQLite when the asset bundle is unavailable',

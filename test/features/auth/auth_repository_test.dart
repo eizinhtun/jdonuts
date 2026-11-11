@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/features/auth/data/local_auth_repository.dart';
+import 'package:jdonuts/features/auth/data/auth_account_store.dart';
 import 'package:jdonuts/features/auth/data/auth_session_store.dart';
 import 'package:jdonuts/features/auth/domain/auth_repository.dart';
 
@@ -10,7 +11,6 @@ void main() {
       final repo = LocalAuthRepository(
         sessionStore: MemoryAuthSessionStore(),
         delay: (_) async {},
-        registered: {},
       );
       expect(await repo.requestOtp('95912345678'), isA<Success<bool>>());
       expect(await repo.verifyOtp('95912345678', '000000'), isA<Error<bool>>());
@@ -24,7 +24,6 @@ void main() {
       final repo = LocalAuthRepository(
         sessionStore: MemoryAuthSessionStore(),
         delay: (_) async {},
-        registered: {},
       );
       final user = AuthUser(
         phone: '95912345678',
@@ -48,6 +47,7 @@ void main() {
         final repo = LocalAuthRepository(
           sessionStore: MemoryAuthSessionStore(),
           delay: (_) async {},
+          accountStore: MemoryAuthAccountStore(users: [_demoUser]),
         );
         final unknown = await repo.login('95911111111', fakeOtpCode);
         expect(unknown, isA<Error<AuthUser>>());
@@ -57,6 +57,22 @@ void main() {
         expect(await _value(repo.hasSession()), isTrue);
       },
     );
+
+    test('a session without a matching account is cleared safely', () async {
+      final sessions = MemoryAuthSessionStore();
+      await sessions.write(_demoUser);
+      final repo = LocalAuthRepository(
+        sessionStore: sessions,
+        delay: (_) async {},
+        accountStore: MemoryAuthAccountStore(),
+      );
+
+      final session = await repo.currentSession();
+      expect(session, isA<Success<AuthUser?>>());
+      expect((session as Success<AuthUser?>).value, isNull);
+      expect(await sessions.read(), isNull);
+      expect(await _value(repo.hasSession()), isFalse);
+    });
 
     test('fake calls use the injectable latency', () async {
       final delays = <Duration>[];
@@ -98,6 +114,7 @@ void main() {
         final repo = LocalAuthRepository(
           sessionStore: sessions,
           delay: (_) async {},
+          accountStore: MemoryAuthAccountStore(users: [_demoUser]),
         );
 
         final result = await repo.login('95987654321', fakeOtpCode);
@@ -118,7 +135,6 @@ void main() {
         final repo = LocalAuthRepository(
           sessionStore: sessions,
           delay: (_) async {},
-          registered: {},
         );
         const user = AuthUser(
           phone: '95912345678',
@@ -151,6 +167,7 @@ void main() {
         final repo = LocalAuthRepository(
           sessionStore: sessions,
           delay: (_) async {},
+          accountStore: MemoryAuthAccountStore(users: [_demoUser]),
         );
         await repo.login('95987654321', fakeOtpCode);
         sessions.failClear = true;
@@ -163,6 +180,13 @@ void main() {
     );
   });
 }
+
+const _demoUser = AuthUser(
+  phone: '95987654321',
+  firstName: 'Hania',
+  lastName: '',
+  birthDate: null,
+);
 
 Future<T> _value<T>(Future<Result<T>> result) async => (await result).fold(
   (value) => value,

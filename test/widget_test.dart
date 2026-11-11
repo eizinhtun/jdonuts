@@ -10,6 +10,7 @@ import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
 import 'package:jdonuts/features/home/domain/home_repository.dart';
 import 'package:jdonuts/features/auth/data/local_auth_repository.dart';
+import 'package:jdonuts/features/auth/data/auth_account_store.dart';
 import 'package:jdonuts/features/auth/data/auth_session_store.dart';
 import 'package:jdonuts/features/auth/domain/auth_repository.dart';
 import 'package:jdonuts/main.dart';
@@ -40,7 +41,9 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(_testApp(sessionStore: sessionStore));
+    await tester.pumpWidget(
+      _testApp(registered: {'95987654321'}, sessionStore: sessionStore),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Seasonal specials'), findsOneWidget);
@@ -221,28 +224,40 @@ Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
 Widget _testApp({
   Set<String> registered = const {},
   AuthSessionStore? sessionStore,
-}) => ProviderScope(
-  overrides: [
-    appDatabaseProvider.overrideWith((ref) {
-      final database = AppDatabase.forTesting(NativeDatabase.memory());
-      ref.onDispose(database.close);
-      return database;
-    }),
-    connectivityProvider.overrideWith(
-      (ref) => Stream.value(NetworkStatus.online),
-    ),
-    appDataProvider.overrideWith((ref) async => _widgetData),
-    dataRepositoryProvider.overrideWith((ref) => _WidgetDataRepository()),
-    authRepositoryProvider.overrideWith(
-      (ref) => LocalAuthRepository(
-        delay: (_) async {},
-        registered: registered,
-        sessionStore: sessionStore ?? MemoryAuthSessionStore(),
+}) {
+  final accounts = MemoryAuthAccountStore(
+    users: registered.map(
+      (phone) => AuthUser(
+        phone: phone,
+        firstName: 'Hania',
+        lastName: '',
+        birthDate: null,
       ),
     ),
-  ],
-  child: const JDonutsApp(),
-);
+  );
+  return ProviderScope(
+    overrides: [
+      appDatabaseProvider.overrideWith((ref) {
+        final database = AppDatabase.forTesting(NativeDatabase.memory());
+        ref.onDispose(database.close);
+        return database;
+      }),
+      connectivityProvider.overrideWith(
+        (ref) => Stream.value(NetworkStatus.online),
+      ),
+      appDataProvider.overrideWith((ref) async => _widgetData),
+      dataRepositoryProvider.overrideWith((ref) => _WidgetDataRepository()),
+      authRepositoryProvider.overrideWith(
+        (ref) => LocalAuthRepository(
+          delay: (_) async {},
+          sessionStore: sessionStore ?? MemoryAuthSessionStore(),
+          accountStore: accounts,
+        ),
+      ),
+    ],
+    child: const JDonutsApp(),
+  );
+}
 
 final _widgetData = AppData(
   member: const Member(
@@ -289,7 +304,15 @@ class _WidgetDataRepository implements HomeRepository {
   Future<Result<AppData>> load() async => Success(_widgetData);
 
   @override
+  Future<Result<AppData>> loadForAccount(String accountPhone) async =>
+      Success(_widgetData);
+
+  @override
   Future<Result<AppData>> refresh() async => Success(_widgetData);
+
+  @override
+  Future<Result<AppData>> refreshForAccount(String accountPhone) async =>
+      Success(_widgetData);
 
   @override
   Future<Result<List<Product>>> loadSectionProducts(String sectionId) async {

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jdonuts/app/providers.dart';
 import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
+import 'package:jdonuts/features/auth/domain/auth_repository.dart';
 import 'package:jdonuts/features/rewards/domain/rewards_repository.dart';
 import 'package:jdonuts/features/rewards/presentation/rewards_screen.dart';
 import 'package:jdonuts/features/rewards/presentation/widgets/points_ring.dart';
@@ -333,6 +334,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          activeAccountProvider.overrideWith((ref) async => _activeAccount),
           rewardsDataProvider.overrideWith((ref) async {
             if (shouldFail) throw StateError('temporary read failure');
             return retrySnapshot;
@@ -367,6 +369,7 @@ Widget _rewardsApp({
   RewardsSnapshot? snapshot,
 }) => ProviderScope(
   overrides: [
+    activeAccountProvider.overrideWith((ref) async => _activeAccount),
     rewardsDataProvider.overrideWith((ref) async => snapshot ?? _snapshot()),
   ],
   child: MaterialApp(
@@ -415,6 +418,13 @@ final _sampleData = AppData(
       kind: 'coffee',
     ),
   ],
+);
+
+const _activeAccount = AuthUser(
+  phone: '95987654321',
+  firstName: 'Hania',
+  lastName: '',
+  birthDate: null,
 );
 
 int _displayedPoints(WidgetTester tester) {
@@ -467,9 +477,17 @@ class _FakeRewardsRepository implements RewardsRepository {
   Future<Result<RewardsSnapshot>> load() async => Success(snapshot);
 
   @override
+  Future<Result<RewardsSnapshot>> loadForAccount(String accountPhone) async =>
+      Success(snapshot);
+
+  @override
   Future<Result<RewardsSnapshot>> refresh() async {
     refreshes++;
     onRefresh();
     return Success(snapshot);
   }
+
+  @override
+  Future<Result<RewardsSnapshot>> refreshForAccount(String accountPhone) =>
+      refresh();
 }

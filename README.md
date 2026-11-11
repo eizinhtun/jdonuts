@@ -52,9 +52,9 @@ Folder map:
 
 ## Offline data and images
 
-The first local repository read seeds bundled JSON into versioned Drift/SQLite tables in a transaction. The database is the rendered source of truth after seeding. Home, Product, and Rewards read through feature-local repository interfaces backed by the same catalog/member records. Schema v2 added the member avatar column; schema v3 migrates the bundled image paths; schema v4 and v5 migrate the untouched demo member balance while preserving other locally edited records.
+The first local repository read seeds bundled JSON into versioned Drift/SQLite tables in a transaction. The database is the rendered source of truth after seeding. Home, Product, and Rewards read through feature-local repository interfaces backed by the same catalog/member records. Schema v2 added the member avatar column; schema v3 migrates bundled image paths; schema v4 and v5 migrate the untouched demo member balance while preserving other locally edited records; schema v6 links member rows to account phones and adds local account rows; schema v7 stores challenge progress per account while keeping challenge definitions shared.
 
-Home and Rewards now read the same persisted Silver member with 680,000 points and 500 points remaining to Gold. Rewards counts up to 680,000 and fills 68% of its 1,000,000-point ring range; the remaining 32% stays grey. The Silver-to-Gold ladder uses its separate tier threshold (`points / (points + pointsToGold)`). Schema v5 returns only the untouched demo balance from 1,000,000 to 680,000; other member rows and edited balances remain unchanged. The seed does not provide a Gold-to-Platinum threshold, so the UI does not fabricate that later-tier progress.
+Home and Rewards resolve the active account by its normalized phone and read the same persisted member row. Registration creates a member profile once with Silver tier, 680,000 points, and 500 points remaining to Gold. The demo profile is seeded once; repeated reads only add missing challenge-progress rows and never replace account membership values. A registered account with a missing profile gets a recoverable data error rather than a replacement profile. Challenge progress is account-scoped; available challenge definitions are shared. The demo account uses the bundled Hania profile. Rewards counts up to the stored 680,000 points and fills 68% of its 1,000,000-point artwork range; the remaining 32% stays grey. The Silver-to-Gold ladder uses its separate 500-point next-tier progress. Schema v5 returns only the untouched demo balance from 1,000,000 to 680,000; other member rows and edited balances remain unchanged. The seed does not provide a Gold-to-Platinum threshold, so the UI does not fabricate that later-tier progress.
 
 Challenge counters, art fractions, completion states, and earnable point labels are normalized from their persisted challenge rows. Zero targets are incomplete and render zero progress; negative or over-target values are clamped. Earn only displays placeholder feedback and does not change the member balance or challenge record. Gift switches the displayed tab content without a redemption operation.
 
@@ -64,7 +64,7 @@ connectivity_plus interface changes are combined with an HTTP reachability probe
 
 ## Authentication
 
-The replaceable AuthRepository uses a local fake implementation with an injectable one-second delay. OTP 123456 is test-only. Accounts persist in SQLite and flutter_secure_storage holds the active phone identifier. An absolute resend deadline and failure count live in the shared auth draft so route navigation does not reset them. Settings logs out and the router returns to the auth entry.
+The replaceable AuthRepository uses a local fake implementation with an injectable one-second delay. OTP 123456 is test-only. Normalized phone, first name, optional last name, and date of birth persist in SQLite; the phone is the stable account key and the account row is separate from its member profile. flutter_secure_storage holds the active phone identifier. Invalid sessions are cleared and reported as typed storage failures, and sessions without a matching account are cleared without fabricating a user. Registration writes account and member rows in one SQLite transaction; if secure-session persistence fails, it removes the newly created rows. Logout clears only the session. An absolute resend deadline and failure count live in the shared auth draft so route navigation does not reset them. Settings logs out and the router returns to the auth entry.
 
 This does not provide real SMS delivery, social sign-in, legal-document destinations, or server authentication. The UI labels social/legal actions as placeholders.
 
@@ -72,14 +72,14 @@ This does not provide real SMS delivery, social sign-in, legal-document destinat
 
 Named motion durations and curves are centralized in lib/core/motion/motion.dart. The app includes onboarding and welcome entrances, registration transitions and progress feedback, auth error/OTP feedback, Home shimmer/stagger and carousel, Product Hero/quantity transitions, Rewards points/tier/challenge animations, tab transitions, badge pop, and the active navigation pill. Repeating motion is stopped and animated values settle when MediaQuery.disableAnimations is enabled. Controllers and timers are disposed with their owners. The PDF supplies no font file or family name. On iOS, the onboarding and registration headlines request the system SF Pro Rounded face as a local rounded fallback; the exact reference typeface remains unverified. Other text and Android use platform system sans.
 
-## Checks run on 2026-11-11
+## Checks run on 2026-11-12
 
-- `dart format --output=none --set-exit-if-changed lib test integration_test` — passed; no formatting changes required
+- `dart format` on modified source, test, and integration-test files — passed
 - `flutter analyze` — no issues found after this audit's source changes
 - `flutter pub get --enforce-lockfile` — passed with the CI-pinned Flutter 3.47.9 / Dart 3.13.7
 - `flutter gen-l10n` — completed after adding the localized unknown-network-status message
-- `flutter test --concurrency=1` — all 93 unit and widget tests passed on Flutter 3.47.5 and the CI-pinned Flutter 3.47.9.
-- `flutter test integration_test/registration_to_product_test.dart -d 19EA97F4-DD99-47EF-BAA2-516BADF6E230` — passed on the booted iPhone 17 Pro Simulator, including offline seed/render, product routing and session restoration.
+- `flutter test --concurrency=1` — all 107 unit and widget tests passed on Flutter 3.47.5 / Dart 3.13.4.
+- `flutter test integration_test/registration_to_product_test.dart -d 19EA97F4-DD99-47EF-BAA2-516BADF6E230` — passed on the iPhone 17 Pro Simulator, including offline registration, Home and Rewards data, Product routing, session restoration, logout, and returning-user login.
 - `flutter build apk --release --target-platform android-arm64` — passed; current APK is 34.0 MB.
 - `flutter build ios --simulator` — passed; `build/jdonuts-ios-simulator-current.zip` passed `unzip -t`. iOS Simulator builds are debug configuration because Flutter does not support release mode for Simulator.
 - `flutter drive --profile` could not profile on the simulator because Flutter does not support profile builds for iOS Simulator. The connected physical iPhone requires Developer Mode; no Android device is available for the requested mid-range profile.

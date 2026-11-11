@@ -8,6 +8,7 @@ import 'package:jdonuts/app/providers.dart';
 import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/app/route_observer.dart';
 import 'package:jdonuts/core/result/result.dart';
+import 'package:jdonuts/features/auth/domain/auth_repository.dart';
 import 'package:jdonuts/features/home/domain/home_repository.dart';
 import 'package:jdonuts/features/home/domain/models.dart';
 import 'package:jdonuts/features/home/presentation/home_screen.dart';
@@ -96,6 +97,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          activeAccountProvider.overrideWith((ref) async => _activeAccount),
           appDataProvider.overrideWith((ref) async => data),
           dataRepositoryProvider.overrideWith(
             (ref) => _FakeDataRepository(data),
@@ -157,6 +159,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          activeAccountProvider.overrideWith((ref) async => _activeAccount),
           appDataProvider.overrideWith((ref) async => emptySeasonalData),
           dataRepositoryProvider.overrideWith((ref) => repository),
           connectivityProvider.overrideWith(
@@ -191,6 +194,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            activeAccountProvider.overrideWith((ref) async => _activeAccount),
             appDataProvider.overrideWith((ref) async => _sampleData),
             dataRepositoryProvider.overrideWith((ref) => repository),
             connectivityProvider.overrideWith(
@@ -230,6 +234,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          activeAccountProvider.overrideWith((ref) async => _activeAccount),
           appDataProvider.overrideWith((ref) async => _sampleData),
           dataRepositoryProvider.overrideWith((ref) => repository),
           connectivityProvider.overrideWith((ref) => changes.stream),
@@ -276,6 +281,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          activeAccountProvider.overrideWith((ref) async => _activeAccount),
           appDataProvider.overrideWith((ref) async => _sampleData),
           dataRepositoryProvider.overrideWith((ref) => repository),
           connectivityProvider.overrideWith((ref) => changes.stream),
@@ -347,6 +353,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            activeAccountProvider.overrideWith((ref) async => _activeAccount),
             appDataProvider.overrideWith((ref) async => _sampleData),
             dataRepositoryProvider.overrideWith((ref) => repository),
             connectivityProvider.overrideWith((ref) => changes.stream),
@@ -409,6 +416,7 @@ void main() {
 Widget _homeWithBanners(AppData data, {bool reduceMotion = false}) =>
     ProviderScope(
       overrides: [
+        activeAccountProvider.overrideWith((ref) async => _activeAccount),
         appDataProvider.overrideWith((ref) async => data),
         dataRepositoryProvider.overrideWith((ref) => _FakeDataRepository(data)),
         connectivityProvider.overrideWith(
@@ -479,6 +487,10 @@ class _FakeDataRepository implements HomeRepository {
   Future<Result<AppData>> load() async => Success(data);
 
   @override
+  Future<Result<AppData>> loadForAccount(String accountPhone) async =>
+      Success(data);
+
+  @override
   Future<Result<AppData>> refresh() async {
     refreshes++;
     await refreshGate?.future;
@@ -488,6 +500,9 @@ class _FakeDataRepository implements HomeRepository {
     }
     return Success(data);
   }
+
+  @override
+  Future<Result<AppData>> refreshForAccount(String accountPhone) => refresh();
 
   @override
   Future<Result<List<Product>>> loadSectionProducts(String sectionId) async {
@@ -506,6 +521,13 @@ class _FakeDataRepository implements HomeRepository {
     );
   }
 }
+
+const _activeAccount = AuthUser(
+  phone: '95987654321',
+  firstName: 'Hania',
+  lastName: '',
+  birthDate: null,
+);
 
 final _sampleData = AppData(
   member: const Member(

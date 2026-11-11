@@ -1,5 +1,6 @@
 {
   "member":{"id":"member-1","name":"Hania","tier":"Silver","points":680000,"pointsToGold":500,"notifications":2,"image":"member.svg"},
+  "demoAccount":{"phone":"95987654321","firstName":"Hania","lastName":"","birthDate":null},
   "products":[
     {"id":"coconut","code":"JD022123","name":"Coconut Donut","priceMmk":3200,"isNew":true,"discountPercent":null,"image":"coconut-donut.png","description":"Enjoy our scrumptious donuts — soft, sweet, and satisfying in every bite. Choose from classic glazed, white chocolate, or fun sprinkles. Dive into deliciousness now!"},
     {"id":"strawberry","code":"JD022124","name":"Strawberry Chocolate Donut","priceMmk":3500,"isNew":false,"discountPercent":null,"image":"chocolate-donut.png","description":"A soft donut topped with strawberry glaze and chocolate drizzle."},

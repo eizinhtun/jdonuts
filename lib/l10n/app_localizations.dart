@@ -310,6 +310,12 @@ abstract class AppLocalizations {
   /// **'This number is new. Register to continue.'**
   String get unknownNumber;
 
+  /// No description provided for @alreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'This number is already registered. Log in instead.'**
+  String get alreadyRegistered;
+
   /// No description provided for @registerInstead.
   ///
   /// In en, this message translates to:

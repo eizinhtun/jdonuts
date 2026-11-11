@@ -16,6 +16,7 @@ class AuthUser {
 
 abstract interface class AuthRepository {
   Future<Result<bool>> hasSession();
+  Future<Result<AuthUser?>> currentSession();
   Future<Result<bool>> isRegistered(String phone);
   Future<Result<bool>> requestOtp(String phone);
   Future<Result<bool>> verifyOtp(String phone, String code);

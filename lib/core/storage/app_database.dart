@@ -12,6 +12,7 @@ const _displayedDemoMemberPoints = 680000;
 
 class MemberRows extends Table {
   TextColumn get id => text()();
+  TextColumn get accountPhone => text().nullable()();
   TextColumn get name => text()();
   TextColumn get tier => text()();
   IntColumn get points => integer()();
@@ -83,6 +84,15 @@ class AuthAccountRows extends Table {
   Set<Column<Object>> get primaryKey => {phone};
 }
 
+class MemberChallengeRows extends Table {
+  TextColumn get accountPhone => text()();
+  TextColumn get challengeId => text()();
+  IntColumn get progress => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {accountPhone, challengeId};
+}
+
 @DriftDatabase(
   tables: [
     MemberRows,
@@ -92,6 +102,7 @@ class AuthAccountRows extends Table {
     ShopRows,
     ChallengeRows,
     AuthAccountRows,
+    MemberChallengeRows,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -100,11 +111,17 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    onCreate: (migrator) => migrator.createAll(),
+    onCreate: (migrator) async {
+      await migrator.createAll();
+      await customStatement('''
+        CREATE UNIQUE INDEX member_rows_account_phone
+        ON member_rows (account_phone)
+      ''');
+    },
     onUpgrade: (migrator, from, to) async {
       if (from < 1 && to >= 1) await migrator.createAll();
       if (from < 2 && to >= 2) {
@@ -144,6 +161,29 @@ class AppDatabase extends _$AppDatabase {
           SET points = $_displayedDemoMemberPoints
           WHERE id = 'member-1' AND points = $_currentDemoMemberPoints
         ''');
+      }
+      if (from < 6 && to >= 6) {
+        await migrator.addColumn(memberRows, memberRows.accountPhone);
+        await customStatement('''
+          CREATE UNIQUE INDEX IF NOT EXISTS member_rows_account_phone
+          ON member_rows (account_phone)
+        ''');
+        final accountTable = await customSelect('''
+          SELECT name FROM sqlite_master
+          WHERE type = 'table' AND name = 'auth_account_rows'
+        ''').getSingleOrNull();
+        if (accountTable == null) {
+          await migrator.createTable(authAccountRows);
+        }
+      }
+      if (from < 7 && to >= 7) {
+        final challengeProgressTable = await customSelect('''
+          SELECT name FROM sqlite_master
+          WHERE type = 'table' AND name = 'member_challenge_rows'
+        ''').getSingleOrNull();
+        if (challengeProgressTable == null) {
+          await migrator.createTable(memberChallengeRows);
+        }
       }
     },
   );

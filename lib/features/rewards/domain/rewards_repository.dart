@@ -11,5 +11,7 @@ class RewardsSnapshot {
 
 abstract interface class RewardsRepository {
   Future<Result<RewardsSnapshot>> load();
+  Future<Result<RewardsSnapshot>> loadForAccount(String accountPhone);
   Future<Result<RewardsSnapshot>> refresh();
+  Future<Result<RewardsSnapshot>> refreshForAccount(String accountPhone);
 }

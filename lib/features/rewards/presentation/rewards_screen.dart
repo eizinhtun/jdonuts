@@ -72,7 +72,14 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
     if (_isRefreshing) return;
     setState(() => _isRefreshing = true);
     try {
-      final result = await ref.read(rewardsRepositoryProvider).refresh();
+      final account = await ref.read(activeAccountProvider.future);
+      if (account == null) {
+        ref.invalidate(sessionProvider);
+        return;
+      }
+      final result = await ref
+          .read(rewardsRepositoryProvider)
+          .refreshForAccount(account.phone);
       if (!mounted) return;
       result.fold<void>(
         (_) => ref.invalidate(rewardsDataProvider),
@@ -156,7 +163,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen>
     final badge = RewardsBadge(animation: _entrance);
 
     return Padding(
-      padding: const EdgeInsets.only(left: 28,),
+      padding: const EdgeInsets.only(left: 28),
       child: SizedBox(
         height: _rewardsHeaderHeight,
         child: _stackRewardsHeader(context)

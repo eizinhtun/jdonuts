@@ -42,7 +42,19 @@ class _FakeHomeRepository implements HomeRepository {
   }
 
   @override
+  Future<Result<AppData>> loadForAccount(String accountPhone) async {
+    loads++;
+    return Success(data);
+  }
+
+  @override
   Future<Result<AppData>> refresh() async {
+    refreshes++;
+    return Success(data);
+  }
+
+  @override
+  Future<Result<AppData>> refreshForAccount(String accountPhone) async {
     refreshes++;
     return Success(data);
   }

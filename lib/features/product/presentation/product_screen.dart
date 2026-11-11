@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jdonuts/core/presentation/seed_image.dart';
-import 'package:jdonuts/l10n/localization.dart';
 import 'package:jdonuts/core/theme/tokens.dart';
+import 'package:jdonuts/l10n/localization.dart';
 
 import '../../../app/providers.dart';
 import '../../../core/formatters/currency.dart';
@@ -383,7 +383,7 @@ class _AddToCartButton extends StatelessWidget {
       onPressed: onPressed,
       style: FilledButton.styleFrom(
         backgroundColor: added ? AppColors.orange : AppColors.cyan,
-        minimumSize: const Size.fromHeight(56),
+        minimumSize: const Size.fromHeight(50),
         padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 12),
         shape: const StadiumBorder(),
       ),

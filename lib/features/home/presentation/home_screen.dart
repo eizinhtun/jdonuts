@@ -191,7 +191,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     if (_isRefreshing) return;
     _isRefreshing = true;
     try {
-      final result = await ref.read(dataRepositoryProvider).refresh();
+      final account = await ref.read(activeAccountProvider.future);
+      if (account == null) {
+        ref.invalidate(sessionProvider);
+        return;
+      }
+      final result = await ref
+          .read(dataRepositoryProvider)
+          .refreshForAccount(account.phone);
       if (!mounted) return;
       result.fold<void>(
         (_) => ref.invalidate(appDataProvider),

@@ -21,14 +21,19 @@ class SecureAuthSessionStore implements AuthSessionStore {
   Future<AuthUser?> read() async {
     final encoded = await _storage.read(key: _sessionKey);
     if (encoded == null) return null;
-    final json = jsonDecode(encoded) as Map<String, dynamic>;
-    final birthDate = json['birthDate'] as String?;
-    return AuthUser(
-      phone: json['phone'] as String,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String,
-      birthDate: birthDate == null ? null : DateTime.parse(birthDate),
-    );
+    try {
+      final json = jsonDecode(encoded) as Map<String, dynamic>;
+      final birthDate = json['birthDate'] as String?;
+      return AuthUser(
+        phone: json['phone'] as String,
+        firstName: json['firstName'] as String,
+        lastName: json['lastName'] as String,
+        birthDate: birthDate == null ? null : DateTime.parse(birthDate),
+      );
+    } on Object {
+      await _storage.delete(key: _sessionKey);
+      rethrow;
+    }
   }
 
   @override

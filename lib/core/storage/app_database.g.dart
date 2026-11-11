@@ -18,6 +18,17 @@ class $MemberRowsTable extends MemberRows
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _accountPhoneMeta = const VerificationMeta(
+    'accountPhone',
+  );
+  @override
+  late final GeneratedColumn<String> accountPhone = GeneratedColumn<String>(
+    'account_phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -80,6 +91,7 @@ class $MemberRowsTable extends MemberRows
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    accountPhone,
     name,
     tier,
     points,
@@ -103,6 +115,15 @@ class $MemberRowsTable extends MemberRows
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('account_phone')) {
+      context.handle(
+        _accountPhoneMeta,
+        accountPhone.isAcceptableOrUnknown(
+          data['account_phone']!,
+          _accountPhoneMeta,
+        ),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -169,6 +190,10 @@ class $MemberRowsTable extends MemberRows
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      accountPhone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_phone'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -204,6 +229,7 @@ class $MemberRowsTable extends MemberRows
 
 class MemberRow extends DataClass implements Insertable<MemberRow> {
   final String id;
+  final String? accountPhone;
   final String name;
   final String tier;
   final int points;
@@ -212,6 +238,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
   final String image;
   const MemberRow({
     required this.id,
+    this.accountPhone,
     required this.name,
     required this.tier,
     required this.points,
@@ -223,6 +250,9 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || accountPhone != null) {
+      map['account_phone'] = Variable<String>(accountPhone);
+    }
     map['name'] = Variable<String>(name);
     map['tier'] = Variable<String>(tier);
     map['points'] = Variable<int>(points);
@@ -235,6 +265,9 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
   MemberRowsCompanion toCompanion(bool nullToAbsent) {
     return MemberRowsCompanion(
       id: Value(id),
+      accountPhone: accountPhone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountPhone),
       name: Value(name),
       tier: Value(tier),
       points: Value(points),
@@ -251,6 +284,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MemberRow(
       id: serializer.fromJson<String>(json['id']),
+      accountPhone: serializer.fromJson<String?>(json['accountPhone']),
       name: serializer.fromJson<String>(json['name']),
       tier: serializer.fromJson<String>(json['tier']),
       points: serializer.fromJson<int>(json['points']),
@@ -264,6 +298,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'accountPhone': serializer.toJson<String?>(accountPhone),
       'name': serializer.toJson<String>(name),
       'tier': serializer.toJson<String>(tier),
       'points': serializer.toJson<int>(points),
@@ -275,6 +310,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
 
   MemberRow copyWith({
     String? id,
+    Value<String?> accountPhone = const Value.absent(),
     String? name,
     String? tier,
     int? points,
@@ -283,6 +319,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
     String? image,
   }) => MemberRow(
     id: id ?? this.id,
+    accountPhone: accountPhone.present ? accountPhone.value : this.accountPhone,
     name: name ?? this.name,
     tier: tier ?? this.tier,
     points: points ?? this.points,
@@ -293,6 +330,9 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
   MemberRow copyWithCompanion(MemberRowsCompanion data) {
     return MemberRow(
       id: data.id.present ? data.id.value : this.id,
+      accountPhone: data.accountPhone.present
+          ? data.accountPhone.value
+          : this.accountPhone,
       name: data.name.present ? data.name.value : this.name,
       tier: data.tier.present ? data.tier.value : this.tier,
       points: data.points.present ? data.points.value : this.points,
@@ -310,6 +350,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
   String toString() {
     return (StringBuffer('MemberRow(')
           ..write('id: $id, ')
+          ..write('accountPhone: $accountPhone, ')
           ..write('name: $name, ')
           ..write('tier: $tier, ')
           ..write('points: $points, ')
@@ -321,13 +362,22 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, tier, points, pointsToGold, notifications, image);
+  int get hashCode => Object.hash(
+    id,
+    accountPhone,
+    name,
+    tier,
+    points,
+    pointsToGold,
+    notifications,
+    image,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MemberRow &&
           other.id == this.id &&
+          other.accountPhone == this.accountPhone &&
           other.name == this.name &&
           other.tier == this.tier &&
           other.points == this.points &&
@@ -338,6 +388,7 @@ class MemberRow extends DataClass implements Insertable<MemberRow> {
 
 class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
   final Value<String> id;
+  final Value<String?> accountPhone;
   final Value<String> name;
   final Value<String> tier;
   final Value<int> points;
@@ -347,6 +398,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
   final Value<int> rowid;
   const MemberRowsCompanion({
     this.id = const Value.absent(),
+    this.accountPhone = const Value.absent(),
     this.name = const Value.absent(),
     this.tier = const Value.absent(),
     this.points = const Value.absent(),
@@ -357,6 +409,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
   });
   MemberRowsCompanion.insert({
     required String id,
+    this.accountPhone = const Value.absent(),
     required String name,
     required String tier,
     required int points,
@@ -372,6 +425,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
        notifications = Value(notifications);
   static Insertable<MemberRow> custom({
     Expression<String>? id,
+    Expression<String>? accountPhone,
     Expression<String>? name,
     Expression<String>? tier,
     Expression<int>? points,
@@ -382,6 +436,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (accountPhone != null) 'account_phone': accountPhone,
       if (name != null) 'name': name,
       if (tier != null) 'tier': tier,
       if (points != null) 'points': points,
@@ -394,6 +449,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
 
   MemberRowsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? accountPhone,
     Value<String>? name,
     Value<String>? tier,
     Value<int>? points,
@@ -404,6 +460,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
   }) {
     return MemberRowsCompanion(
       id: id ?? this.id,
+      accountPhone: accountPhone ?? this.accountPhone,
       name: name ?? this.name,
       tier: tier ?? this.tier,
       points: points ?? this.points,
@@ -419,6 +476,9 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (accountPhone.present) {
+      map['account_phone'] = Variable<String>(accountPhone.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -448,6 +508,7 @@ class MemberRowsCompanion extends UpdateCompanion<MemberRow> {
   String toString() {
     return (StringBuffer('MemberRowsCompanion(')
           ..write('id: $id, ')
+          ..write('accountPhone: $accountPhone, ')
           ..write('name: $name, ')
           ..write('tier: $tier, ')
           ..write('points: $points, ')
@@ -2463,6 +2524,286 @@ class AuthAccountRowsCompanion extends UpdateCompanion<AuthAccountRow> {
   }
 }
 
+class $MemberChallengeRowsTable extends MemberChallengeRows
+    with TableInfo<$MemberChallengeRowsTable, MemberChallengeRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MemberChallengeRowsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountPhoneMeta = const VerificationMeta(
+    'accountPhone',
+  );
+  @override
+  late final GeneratedColumn<String> accountPhone = GeneratedColumn<String>(
+    'account_phone',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _challengeIdMeta = const VerificationMeta(
+    'challengeId',
+  );
+  @override
+  late final GeneratedColumn<String> challengeId = GeneratedColumn<String>(
+    'challenge_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _progressMeta = const VerificationMeta(
+    'progress',
+  );
+  @override
+  late final GeneratedColumn<int> progress = GeneratedColumn<int>(
+    'progress',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [accountPhone, challengeId, progress];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'member_challenge_rows';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MemberChallengeRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_phone')) {
+      context.handle(
+        _accountPhoneMeta,
+        accountPhone.isAcceptableOrUnknown(
+          data['account_phone']!,
+          _accountPhoneMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accountPhoneMeta);
+    }
+    if (data.containsKey('challenge_id')) {
+      context.handle(
+        _challengeIdMeta,
+        challengeId.isAcceptableOrUnknown(
+          data['challenge_id']!,
+          _challengeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_challengeIdMeta);
+    }
+    if (data.containsKey('progress')) {
+      context.handle(
+        _progressMeta,
+        progress.isAcceptableOrUnknown(data['progress']!, _progressMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_progressMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountPhone, challengeId};
+  @override
+  MemberChallengeRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MemberChallengeRow(
+      accountPhone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_phone'],
+      )!,
+      challengeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}challenge_id'],
+      )!,
+      progress: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}progress'],
+      )!,
+    );
+  }
+
+  @override
+  $MemberChallengeRowsTable createAlias(String alias) {
+    return $MemberChallengeRowsTable(attachedDatabase, alias);
+  }
+}
+
+class MemberChallengeRow extends DataClass
+    implements Insertable<MemberChallengeRow> {
+  final String accountPhone;
+  final String challengeId;
+  final int progress;
+  const MemberChallengeRow({
+    required this.accountPhone,
+    required this.challengeId,
+    required this.progress,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_phone'] = Variable<String>(accountPhone);
+    map['challenge_id'] = Variable<String>(challengeId);
+    map['progress'] = Variable<int>(progress);
+    return map;
+  }
+
+  MemberChallengeRowsCompanion toCompanion(bool nullToAbsent) {
+    return MemberChallengeRowsCompanion(
+      accountPhone: Value(accountPhone),
+      challengeId: Value(challengeId),
+      progress: Value(progress),
+    );
+  }
+
+  factory MemberChallengeRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MemberChallengeRow(
+      accountPhone: serializer.fromJson<String>(json['accountPhone']),
+      challengeId: serializer.fromJson<String>(json['challengeId']),
+      progress: serializer.fromJson<int>(json['progress']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountPhone': serializer.toJson<String>(accountPhone),
+      'challengeId': serializer.toJson<String>(challengeId),
+      'progress': serializer.toJson<int>(progress),
+    };
+  }
+
+  MemberChallengeRow copyWith({
+    String? accountPhone,
+    String? challengeId,
+    int? progress,
+  }) => MemberChallengeRow(
+    accountPhone: accountPhone ?? this.accountPhone,
+    challengeId: challengeId ?? this.challengeId,
+    progress: progress ?? this.progress,
+  );
+  MemberChallengeRow copyWithCompanion(MemberChallengeRowsCompanion data) {
+    return MemberChallengeRow(
+      accountPhone: data.accountPhone.present
+          ? data.accountPhone.value
+          : this.accountPhone,
+      challengeId: data.challengeId.present
+          ? data.challengeId.value
+          : this.challengeId,
+      progress: data.progress.present ? data.progress.value : this.progress,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemberChallengeRow(')
+          ..write('accountPhone: $accountPhone, ')
+          ..write('challengeId: $challengeId, ')
+          ..write('progress: $progress')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(accountPhone, challengeId, progress);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MemberChallengeRow &&
+          other.accountPhone == this.accountPhone &&
+          other.challengeId == this.challengeId &&
+          other.progress == this.progress);
+}
+
+class MemberChallengeRowsCompanion extends UpdateCompanion<MemberChallengeRow> {
+  final Value<String> accountPhone;
+  final Value<String> challengeId;
+  final Value<int> progress;
+  final Value<int> rowid;
+  const MemberChallengeRowsCompanion({
+    this.accountPhone = const Value.absent(),
+    this.challengeId = const Value.absent(),
+    this.progress = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MemberChallengeRowsCompanion.insert({
+    required String accountPhone,
+    required String challengeId,
+    required int progress,
+    this.rowid = const Value.absent(),
+  }) : accountPhone = Value(accountPhone),
+       challengeId = Value(challengeId),
+       progress = Value(progress);
+  static Insertable<MemberChallengeRow> custom({
+    Expression<String>? accountPhone,
+    Expression<String>? challengeId,
+    Expression<int>? progress,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountPhone != null) 'account_phone': accountPhone,
+      if (challengeId != null) 'challenge_id': challengeId,
+      if (progress != null) 'progress': progress,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MemberChallengeRowsCompanion copyWith({
+    Value<String>? accountPhone,
+    Value<String>? challengeId,
+    Value<int>? progress,
+    Value<int>? rowid,
+  }) {
+    return MemberChallengeRowsCompanion(
+      accountPhone: accountPhone ?? this.accountPhone,
+      challengeId: challengeId ?? this.challengeId,
+      progress: progress ?? this.progress,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountPhone.present) {
+      map['account_phone'] = Variable<String>(accountPhone.value);
+    }
+    if (challengeId.present) {
+      map['challenge_id'] = Variable<String>(challengeId.value);
+    }
+    if (progress.present) {
+      map['progress'] = Variable<int>(progress.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemberChallengeRowsCompanion(')
+          ..write('accountPhone: $accountPhone, ')
+          ..write('challengeId: $challengeId, ')
+          ..write('progress: $progress, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2475,6 +2816,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AuthAccountRowsTable authAccountRows = $AuthAccountRowsTable(
     this,
   );
+  late final $MemberChallengeRowsTable memberChallengeRows =
+      $MemberChallengeRowsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2487,11 +2830,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     shopRows,
     challengeRows,
     authAccountRows,
+    memberChallengeRows,
   ];
 }
 
 typedef $$MemberRowsTableCreateCompanionBuilder = MemberRowsCompanion Function({
   required String id,
+  Value<String?> accountPhone,
   required String name,
   required String tier,
   required int points,
@@ -2502,6 +2847,7 @@ typedef $$MemberRowsTableCreateCompanionBuilder = MemberRowsCompanion Function({
 });
 typedef $$MemberRowsTableUpdateCompanionBuilder = MemberRowsCompanion Function({
   Value<String> id,
+  Value<String?> accountPhone,
   Value<String> name,
   Value<String> tier,
   Value<int> points,
@@ -2522,6 +2868,11 @@ class $$MemberRowsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accountPhone => $composableBuilder(
+    column: $table.accountPhone,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2570,6 +2921,11 @@ class $$MemberRowsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get accountPhone => $composableBuilder(
+    column: $table.accountPhone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -2612,6 +2968,11 @@ class $$MemberRowsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get accountPhone => $composableBuilder(
+    column: $table.accountPhone,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -2668,6 +3029,7 @@ class $$MemberRowsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> accountPhone = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> tier = const Value.absent(),
                 Value<int> points = const Value.absent(),
@@ -2677,6 +3039,7 @@ class $$MemberRowsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => MemberRowsCompanion(
                 id: id,
+                accountPhone: accountPhone,
                 name: name,
                 tier: tier,
                 points: points,
@@ -2688,6 +3051,7 @@ class $$MemberRowsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> accountPhone = const Value.absent(),
                 required String name,
                 required String tier,
                 required int points,
@@ -2697,6 +3061,7 @@ class $$MemberRowsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => MemberRowsCompanion.insert(
                 id: id,
+                accountPhone: accountPhone,
                 name: name,
                 tier: tier,
                 points: points,
@@ -3920,6 +4285,199 @@ typedef $$AuthAccountRowsTableProcessedTableManager =
       AuthAccountRow,
       PrefetchHooks Function()
     >;
+typedef $$MemberChallengeRowsTableCreateCompanionBuilder =
+    MemberChallengeRowsCompanion Function({
+      required String accountPhone,
+      required String challengeId,
+      required int progress,
+      Value<int> rowid,
+    });
+typedef $$MemberChallengeRowsTableUpdateCompanionBuilder =
+    MemberChallengeRowsCompanion Function({
+      Value<String> accountPhone,
+      Value<String> challengeId,
+      Value<int> progress,
+      Value<int> rowid,
+    });
+
+class $$MemberChallengeRowsTableFilterComposer
+    extends Composer<_$AppDatabase, $MemberChallengeRowsTable> {
+  $$MemberChallengeRowsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get accountPhone => $composableBuilder(
+    column: $table.accountPhone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get challengeId => $composableBuilder(
+    column: $table.challengeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get progress => $composableBuilder(
+    column: $table.progress,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MemberChallengeRowsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MemberChallengeRowsTable> {
+  $$MemberChallengeRowsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get accountPhone => $composableBuilder(
+    column: $table.accountPhone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get challengeId => $composableBuilder(
+    column: $table.challengeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get progress => $composableBuilder(
+    column: $table.progress,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MemberChallengeRowsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MemberChallengeRowsTable> {
+  $$MemberChallengeRowsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get accountPhone => $composableBuilder(
+    column: $table.accountPhone,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get challengeId => $composableBuilder(
+    column: $table.challengeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get progress =>
+      $composableBuilder(column: $table.progress, builder: (column) => column);
+}
+
+class $$MemberChallengeRowsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MemberChallengeRowsTable,
+          MemberChallengeRow,
+          $$MemberChallengeRowsTableFilterComposer,
+          $$MemberChallengeRowsTableOrderingComposer,
+          $$MemberChallengeRowsTableAnnotationComposer,
+          $$MemberChallengeRowsTableCreateCompanionBuilder,
+          $$MemberChallengeRowsTableUpdateCompanionBuilder,
+          (
+            MemberChallengeRow,
+            BaseReferences<
+              _$AppDatabase,
+              $MemberChallengeRowsTable,
+              MemberChallengeRow
+            >,
+          ),
+          MemberChallengeRow,
+          PrefetchHooks Function()
+        > {
+  $$MemberChallengeRowsTableTableManager(
+    _$AppDatabase db,
+    $MemberChallengeRowsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MemberChallengeRowsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MemberChallengeRowsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MemberChallengeRowsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> accountPhone = const Value.absent(),
+                Value<String> challengeId = const Value.absent(),
+                Value<int> progress = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MemberChallengeRowsCompanion(
+                accountPhone: accountPhone,
+                challengeId: challengeId,
+                progress: progress,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String accountPhone,
+                required String challengeId,
+                required int progress,
+                Value<int> rowid = const Value.absent(),
+              }) => MemberChallengeRowsCompanion.insert(
+                accountPhone: accountPhone,
+                challengeId: challengeId,
+                progress: progress,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MemberChallengeRowsTable, MemberChallengeRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $MemberChallengeRowsTable,
+                    MemberChallengeRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MemberChallengeRowsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MemberChallengeRowsTable,
+      MemberChallengeRow,
+      $$MemberChallengeRowsTableFilterComposer,
+      $$MemberChallengeRowsTableOrderingComposer,
+      $$MemberChallengeRowsTableAnnotationComposer,
+      $$MemberChallengeRowsTableCreateCompanionBuilder,
+      $$MemberChallengeRowsTableUpdateCompanionBuilder,
+      (
+        MemberChallengeRow,
+        BaseReferences<
+          _$AppDatabase,
+          $MemberChallengeRowsTable,
+          MemberChallengeRow
+        >,
+      ),
+      MemberChallengeRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3938,4 +4496,6 @@ class $AppDatabaseManager {
       $$ChallengeRowsTableTableManager(_db, _db.challengeRows);
   $$AuthAccountRowsTableTableManager get authAccountRows =>
       $$AuthAccountRowsTableTableManager(_db, _db.authAccountRows);
+  $$MemberChallengeRowsTableTableManager get memberChallengeRows =>
+      $$MemberChallengeRowsTableTableManager(_db, _db.memberChallengeRows);
 }

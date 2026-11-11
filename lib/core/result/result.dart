@@ -40,6 +40,7 @@ final class AuthFailure extends Failure {
 enum AuthFailureCode {
   incorrectCode,
   unknownNumber,
+  alreadyRegistered,
   unverifiedNumber,
   registrationIncomplete,
   serviceUnavailable,

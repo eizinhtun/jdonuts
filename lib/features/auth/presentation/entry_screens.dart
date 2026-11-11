@@ -139,6 +139,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     result.fold<void>(
       (_) {
         ref.read(authDraftProvider.notifier).state = const AuthDraft();
+        ref.invalidate(activeAccountProvider);
+        ref.invalidate(appDataProvider);
+        ref.invalidate(rewardsDataProvider);
         ref.read(authStateProvider.notifier).state = false;
         context.go('/onboarding');
       },

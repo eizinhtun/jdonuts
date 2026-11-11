@@ -36,6 +36,7 @@
   "otpIncorrect": "That code is incorrect.",
   "otpLocked": "Too many attempts. Resend the code when the timer ends.",
   "unknownNumber": "This number is new. Register to continue.",
+  "alreadyRegistered": "This number is already registered. Log in instead.",
   "registerInstead": "Register with this number",
   "resendCountdown": "Resend code in {minutes}:{seconds}",
   "resendPrompt": "Didn’t receive a code?",

@@ -10,6 +10,7 @@ import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/core/result/result.dart';
 import 'package:jdonuts/core/storage/app_database.dart';
 import 'package:jdonuts/features/auth/data/auth_session_store.dart';
+import 'package:jdonuts/features/auth/data/auth_account_store.dart';
 import 'package:jdonuts/features/auth/data/local_auth_repository.dart';
 import 'package:jdonuts/features/auth/domain/auth_repository.dart';
 import 'package:jdonuts/features/auth/presentation/widgets/primary_button.dart';
@@ -21,7 +22,6 @@ void main() {
     (tester) async {
       final repository = LocalAuthRepository(
         delay: (_) async {},
-        registered: {},
         sessionStore: MemoryAuthSessionStore(),
       );
       await tester.pumpWidget(_testApp(repository));
@@ -155,7 +155,6 @@ void main() {
     _disableMotion(tester);
     final repository = LocalAuthRepository(
       delay: (_) async {},
-      registered: {},
       sessionStore: MemoryAuthSessionStore(),
     );
     await tester.pumpWidget(_testApp(repository));
@@ -204,7 +203,6 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     final repository = LocalAuthRepository(
       delay: (_) async {},
-      registered: {},
       sessionStore: MemoryAuthSessionStore(),
     );
     await tester.pumpWidget(
@@ -276,7 +274,6 @@ void main() {
 
     final repository = LocalAuthRepository(
       delay: (_) async {},
-      registered: {},
       sessionStore: MemoryAuthSessionStore(),
     );
     await tester.pumpWidget(_testApp(repository));
@@ -359,7 +356,6 @@ void main() {
       delay: (_) async {
         if (failRequest) throw StateError('temporary request failure');
       },
-      registered: {},
       sessionStore: MemoryAuthSessionStore(),
     );
     await tester.pumpWidget(_testApp(repository));
@@ -393,7 +389,16 @@ void main() {
       final sessions = _ToggleFailureSessionStore()..failWrite = true;
       final repository = LocalAuthRepository(
         delay: (_) async {},
-        registered: {'95987654321'},
+        accountStore: MemoryAuthAccountStore(
+          users: const [
+            AuthUser(
+              phone: '95987654321',
+              firstName: 'Hania',
+              lastName: '',
+              birthDate: null,
+            ),
+          ],
+        ),
         sessionStore: sessions,
       );
       await tester.pumpWidget(_testApp(repository));
@@ -548,11 +553,7 @@ Widget _testApp(AuthRepository repository, {DateTime Function()? clock}) =>
 
 class _DelayedOtpRepository extends LocalAuthRepository {
   _DelayedOtpRepository(Future<void> requestGate)
-    : super(
-        registered: {},
-        sessionStore: MemoryAuthSessionStore(),
-        delay: (_) => requestGate,
-      );
+    : super(sessionStore: MemoryAuthSessionStore(), delay: (_) => requestGate);
 
   int otpRequests = 0;
 
@@ -565,11 +566,7 @@ class _DelayedOtpRepository extends LocalAuthRepository {
 
 class _CountingAuthRepository extends LocalAuthRepository {
   _CountingAuthRepository(Future<void> Function(Duration) delay)
-    : super(
-        registered: {},
-        sessionStore: MemoryAuthSessionStore(),
-        delay: delay,
-      );
+    : super(sessionStore: MemoryAuthSessionStore(), delay: delay);
 
   int otpRequests = 0;
   int otpVerifications = 0;

@@ -8,28 +8,41 @@ const fakeOtpCode = '123456';
 class LocalAuthRepository implements AuthRepository {
   LocalAuthRepository({
     Future<void> Function(Duration)? delay,
-    Set<String>? registered,
     AuthSessionStore? sessionStore,
     AuthAccountStore? accountStore,
   }) : _sessionStore = sessionStore ?? SecureAuthSessionStore(),
        _accountStore = accountStore ?? MemoryAuthAccountStore(),
-       _delay = delay ?? ((duration) => Future<void>.delayed(duration)),
-       _registered = Set<String>.of(registered ?? {'95987654321'});
+       _delay = delay ?? ((duration) => Future<void>.delayed(duration));
 
   static const _requestLatency = Duration(seconds: 1);
   final AuthSessionStore _sessionStore;
   final AuthAccountStore _accountStore;
   final Future<void> Function(Duration) _delay;
-  final Set<String> _registered;
   final Set<String> _verifiedNumbers = {};
   final Map<String, AuthUser> _registrationProfiles = {};
-  AuthUser? _session;
 
   @override
   Future<Result<bool>> hasSession() async {
+    final result = await currentSession();
+    return result.fold(
+      (user) => Success(user != null),
+      (failure) => Error(failure),
+    );
+  }
+
+  @override
+  Future<Result<AuthUser?>> currentSession() async {
     try {
-      _session ??= await _sessionStore.read();
-      return Success(_session != null);
+      final savedSession = await _sessionStore.read();
+      if (savedSession == null) {
+        return const Success(null);
+      }
+      final account = await _accountStore.find(savedSession.phone);
+      if (account == null) {
+        await _sessionStore.clear();
+        return const Success(null);
+      }
+      return Success(account);
     } on Object catch (error, stackTrace) {
       return Error(
         StorageFailure(
@@ -44,9 +57,7 @@ class LocalAuthRepository implements AuthRepository {
   @override
   Future<Result<bool>> isRegistered(String phone) async {
     try {
-      return Success(
-        _registered.contains(phone) || await _accountStore.contains(phone),
-      );
+      return Success(await _accountStore.contains(phone));
     } on Object catch (error, stackTrace) {
       return Error(
         StorageFailure(
@@ -123,6 +134,24 @@ class LocalAuthRepository implements AuthRepository {
         ),
       );
     }
+    try {
+      if (await _accountStore.contains(user.phone)) {
+        return const Error(
+          AuthFailure(
+            AuthFailureCode.alreadyRegistered,
+            'This number is already registered.',
+          ),
+        );
+      }
+    } on Object catch (error, stackTrace) {
+      return Error(
+        StorageFailure(
+          'Could not check the saved account.',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
     _registrationProfiles[user.phone] = user;
     return const Success(true);
   }
@@ -161,14 +190,13 @@ class LocalAuthRepository implements AuthRepository {
         ),
       );
     }
-    if (!_registered.contains(phone) && storedUser == null) {
+    if (storedUser == null) {
       return const Error(
         AuthFailure(AuthFailureCode.unknownNumber, 'Number is not registered.'),
       );
     }
-    final user = storedUser ?? _sampleMember(phone);
     try {
-      await _sessionStore.write(user);
+      await _sessionStore.write(storedUser);
     } on Object catch (error, stackTrace) {
       return Error(
         StorageFailure(
@@ -178,8 +206,7 @@ class LocalAuthRepository implements AuthRepository {
         ),
       );
     }
-    _session = user;
-    return Success(user);
+    return Success(storedUser);
   }
 
   @override
@@ -207,8 +234,16 @@ class LocalAuthRepository implements AuthRepository {
       );
     }
     try {
-      await _accountStore.save(user);
+      await _accountStore.create(user);
     } on Object catch (error, stackTrace) {
+      if (error is DuplicateAuthAccount) {
+        return const Error(
+          AuthFailure(
+            AuthFailureCode.alreadyRegistered,
+            'This number is already registered.',
+          ),
+        );
+      }
       return Error(
         StorageFailure(
           'Could not save the account.',
@@ -241,10 +276,8 @@ class LocalAuthRepository implements AuthRepository {
         ),
       );
     }
-    _registered.add(user.phone);
     _verifiedNumbers.remove(user.phone);
     _registrationProfiles.remove(user.phone);
-    _session = user;
     return Success(user);
   }
 
@@ -252,7 +285,6 @@ class LocalAuthRepository implements AuthRepository {
   Future<Result<bool>> logout() async {
     try {
       await _sessionStore.clear();
-      _session = null;
       return const Success(true);
     } on Object catch (error, stackTrace) {
       return Error(
@@ -264,7 +296,4 @@ class LocalAuthRepository implements AuthRepository {
       );
     }
   }
-
-  AuthUser _sampleMember(String phone) =>
-      AuthUser(phone: phone, firstName: 'Hania', lastName: '', birthDate: null);
 }

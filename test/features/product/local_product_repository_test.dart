@@ -35,7 +35,15 @@ class _FakeHomeRepository implements HomeRepository {
   Future<Result<AppData>> load() async => Success(data);
 
   @override
+  Future<Result<AppData>> loadForAccount(String accountPhone) async =>
+      Success(data);
+
+  @override
   Future<Result<AppData>> refresh() async => Success(data);
+
+  @override
+  Future<Result<AppData>> refreshForAccount(String accountPhone) async =>
+      Success(data);
 
   @override
   Future<Result<List<Product>>> loadSectionProducts(String sectionId) async =>

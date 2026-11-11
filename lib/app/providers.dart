@@ -27,11 +27,25 @@ final connectivityProvider = StreamProvider<NetworkStatus>((ref) {
   return reachability.watch();
 });
 
-final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => LocalAuthRepository(
-    accountStore: DriftAuthAccountStore(ref.watch(appDatabaseProvider)),
-  ),
-);
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  final database = ref.watch(appDatabaseProvider);
+  return LocalAuthRepository(
+    accountStore: DriftAuthAccountStore(
+      database,
+      beforeRead: () async {
+        final result = await ref.read(dataRepositoryProvider).load();
+        result.fold<void>((_) {}, (failure) => throw ResultException(failure));
+      },
+    ),
+  );
+});
+final activeAccountProvider = FutureProvider<AuthUser?>((ref) async {
+  final result = await ref.watch(authRepositoryProvider).currentSession();
+  return result.fold(
+    (user) => user,
+    (failure) => throw ResultException(failure),
+  );
+});
 final dataRepositoryProvider = Provider<HomeRepository>(
   (ref) => DriftDataRepository(ref.watch(appDatabaseProvider)),
 );
@@ -41,13 +55,14 @@ final productRepositoryProvider = Provider<ProductRepository>(
 final rewardsRepositoryProvider = Provider<RewardsRepository>(
   (ref) => LocalRewardsRepository(ref.watch(dataRepositoryProvider)),
 );
-final appDataProvider = FutureProvider<AppData>(
-  (ref) async => (await ref.watch(dataRepositoryProvider).load()).fold(
-    (data) => data,
-    (failure) => throw ResultException(failure),
-  ),
-  retry: (_, _) => null,
-);
+final appDataProvider = FutureProvider<AppData>((ref) async {
+  final account = await ref.watch(activeAccountProvider.future);
+  if (account == null) {
+    throw ResultException(StorageFailure('No account is signed in.'));
+  }
+  return (await ref.watch(dataRepositoryProvider).loadForAccount(account.phone))
+      .fold((data) => data, (failure) => throw ResultException(failure));
+}, retry: (_, _) => null);
 final sectionProductsProvider = FutureProvider.family<List<Product>, String>(
   (ref, sectionId) async =>
       (await ref.watch(dataRepositoryProvider).loadSectionProducts(sectionId))
@@ -65,13 +80,19 @@ final productProvider = FutureProvider.family<Product?, String>(
       ),
   retry: (_, _) => null,
 );
-final rewardsDataProvider = FutureProvider<RewardsSnapshot>(
-  (ref) async => (await ref.watch(rewardsRepositoryProvider).load()).fold(
-    (snapshot) => snapshot,
-    (failure) => throw ResultException(failure),
-  ),
-  retry: (_, _) => null,
-);
+final rewardsDataProvider = FutureProvider<RewardsSnapshot>((ref) async {
+  final account = await ref.watch(activeAccountProvider.future);
+  if (account == null) {
+    throw ResultException(StorageFailure('No account is signed in.'));
+  }
+  return (await ref
+          .watch(rewardsRepositoryProvider)
+          .loadForAccount(account.phone))
+      .fold(
+        (snapshot) => snapshot,
+        (failure) => throw ResultException(failure),
+      );
+}, retry: (_, _) => null);
 final sessionProvider = FutureProvider<Result<bool>>(
   (ref) => ref.watch(authRepositoryProvider).hasSession(),
 );
