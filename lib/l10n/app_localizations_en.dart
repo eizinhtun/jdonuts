@@ -296,6 +296,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get exploreNow => 'EXPLORE NOW';
+
+  @override
+  String get orderOnline => 'Order Online';
+
+  @override
+  String get noNearbyShops => 'No nearby shops found.';
+
+  @override
+  String get shopRegion => 'Yangon, Myanmar';
+
+  @override
   String socialPlaceholder(Object feature) {
     return '$feature is not connected in this demo.';
   }

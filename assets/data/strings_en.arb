@@ -89,6 +89,10 @@
   "giftChallenge": "Gift a treat to a friend",
   "notificationCount": "{count}",
   "shopsNear": "There are {count} J’Donut shops near you",
+  "exploreNow": "EXPLORE NOW",
+  "orderOnline": "Order Online",
+  "noNearbyShops": "No nearby shops found.",
+  "shopRegion": "Yangon, Myanmar",
   "socialPlaceholder": "{feature} is not connected in this demo.",
   "@otpDescription": {
     "placeholders": {

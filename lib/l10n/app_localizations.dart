@@ -628,6 +628,30 @@ abstract class AppLocalizations {
   /// **'There are {count} J’Donut shops near you'**
   String shopsNear(Object count);
 
+  /// No description provided for @exploreNow.
+  ///
+  /// In en, this message translates to:
+  /// **'EXPLORE NOW'**
+  String get exploreNow;
+
+  /// No description provided for @orderOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Online'**
+  String get orderOnline;
+
+  /// No description provided for @noNearbyShops.
+  ///
+  /// In en, this message translates to:
+  /// **'No nearby shops found.'**
+  String get noNearbyShops;
+
+  /// No description provided for @shopRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Yangon, Myanmar'**
+  String get shopRegion;
+
   /// No description provided for @socialPlaceholder.
   ///
   /// In en, this message translates to:

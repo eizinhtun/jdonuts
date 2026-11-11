@@ -4,6 +4,11 @@ import 'package:jdonuts/core/motion/motion.dart';
 import 'package:jdonuts/core/theme/tokens.dart';
 import 'package:jdonuts/l10n/localization.dart';
 
+const _homeNavigationContentHeight = 72.0;
+const _homeNavigationTopSpacing = 8.0;
+const _homeNavigationSideInset = 16.0;
+const _homePinkBackingHeight = _homeNavigationContentHeight / 2;
+
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({
     super.key,
@@ -14,14 +19,6 @@ class AppBottomNav extends StatelessWidget {
   final int selected;
   final bool homeStyle;
 
-  static const _homeIcons = [
-    Icons.home_outlined,
-    Icons.workspace_premium_outlined,
-    Icons.monetization_on_outlined,
-    Icons.shopping_bag_outlined,
-    Icons.settings_outlined,
-  ];
-
   @override
   Widget build(BuildContext context) {
     final items = _items(context);
@@ -29,30 +26,59 @@ class AppBottomNav extends StatelessWidget {
       final compact =
           MediaQuery.sizeOf(context).width < 380 ||
           MediaQuery.textScalerOf(context).scale(1) > 1.2;
-      return Container(
-        color: AppColors.cyan,
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 72,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-              child: Row(
-                children: [
-                  for (var index = 0; index < items.length; index++)
-                    Expanded(
-                      child: _HomeNavigationItem(
-                        selected: selected == index,
-                        showLabel: selected == index && !compact,
-                        icon: _homeIcons[index],
-                        label: items[index].label,
-                        onTap: () => _select(context, index),
+      final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+      final panelHeight = _homeNavigationContentHeight + bottomInset;
+      final pinkBackingHeight = _homePinkBackingHeight + bottomInset;
+      return SizedBox(
+        height: _homeNavigationTopSpacing + panelHeight,
+        child: Stack(
+          children: [
+            const Positioned.fill(
+              child: ColoredBox(color: AppColors.rewardsCanvas),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: pinkBackingHeight,
+              child: const ColoredBox(color: AppColors.pink),
+            ),
+            Positioned(
+              left: _homeNavigationSideInset,
+              right: _homeNavigationSideInset,
+              bottom: 0,
+              height: panelHeight,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.cyan,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    height: _homeNavigationContentHeight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        children: [
+                          for (var index = 0; index < items.length; index++)
+                            Expanded(
+                              child: _HomeNavigationItem(
+                                selected: selected == index,
+                                showLabel: selected == index && !compact,
+                                icon: items[index].icon,
+                                label: items[index].label,
+                                onTap: () => _select(context, index),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                ],
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
       );
     }
@@ -69,16 +95,25 @@ class AppBottomNav extends StatelessWidget {
 
   List<_NavigationItemData> _items(BuildContext context) => [
     _NavigationItemData(Icons.home_outlined, context.l10n.homeLabel),
-    _NavigationItemData(Icons.local_offer_outlined, context.l10n.offersLabel),
-    _NavigationItemData(Icons.stars_outlined, context.l10n.rewardsLabel),
-    _NavigationItemData(Icons.shopping_bag_outlined, context.l10n.orderLabel),
-    _NavigationItemData(Icons.person_outline, context.l10n.profileLabel),
+    _NavigationItemData(
+      Icons.workspace_premium_outlined,
+      context.l10n.rewardLabel,
+    ),
+    _NavigationItemData(
+      Icons.monetization_on_outlined,
+      context.l10n.offersLabel,
+    ),
+    _NavigationItemData(
+      Icons.account_balance_wallet_outlined,
+      context.l10n.orderLabel,
+    ),
+    _NavigationItemData(Icons.settings_outlined, context.l10n.profileLabel),
   ];
 
   void _select(BuildContext context, int index) {
     if (index == 0) {
       context.go('/home');
-    } else if (index == 2) {
+    } else if (index == 1) {
       context.go('/rewards');
     } else if (index == 4) {
       context.push('/settings');
@@ -115,7 +150,12 @@ class _HomeNavigationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final pill = Material(
       color: selected ? AppColors.pink : AppColors.transparent,
-      borderRadius: BorderRadius.circular(24),
+      shape: RoundedRectangleBorder(
+        side: selected
+            ? const BorderSide(color: AppColors.white, width: 1.5)
+            : BorderSide.none,
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
