@@ -6,7 +6,7 @@ Offline-first Flutter implementation of the supplied Madivizion code test. The c
 
 The latest stable release verified on 2026-11-11 is Flutter 3.47.9 with Dart 3.13.7, listed in the [Flutter changelog](https://github.com/flutter/flutter/blob/master/CHANGELOG.md). Android SDK is required for Android builds; Xcode is required for iOS Simulator builds.
 
-The existing workspace SDK is Flutter 3.47.5 / Dart 3.13.4. The full test suite and platform builds passed with that SDK. A separate Flutter 3.47.9 / Dart 3.13.7 checkout also passed `flutter analyze` and all domain validator tests; the existing SDK checkout and project lockfile were left unchanged.
+The existing workspace SDK is Flutter 3.47.5 / Dart 3.13.4. The full test suite and platform builds passed with that SDK. A separate Flutter 3.47.9 / Dart 3.13.7 checkout passed formatting, analysis, and the full unit/widget suite; the existing SDK checkout and project lockfile were left unchanged.
 
 To install the verified stable release in a clean location:
 
@@ -24,7 +24,7 @@ Demo OTP: 123456. Returning demo phone: +95 987654321. Any valid new Myanmar mob
 ## Verified toolchain
 
 - Installed verification Flutter 3.47.5 stable, revision 6a19cca564; Dart 3.13.4
-- Latest stable release checked in the upstream changelog and tested separately: Flutter 3.47.9 / Dart 3.13.7; `flutter analyze` and 13 domain validator tests passed
+- Latest stable release checked in the upstream changelog and tested separately: Flutter 3.47.9 / Dart 3.13.7; formatting, `flutter analyze`, and all 93 unit/widget tests passed
 - Xcode 27.1, build 27A9275
 - macOS 27.0.1, arm64
 - Resolved direct packages include Riverpod 3.5.0, go_router 16.3.0, Drift 2.35.4, flutter_secure_storage 9.2.4, connectivity_plus 7.3.2, cached_network_image 3.4.1, and flutter_svg 2.3.2. pubspec.lock contains the full resolved graph.
@@ -76,8 +76,9 @@ Named motion durations and curves are centralized in lib/core/motion/motion.dart
 
 - `dart format --output=none --set-exit-if-changed lib test integration_test` — passed; no formatting changes required
 - `flutter analyze` — no issues found after this audit's source changes
+- `flutter pub get --enforce-lockfile` — passed with the CI-pinned Flutter 3.47.9 / Dart 3.13.7
 - `flutter gen-l10n` — completed after adding the localized unknown-network-status message
-- `flutter test --concurrency=1` — all 93 unit and widget tests passed.
+- `flutter test --concurrency=1` — all 93 unit and widget tests passed on Flutter 3.47.5 and the CI-pinned Flutter 3.47.9.
 - `flutter test integration_test/registration_to_product_test.dart -d 19EA97F4-DD99-47EF-BAA2-516BADF6E230` — passed on the booted iPhone 17 Pro Simulator, including offline seed/render, product routing and session restoration.
 - `flutter build apk --release --target-platform android-arm64` — passed; current APK is 34.0 MB.
 - `flutter build ios --simulator` — passed; `build/jdonuts-ios-simulator-current.zip` passed `unzip -t`. iOS Simulator builds are debug configuration because Flutter does not support release mode for Simulator.
@@ -107,9 +108,9 @@ The `.app` and zip are local workspace artifacts and were not published or submi
 
 - There is no server, live catalog sync, SMS provider, social auth provider, or legal document content.
 - Add-to-cart and challenge Earn feedback are transient; they do not persist or change the member balance.
-- Burmese localization and CI are optional PDF bonuses and are not implemented.
+- Burmese localization is an optional PDF bonus and is not implemented. GitHub Actions CI runs formatting, analysis, and the unit/widget suite on pushes, pull requests, and manual dispatch.
 - The current forced-offline iOS integration path passed. A physical system airplane-mode/relaunch check remains unverified.
-- Flutter 3.47.9 / Dart 3.13.7 is the latest stable release confirmed upstream; its analyzer and all 13 domain validator tests passed. Full suite, integration and platform build checks used Flutter 3.47.5 / Dart 3.13.4.
+- Flutter 3.47.9 / Dart 3.13.7 is the latest stable release confirmed upstream; formatting, analysis, lockfile resolution and the full unit/widget suite passed. Integration and platform build checks used Flutter 3.47.5 / Dart 3.13.4.
 - Layouts are tested at a compact 320×667 logical-pixel viewport with text scale 1.3, not every physical 4.7–6.9 inch device size.
 - The bundled original food photos approximate the reference imagery; they are not photos of the client’s actual products or shops. Two Welcome tiles use those generated donut photos; the other two use vector illustrations.
 - Android release APK signing is for the demo, and only arm64 is packaged.

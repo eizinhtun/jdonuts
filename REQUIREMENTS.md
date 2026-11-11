@@ -8,7 +8,7 @@ Statuses mean: **Pass** = implemented and supported by a completed check; **Part
 
 | Requirement | Status | Code evidence | Verification |
 |---|---|---|---|
-| Latest stable Flutter/Dart compatibility documented | Pass | `README.md`; `pubspec.yaml` | Verified latest stable Flutter 3.47.9 / Dart 3.13.7 with `flutter analyze` and all 13 domain validator tests. The full 93-test suite and platform builds ran on Flutter 3.47.5 / Dart 3.13.4. |
+| Latest stable Flutter/Dart compatibility documented | Pass | `README.md`; `pubspec.yaml` | Verified latest stable Flutter 3.47.9 / Dart 3.13.7 with formatting, lockfile resolution, `flutter analyze`, and the full 93-test suite. Integration and platform builds also passed on Flutter 3.47.5 / Dart 3.13.4. |
 | Feature-first clean layers for auth, home, product, rewards; Flutter-free domain | Pass | `lib/features/{auth,home,product,rewards}/{presentation,domain,data}/`; product/rewards repository adapters | `flutter analyze`; source inspection of all `*/domain/*.dart` imports. Shared immutable catalog entities remain in `home/domain/models.dart`; product and rewards adapters depend on the `HomeRepository` contract. |
 | Riverpod DI/state, go_router guard, `/product/:id` | Pass | `lib/app/providers.dart`, `lib/app/router.dart` | Auth, welcome, product routes exercised in widget and device integration tests. |
 | Drift/SQLite storage with versioned migration | Pass | `lib/core/storage/app_database.dart` (schema v3) | `test/features/home/local_data_repository_test.dart`: initial seed, v1→v2 member-image migration, and v2→v3 image-path migration. |
@@ -61,7 +61,7 @@ These are not mandatory for the local app slice and are not counted as required 
 | Mock server with versioned endpoints/envelope | Not implemented | PDF says backend is optional. No server means no Dio/API envelope is required. |
 | Persistent cart | Not implemented | PDF labels persistence a bonus; Add to cart gives visual feedback. |
 | Burmese localization | Not implemented | PDF labels another locale a bonus; English ARB is generated with gen-l10n. |
-| CI workflow | Not implemented | PDF lists CI as optional. |
+| CI workflow | Implemented | `.github/workflows/flutter-ci.yml` runs lockfile-enforced dependency resolution, formatting, analysis, and unit/widget tests on pushes, pull requests, and manual dispatch. |
 | Non-Home/Rewards bottom tabs | Implemented as allowed | PDF explicitly allows simple placeholders for the other three destinations. |
 
 ## User constraints
