@@ -4,11 +4,14 @@ import 'package:jdonuts/core/network/network_reachability.dart';
 import 'package:jdonuts/l10n/localization.dart';
 import 'package:jdonuts/core/theme/tokens.dart';
 
-const _shopCardImage = 'shop-banner.jpg';
+const _shopCardImage = 'jdonuts-shop-display.jpg';
 const _shopHillBack = Color(0xFF9EB95A);
 const _shopHillFront = Color(0xFF719548);
 const _shopTree = Color(0xFF39764C);
 const _shopGrass = Color(0xFFB1D943);
+const _shopCloud = Color(0xFFFFF7EC);
+const _shopCloudShade = Color(0xFFEED3AA);
+const _shopCloudBlue = Color(0xFFBFE5DE);
 
 class HomeShops extends StatelessWidget {
   const HomeShops({super.key, required this.shops});
@@ -17,12 +20,12 @@ class HomeShops extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardWidth = (MediaQuery.sizeOf(context).width * .78).clamp(
+    final cardWidth = (MediaQuery.sizeOf(context).width * .76).clamp(
       250.0,
       310.0,
     );
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final cardHeight = cardWidth * (textScale > 1.1 ? 1.0 : .9);
+    final cardHeight = cardWidth * (textScale > 1.1 ? 1.05 : 1.0);
     return Container(
       margin: const EdgeInsets.only(top: AppSpace.sectionGap),
       child: Stack(
@@ -35,37 +38,33 @@ class HomeShops extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  color: AppColors.cyan,
+                Padding(
                   padding: const EdgeInsets.fromLTRB(
+                    AppSpace.lg,
                     AppSpace.md,
                     AppSpace.md,
-                    AppSpace.md,
-                    AppSpace.smPlus,
+                    0,
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          context.l10n.shopsNear(shops.length),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.white,
-                            fontSize: 16,
-                            height: 1.15,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpace.sm),
-                      _ExploreShopsButton(
-                        onPressed: () => _showComingSoon(context),
-                      ),
-                    ],
+                  child: Text(
+                    context.l10n.shopsNear(shops.length),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 20,
+                      height: 1.12,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
-                const SizedBox(height: AppSpace.smPlus),
+                const SizedBox(height: AppSpace.mdPlus),
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpace.md),
+                  child: _ExploreShopsButton(
+                    onPressed: () => _showComingSoon(context),
+                  ),
+                ),
+                const SizedBox(height: AppSpace.lg),
                 if (shops.isEmpty)
                   SizedBox(
                     height: cardHeight,
@@ -82,7 +81,7 @@ class HomeShops extends StatelessWidget {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpace.md,
+                        horizontal: AppSpace.lg,
                       ),
                       itemCount: shops.length,
                       separatorBuilder: (_, _) =>
@@ -122,12 +121,12 @@ class _ExploreShopsButton extends StatelessWidget {
       onTap: onPressed,
       borderRadius: BorderRadius.circular(22),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         child: Text(
           context.l10n.exploreNow,
           style: const TextStyle(
             color: AppColors.cyan,
-            fontSize: 10,
+            fontSize: 12,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -155,17 +154,17 @@ class _NearbyShopCard extends StatelessWidget {
     height: height,
     child: Material(
       color: AppColors.white,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpace.sm),
+        padding: const EdgeInsets.all(AppSpace.smPlus),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               child: SizedBox(
                 width: double.infinity,
-                height: width * .5,
+                height: (width - AppSpace.mdPlus) * .56,
                 child: SeedImage(
                   assetName: _shopCardImage,
                   fit: BoxFit.cover,
@@ -180,7 +179,7 @@ class _NearbyShopCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppColors.ink,
-                fontSize: 12,
+                fontSize: 13,
                 height: 1.15,
                 fontWeight: FontWeight.w800,
               ),
@@ -188,11 +187,11 @@ class _NearbyShopCard extends StatelessWidget {
             const SizedBox(height: AppSpace.xxs),
             Text(
               context.l10n.shopRegion,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppColors.bodyMuted,
-                fontSize: 10,
+                fontSize: 11,
                 height: 1.15,
               ),
             ),
@@ -211,7 +210,7 @@ class _NearbyShopCard extends StatelessWidget {
                   context.l10n.orderOnline,
                   style: const TextStyle(
                     color: AppColors.pink,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -229,24 +228,48 @@ class _ShopLandscapePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawColor(AppColors.rewardsCanvas, BlendMode.src);
+    canvas.drawColor(AppColors.cyan, BlendMode.src);
+    _drawCloud(
+      canvas,
+      Offset(size.width * 1.02, size.height * .09),
+      size.width * .25,
+      _shopCloudShade,
+    );
+    _drawCloud(
+      canvas,
+      Offset(size.width * .97, size.height * .2),
+      size.width * .22,
+      _shopCloud,
+    );
+    _drawCloud(
+      canvas,
+      Offset(size.width * .72, size.height * .5),
+      size.width * .17,
+      _shopCloud,
+    );
+    _drawCloud(
+      canvas,
+      Offset(-size.width * .03, size.height * .57),
+      size.width * .13,
+      _shopCloudBlue,
+    );
     final backHill = Path()
-      ..moveTo(0, size.height * .78)
+      ..moveTo(0, size.height * .72)
       ..cubicTo(
         size.width * .2,
-        size.height * .66,
+        size.height * .62,
         size.width * .33,
-        size.height * .83,
+        size.height * .78,
         size.width * .52,
-        size.height * .75,
+        size.height * .7,
       )
       ..cubicTo(
         size.width * .73,
-        size.height * .65,
+        size.height * .6,
         size.width * .85,
-        size.height * .73,
+        size.height * .69,
         size.width,
-        size.height * .67,
+        size.height * .64,
       )
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
@@ -290,6 +313,18 @@ class _ShopLandscapePainter extends CustomPainter {
         grassPaint,
       );
     }
+  }
+
+  void _drawCloud(Canvas canvas, Offset center, double radius, Color color) {
+    final bounds = Rect.fromCircle(center: center, radius: radius);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [color, Color.lerp(color, AppColors.white, .35)!],
+        ).createShader(bounds),
+    );
   }
 
   void _drawTree(Canvas canvas, Offset base, double scale) {

@@ -625,7 +625,7 @@ abstract class AppLocalizations {
   /// No description provided for @shopsNear.
   ///
   /// In en, this message translates to:
-  /// **'There are {count} J’Donut shops near you'**
+  /// **'There are {count} J’Donut shops near you. 😊'**
   String shopsNear(Object count);
 
   /// No description provided for @exploreNow.
